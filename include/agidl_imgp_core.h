@@ -10,11 +10,14 @@
 *   File: agidl_imgp_core.h
 *   Date: 11/27/2023
 *   Version: 0.1b
-*   Updated: 11/27/2023
+*   Updated: 12/10/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
 
 #include "agidl_imgp_grayscale.h"
+#include "agidl_imgp_rotate.h"
+#include "agidl_imgp_scale.h"
+#include "agidl_imgp_lightmap.h"
 
 #endif

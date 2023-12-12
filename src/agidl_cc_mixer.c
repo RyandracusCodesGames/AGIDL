@@ -9,7 +9,7 @@
 *   File: agidl_cc_mixer.c
 *   Date: 9/10/2023
 *   Version: 0.1b
-*   Updated: 12/7/2023
+*   Updated: 12/9/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -234,6 +234,13 @@ COLOR AGIDL_InterpColor(COLOR clr1, COLOR clr2, float interp, AGIDL_CLR_FMT fmt)
 	u8 b = b1 + interp * (b1 - b2);
 	
 	return AGIDL_RGB(r,g,b,fmt);
+}
+
+COLOR AGIDL_BilerpColor(COLOR clr1, COLOR clr2, COLOR clr3, COLOR clr4, float interp, float bilerp, AGIDL_CLR_FMT fmt){
+	COLOR top = AGIDL_InterpColor(clr1,clr2,interp,fmt);
+	COLOR bottom = AGIDL_InterpColor(clr3,clr4,interp,fmt);
+	
+	return AGIDL_InterpColor(top,bottom,bilerp,fmt);
 }
 
 COLOR AGIDL_GrayscaleColor(COLOR clr, AGIDL_CLR_FMT fmt){

@@ -1,5 +1,5 @@
 #include "agidl_math_utils.h"
-
+#include "agidl_math_trig_tables.h"
 
 /********************************************
 *   Adaptive Graphics Image Display Library
@@ -10,7 +10,7 @@
 *   File: agidl_math_utils.c
 *   Date: 10/22/2023
 *   Version: 0.1b
-*   Updated: 10/25/2023
+*   Updated: 12/9/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -68,4 +68,32 @@ float AGIDL_Absf(float a){
 
 float AGIDL_Clampf(float minVal, float targetVal, float maxVal){
 	return AGIDL_Maxf(AGIDL_Minf(maxVal,targetVal),minVal);
+}
+
+int AGIDL_Floor(int a){
+	return a - (a % 1);
+}
+
+float AGIDL_FModf(float a, float b){
+	int result = (int)AGIDL_Floor( a / b);
+	return a - result * b;
+}
+
+float AGIDL_FixAng(float ang){
+	ang = AGIDL_FModf(ang,360);
+	if(ang < 0){
+		ang += 360;
+	}
+	return ang;
+}
+
+float AGIDL_Sinf(float ang){
+	return sin_lut[(int)AGIDL_FixAng(ang)];
+}
+float AGIDL_Cosf(float ang){
+	return cos_lut[(int)AGIDL_FixAng(ang)];
+}
+
+float AGIDL_Tanf(float ang){
+	return tan_lut[(int)AGIDL_FixAng(ang)];
 }
