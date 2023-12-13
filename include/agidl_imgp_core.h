@@ -10,7 +10,7 @@
 *   File: agidl_imgp_core.h
 *   Date: 11/27/2023
 *   Version: 0.1b
-*   Updated: 12/10/2023
+*   Updated: 12/13/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -19,5 +19,6 @@
 #include "agidl_imgp_rotate.h"
 #include "agidl_imgp_scale.h"
 #include "agidl_imgp_lightmap.h"
+#include "agidl_imgp_filter.h"
 
 #endif

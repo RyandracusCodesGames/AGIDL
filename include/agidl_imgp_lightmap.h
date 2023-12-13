@@ -10,7 +10,7 @@
 *   File: agidl_imgp_lightmap.h
 *   Date: 12/10/2023
 *   Version: 0.2b
-*   Updated: 12/11/2023
+*   Updated: 12/13/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/

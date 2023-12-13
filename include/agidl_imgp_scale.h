@@ -10,7 +10,7 @@
 *   File: agidl_imgp_scale.h
 *   Date: 12/9/2023
 *   Version: 0.2b
-*   Updated: 12/10/2023
+*   Updated: 12/13/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
