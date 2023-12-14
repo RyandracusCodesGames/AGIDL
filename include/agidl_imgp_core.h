@@ -20,5 +20,8 @@
 #include "agidl_imgp_scale.h"
 #include "agidl_imgp_lightmap.h"
 #include "agidl_imgp_filter.h"
+#include "agidl_imgp_mirror.h"
+#include "agidl_imgp_blend.h"
+#include "agidl_imgp_wrap.h"
 
 #endif

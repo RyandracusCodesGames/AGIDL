@@ -682,7 +682,9 @@ void AGIDL_BMPDecodeRLE(AGIDL_BMP* bmp, FILE* file, BMP_IMG_TYPE img_type){
 
 AGIDL_BMP * AGIDL_LoadBMP(char* filename){
 	AGIDL_BMP *bmp = (AGIDL_BMP*)malloc(sizeof(AGIDL_BMP));
-	AGIDL_SetBMPFilename(bmp,filename);
+	
+	bmp->filename = (char*)malloc(strlen(filename)+1);
+	AGIDL_FilenameCpy(bmp->filename,filename);
 	
 	FILE* file = fopen(filename,"rb");
 	

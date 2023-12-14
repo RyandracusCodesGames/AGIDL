@@ -13,7 +13,7 @@
 *   File: agidl_cc_manager.h
 *   Date: 9/8/2023
 *   Version: 0.1b
-*   Updated: 9/15/2023
+*   Updated: 12/13/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -34,6 +34,7 @@ COLOR16 AGIDL_RGB16(u8 r, u8 g, u8 b, AGIDL_CLR_FMT fmt);
 COLOR AGIDL_GetColor(AGIDL_CLR clr, AGIDL_CLR_FMT fmt);
 COLOR16 AGIDL_GetColor16(AGIDL_CLR clr, AGIDL_CLR_FMT fmt);
 
+int AGIDL_IsInThreshold(COLOR clr1, COLOR clr2, AGIDL_CLR_FMT fmt, AGIDL_CLR_FMT fmt2, u8 max_diff);
 void AGIDL_InitICP(AGIDL_ICP *palette, int mode);
 void AGIDL_AddColorICP16(AGIDL_ICP *palette, u8 index, COLOR16 clr, AGIDL_CLR_FMT fmt, int max_diff, int *pass);
 void AGIDL_AddColorICP(AGIDL_ICP *palette, u8 index, COLOR clr, AGIDL_CLR_FMT fmt, int max_diff, int *pass);

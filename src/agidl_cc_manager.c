@@ -1,6 +1,7 @@
 #include "agidl_cc_manager.h"
 #include "agidl_math_utils.h"
-
+#include "agidl_img_types.h"
+#include "agidl_cc_converter.h"
 /********************************************
 *   Adaptive Graphics Image Display Library
 *
@@ -10,7 +11,7 @@
 *   File: agidl_cc_manager.c
 *   Date: 9/8/2023
 *   Version: 0.1b
-*   Updated: 11/22/2023
+*   Updated: 12/13/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -686,6 +687,55 @@ COLOR AGIDL_GetColor(AGIDL_CLR clr, AGIDL_CLR_FMT fmt){
 		}break;
 	}
 	return 0;
+}
+
+int AGIDL_IsInThreshold(COLOR clr1, COLOR clr2, AGIDL_CLR_FMT fmt, AGIDL_CLR_FMT fmt2, u8 max_diff){
+	if((AGIDL_GetBitCount(fmt) == 24 || AGIDL_GetBitCount(fmt) == 32) && (AGIDL_GetBitCount(fmt2) == 24 || AGIDL_GetBitCount(fmt2) == 32)){
+		u8 r = AGIDL_GetR(clr1,fmt);
+		u8 g = AGIDL_GetG(clr1,fmt);
+		u8 b = AGIDL_GetB(clr1,fmt);
+		
+		u8 r2 = AGIDL_GetR(clr2,fmt2);
+		u8 g2 = AGIDL_GetG(clr2,fmt2);
+		u8 b2 = AGIDL_GetB(clr2,fmt2);
+		
+		if(AGIDL_Abs(r-r2) <= max_diff && AGIDL_Abs(g-g2) <= max_diff && AGIDL_Abs(b-b2) <= max_diff){
+			return 0;
+		}
+		else return 1;
+	}
+	else if(AGIDL_GetBitCount(fmt) == 16 && (AGIDL_GetBitCount(fmt2) == 24 || AGIDL_GetBitCount(fmt2) == 32)){
+		clr2 = AGIDL_CLR_TO_CLR16(clr2,fmt2,fmt); 
+		
+		u8 r = AGIDL_GetR(clr1,fmt);
+		u8 g = AGIDL_GetG(clr1,fmt);
+		u8 b = AGIDL_GetB(clr1,fmt);
+		
+		u8 r2 = AGIDL_GetR(clr2,fmt);
+		u8 g2 = AGIDL_GetG(clr2,fmt);
+		u8 b2 = AGIDL_GetB(clr2,fmt);
+		
+		if(AGIDL_Abs(r-r2) <= max_diff && AGIDL_Abs(g-g2) <= max_diff && AGIDL_Abs(b-b2) <= max_diff){
+			return 0;
+		}
+		else return 1;
+	}
+	else{
+		clr1 = AGIDL_CLR_TO_CLR16(clr1,fmt,fmt2); 
+		
+		u8 r = AGIDL_GetR(clr1,fmt2);
+		u8 g = AGIDL_GetG(clr1,fmt2);
+		u8 b = AGIDL_GetB(clr1,fmt2);
+		
+		u8 r2 = AGIDL_GetR(clr2,fmt2);
+		u8 g2 = AGIDL_GetG(clr2,fmt2);
+		u8 b2 = AGIDL_GetB(clr2,fmt2);
+		
+		if(AGIDL_Abs(r-r2) <= max_diff && AGIDL_Abs(g-g2) <= max_diff && AGIDL_Abs(b-b2) <= max_diff){
+			return 0;
+		}
+		else return 1;
+	}
 }
 
 void AGIDL_InitICP(AGIDL_ICP *palette, int mode){

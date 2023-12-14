@@ -22,12 +22,26 @@ void AGIDL_FilterImgDataBilerp(void* data, u32 width, u32 height, AGIDL_CLR_FMT 
 		COLOR* clrs = (COLOR*)data;
 
 		u16 x,y;
-		for(y = 0; y < height - 1; y++){
-			for(x = 0; x < width - 1; x++){
+		for(y = 0; y < height; y++){
+			for(x = 0; x < width; x++){
 				COLOR clr1 = AGIDL_GetClr(clrs,x,y,width,height);
 				COLOR clr2 = AGIDL_GetClr(clrs,x+1,y,width,height);
 				COLOR clr3 = AGIDL_GetClr(clrs,x,y+1,width,height);
 				COLOR clr4 = AGIDL_GetClr(clrs,x+1,y+1,width,height);
+				
+				if(x == width-1){
+					clr1 = AGIDL_GetClr(clrs,x,y,width,height);
+					clr2 = AGIDL_GetClr(clrs,x-1,y,width,height);
+					clr3 = AGIDL_GetClr(clrs,x,y+1,width,height);
+					clr4 = AGIDL_GetClr(clrs,x-1,y+1,width,height);
+				}
+				
+				if(y == height-1){
+					clr1 = AGIDL_GetClr(clrs,x,y,width,height);
+					clr2 = AGIDL_GetClr(clrs,x+1,y,width,height);
+					clr3 = AGIDL_GetClr(clrs,x,y-1,width,height);
+					clr4 = AGIDL_GetClr(clrs,x+1,y-1,width,height);
+				}
 				
 				COLOR clr = AGIDL_BilerpColor(clr1,clr2,clr3,clr4,0.5,0.5,fmt);
 				
@@ -39,12 +53,26 @@ void AGIDL_FilterImgDataBilerp(void* data, u32 width, u32 height, AGIDL_CLR_FMT 
 		COLOR16* clrs = (COLOR16*)data;
 
 		u16 x,y;
-		for(y = 0; y < height - 1; y++){
-			for(x = 0; x < width - 1; x++){
+		for(y = 0; y < height; y++){
+			for(x = 0; x < width; x++){
 				COLOR16 clr1 = AGIDL_GetClr16(clrs,x,y,width,height);
 				COLOR16 clr2 = AGIDL_GetClr16(clrs,x+1,y,width,height);
 				COLOR16 clr3 = AGIDL_GetClr16(clrs,x,y+1,width,height);
 				COLOR16 clr4 = AGIDL_GetClr16(clrs,x+1,y+1,width,height);
+				
+				if(x == width-1){
+					clr1 = AGIDL_GetClr16(clrs,x,y,width,height);
+					clr2 = AGIDL_GetClr16(clrs,x-1,y,width,height);
+					clr3 = AGIDL_GetClr16(clrs,x,y+1,width,height);
+					clr4 = AGIDL_GetClr16(clrs,x-1,y+1,width,height);
+				}
+				
+				if(y == height-1){
+					clr1 = AGIDL_GetClr16(clrs,x,y,width,height);
+					clr2 = AGIDL_GetClr16(clrs,x+1,y,width,height);
+					clr3 = AGIDL_GetClr16(clrs,x,y-1,width,height);
+					clr4 = AGIDL_GetClr16(clrs,x+1,y-1,width,height);
+				}
 				
 				COLOR16 clr = AGIDL_BilerpColor(clr1,clr2,clr3,clr4,0.5,0.5,fmt);
 				
@@ -72,8 +100,8 @@ void AGIDL_FilterImgDataTrilerp(void* data, u32 width, u32 height, AGIDL_CLR_FMT
 		float y_scale = ((float)(h-1)/height);
 		
 		u32 x,y;
-		for(y = 0; y < height - 1; y++){
-			for(x = 0; x < width - 1; x++){
+		for(y = 0; y < height; y++){
+			for(x = 0; x < width; x++){
 				
 				u16 xx = (x * x_scale);
 				u16 yy = (y * y_scale);
@@ -87,6 +115,30 @@ void AGIDL_FilterImgDataTrilerp(void* data, u32 width, u32 height, AGIDL_CLR_FMT
 				COLOR clr2s = AGIDL_GetClr(clrscale,xx+1,yy,w,h);
 				COLOR clr3s = AGIDL_GetClr(clrscale,xx,yy+1,w,h);
 				COLOR clr4s = AGIDL_GetClr(clrscale,xx+1,yy+1,w,h);
+				
+				if(x == width-1){
+					clr1 = AGIDL_GetClr(clrs,x,y,width,height);
+					clr2 = AGIDL_GetClr(clrs,x-1,y,width,height);
+					clr3 = AGIDL_GetClr(clrs,x,y+1,width,height);
+					clr4 = AGIDL_GetClr(clrs,x-1,y+1,width,height);
+					
+					clr1s = AGIDL_GetClr(clrscale,xx,yy,w,h);
+					clr2s = AGIDL_GetClr(clrscale,xx-1,yy,w,h);
+					clr3s = AGIDL_GetClr(clrscale,xx,yy+1,w,h);
+					clr4s = AGIDL_GetClr(clrscale,xx-1,yy+1,w,h);
+				}
+				
+				if(y == height-1){
+					clr1 = AGIDL_GetClr(clrs,x,y,width,height);
+					clr2 = AGIDL_GetClr(clrs,x+1,y,width,height);
+					clr3 = AGIDL_GetClr(clrs,x,y-1,width,height);
+					clr4 = AGIDL_GetClr(clrs,x+1,y-1,width,height);
+					
+					clr1s = AGIDL_GetClr(clrscale,xx,yy,w,h);
+					clr2s = AGIDL_GetClr(clrscale,xx+1,yy,w,h);
+					clr3s = AGIDL_GetClr(clrscale,xx,yy-1,w,h);
+					clr4s = AGIDL_GetClr(clrscale,xx+1,yy-1,w,h);
+				}
 				
 				COLOR clrbilerp1 = AGIDL_BilerpColor(clr1,clr2,clr3,clr4,0.5f,0.5f,fmt);
 				COLOR clrbilerp2 = AGIDL_BilerpColor(clr1s,clr2s,clr3s,clr4s,0.5f,0.5f,fmt);
@@ -116,8 +168,8 @@ void AGIDL_FilterImgDataTrilerp(void* data, u32 width, u32 height, AGIDL_CLR_FMT
 		float y_scale = ((float)(h-1)/height);
 		
 		u32 x,y;
-		for(y = 0; y < height - 1; y++){
-			for(x = 0; x < width - 1; x++){
+		for(y = 0; y < height; y++){
+			for(x = 0; x < width; x++){
 				
 				u16 xx = (x * x_scale);
 				u16 yy = (y * y_scale);
@@ -131,6 +183,30 @@ void AGIDL_FilterImgDataTrilerp(void* data, u32 width, u32 height, AGIDL_CLR_FMT
 				COLOR16 clr2s = AGIDL_GetClr16(clrscale,xx+1,yy,w,h);
 				COLOR16 clr3s = AGIDL_GetClr16(clrscale,xx,yy+1,w,h);
 				COLOR16 clr4s = AGIDL_GetClr16(clrscale,xx+1,yy+1,w,h);
+				
+				if(x == width-1){
+					clr1 = AGIDL_GetClr16(clrs,x,y,width,height);
+					clr2 = AGIDL_GetClr16(clrs,x-1,y,width,height);
+					clr3 = AGIDL_GetClr16(clrs,x,y+1,width,height);
+					clr4 = AGIDL_GetClr16(clrs,x-1,y+1,width,height);
+					
+					clr1s = AGIDL_GetClr16(clrscale,xx,yy,w,h);
+					clr2s = AGIDL_GetClr16(clrscale,xx-1,yy,w,h);
+					clr3s = AGIDL_GetClr16(clrscale,xx,yy+1,w,h);
+					clr4s = AGIDL_GetClr16(clrscale,xx-1,yy+1,w,h);
+				}
+				
+				if(y == height-1){
+					clr1 = AGIDL_GetClr16(clrs,x,y,width,height);
+					clr2 = AGIDL_GetClr16(clrs,x+1,y,width,height);
+					clr3 = AGIDL_GetClr16(clrs,x,y-1,width,height);
+					clr4 = AGIDL_GetClr16(clrs,x+1,y-1,width,height);
+					
+					clr1s = AGIDL_GetClr16(clrscale,xx,yy,w,h);
+					clr2s = AGIDL_GetClr16(clrscale,xx+1,yy,w,h);
+					clr3s = AGIDL_GetClr16(clrscale,xx,yy-1,w,h);
+					clr4s = AGIDL_GetClr16(clrscale,xx+1,yy-1,w,h);
+				}
 				
 				COLOR16 clrbilerp1 = AGIDL_BilerpColor(clr1,clr2,clr3,clr4,0.5f,0.5f,fmt);
 				COLOR16 clrbilerp2 = AGIDL_BilerpColor(clr1s,clr2s,clr3s,clr4s,0.5f,0.5f,fmt);
