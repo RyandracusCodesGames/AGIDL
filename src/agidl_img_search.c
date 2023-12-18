@@ -124,7 +124,7 @@ void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type){
 					AGIDL_ExportBTI(bti);
 					AGIDL_FreeBTI(bti);
 				}break;
-				
+				AGIDL_FreeTIM(tim);
 			}
 		}
 		else{
@@ -148,14 +148,14 @@ void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type){
 				fseek(file,curr-19,SEEK_SET);
 			}
 			
+			free(tim);
+			
 			if(curr >= file_size){
 				printf("Exceeded file size! Closing file stream!\n");
 				fclose(file);
 				return;
 			}
 		}
-		
-		AGIDL_FreeTIM(tim);
 	}
 
 	fclose(file);
