@@ -75,7 +75,6 @@ void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type){
 					tim->filename = (char*)malloc(strlen(file_name)+1);
 					AGIDL_FilenameCpy(tim->filename,file_name);
 					AGIDL_TGA* tga = AGIDL_ConvertTIM2TGA(tim);
-					printf("%s\n",tga->filename);
 					AGIDL_ExportTGA(tga);
 					AGIDL_FreeTGA(tga);
 				}break;
@@ -158,9 +157,6 @@ void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type){
 		
 		AGIDL_FreeTIM(tim);
 	}
-	
-	printf("curr = %ld\n",ftell(file));
-	printf("file size = %ld\n",file_size);
 
 	fclose(file);
 }

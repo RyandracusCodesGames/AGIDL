@@ -151,8 +151,9 @@ void AGIDL_TGASyncPix16(AGIDL_TGA *tga, COLOR16 *clrs){
 
 void AGIDL_FreeTGA(AGIDL_TGA *tga){
 	free(tga->filename);
+	free(tga);
 	
-	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(tga)) == 16){
+	if(AGIDL_GetBitCount(AGIDL_TGAGetClrFmt(tga)) == 16){
 		free(tga->pixels.pix16);
 	}
 	else{

@@ -234,8 +234,9 @@ AGIDL_BTI* AGIDL_BTICpyImg(AGIDL_BTI* bti){
 
 void AGIDL_FreeBTI(AGIDL_BTI* bti){
 	free(bti->filename);
+	free(bti);
 	
-	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bti)) == 16){
+	if(AGIDL_GetBitCount(AGIDL_BTIGetClrFmt(bti)) == 16){
 		free(bti->pixels.pix16);
 	}
 	else{

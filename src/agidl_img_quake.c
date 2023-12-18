@@ -115,8 +115,9 @@ COLOR16 AGIDL_LMPGetClr16(AGIDL_LMP *lmp, int x, int y){
 
 void AGIDL_FreeLMP(AGIDL_LMP *lmp){
 	free(lmp->filename);
+	free(lmp);
 	
-	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(lmp)) == 16){
+	if(AGIDL_GetBitCount(AGIDL_LMPGetClrFmt(lmp)) == 16){
 		free(lmp->pixels.pix16);
 	}
 	else{

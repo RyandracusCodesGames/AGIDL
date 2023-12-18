@@ -216,8 +216,9 @@ AGIDL_GXT* AGIDL_GXTCpyImg(AGIDL_GXT* gxt){
 
 void AGIDL_FreeGXT(AGIDL_GXT* gxt){
 	free(gxt->filename);
+	free(gxt);
 	
-	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(gxt)) == 16){
+	if(AGIDL_GetBitCount(AGIDL_GXTGetClrFmt(gxt)) == 16){
 		free(gxt->pixels.pix16);
 	}
 	else{

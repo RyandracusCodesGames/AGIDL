@@ -138,8 +138,9 @@ COLOR16 AGIDL_PCXGetClr16(AGIDL_PCX *pcx, int x, int y){
 
 void AGIDL_FreePCX(AGIDL_PCX *pcx){
 	free(pcx->filename);
+	free(pcx);
 	
-	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(pcx)) == 16){
+	if(AGIDL_GetBitCount(AGIDL_PCXGetClrFmt(pcx)) == 16){
 		free(pcx->pixels.pix16);
 	}
 	else{

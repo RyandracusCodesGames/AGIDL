@@ -153,6 +153,7 @@ int AGIDL_IsTIMHeader(AGIDL_TIM* tim){
 
 void AGIDL_FreeTIM(AGIDL_TIM *tim){
 	free(tim->filename);
+	free(tim);
 	
 	if(AGIDL_GetBitCount(AGIDL_TIMGetClrFmt(tim)) == 16){
 		free(tim->pixels.pix16);

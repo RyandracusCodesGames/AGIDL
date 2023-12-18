@@ -137,8 +137,9 @@ COLOR16 AGIDL_PVRGetClr16(AGIDL_PVR* pvr, int x, int y){
 
 void AGIDL_FreePVR(AGIDL_PVR* pvr){
 	free(pvr->filename);
+	free(pvr);
 	
-	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(pvr)) == 16){
+	if(AGIDL_GetBitCount(AGIDL_PVRGetClrFmt(pvr)) == 16){
 		free(pvr->pixels.pix16);
 	}
 	else{

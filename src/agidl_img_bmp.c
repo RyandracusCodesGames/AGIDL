@@ -177,6 +177,7 @@ void AGIDL_BMPSyncPix16(AGIDL_BMP *bmp, COLOR16 *clrs){
 
 void AGIDL_FreeBMP(AGIDL_BMP *bmp){
 	free(bmp->filename);
+	free(bmp);
 	
 	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
 		free(bmp->pixels.pix16);
@@ -210,7 +211,7 @@ AGIDL_CLR_FMT AGIDL_BMPGetClrFmt(AGIDL_BMP* bmp){
 	return bmp->fmt;
 }
 
-BMP_IMG_TYPE AGIDL_BMPGetImgType(int bits){
+BMP_IMG_TYPE AGIDL_BMPGebmpgType(int bits){
 	switch(bits){
 		case 4:{
 			return BMP_IMG_TYPE_ICP_16;
@@ -722,7 +723,7 @@ AGIDL_BMP * AGIDL_LoadBMP(char* filename){
 	
 	AGIDL_BMPDecodeHeader(bmp,file);
 	
-	BMP_IMG_TYPE img_type = AGIDL_BMPGetImgType(bmp->header.bits);
+	BMP_IMG_TYPE img_type = AGIDL_BMPGebmpgType(bmp->header.bits);
 	
 	AGIDL_BMPDecodeIMG(bmp,file,img_type);
 	AGIDL_BMPDecodeRLE(bmp,file,img_type);
