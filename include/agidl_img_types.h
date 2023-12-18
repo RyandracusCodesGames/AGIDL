@@ -10,7 +10,7 @@
 *   File: agidl_img_types.h
 *   Date: 9/15/2023
 *   Version: 0.1b
-*   Updated: 11/30/2023
+*   Updated: 12/17/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -38,8 +38,20 @@ typedef enum AGIDL_IMG_TYPE{
 	AGIDL_IMG_SPR = 0x9,
 }AGIDL_IMG_TYPE;
 
+typedef enum AGIDL_FILE_TYPE{
+	F_SOURCE = 0x1,
+	F_HEADER = 0x2,
+	F_BIN = 0x4,
+}AGIDL_FILE_TYPE;
+
+typedef enum AGIDL_ARR_TYPE{
+	ARR = 0x1,
+	ARR2D = 0x2,
+}AGIDL_ARR_TYPE;
+
 void AGIDL_FilenameCpy(char *filedest, const char *filesrc);
-char* AGIDL_StrCpy(char* a, char *b);
+char* AGIDL_StrCpy(char* a, char*b);
+void AGIDL_StrCpy2(char* dest, char *a, char *b);
 char* AGIDL_GetImgExtension(AGIDL_IMG_TYPE img);
 char* AGIDL_GetImgName(char* filename);
 void AGIDL_ClrMemcpy(COLOR *dest, COLOR *src, u32 count);
@@ -52,6 +64,7 @@ u8 AGIDL_GetBitCount(AGIDL_CLR_FMT fmt);
 void AGIDL_ExtractAndPrintBGR(FILE* file, COLOR clr, AGIDL_CLR_FMT fmt);
 void AGIDL_ExtractAndPrintRGB(FILE* file, COLOR clr, AGIDL_CLR_FMT fmt);
 void AGIDL_ExtractAndPrintRGBA(FILE* file, COLOR clr, AGIDL_CLR_FMT fmt);
+void AGIDL_ExportRawColors(void* data, u32 width, u32 height, AGIDL_CLR_FMT fmt, AGIDL_FILE_TYPE ftype, AGIDL_ARR_TYPE arrtype, u8 rgb);
 COLOR AGIDL_GetClr(COLOR* clrs, int x, int y, int width, int height);
 COLOR16 AGIDL_GetClr16(COLOR16* clrs, int x, int y, int width, int height);
 void AGIDL_SetClr(COLOR* clrs, COLOR clr, int x, int y, int width, int height);

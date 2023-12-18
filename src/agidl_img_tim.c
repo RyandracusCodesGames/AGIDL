@@ -13,7 +13,7 @@
 *   File: agidl_img_tim.c
 *   Date: 9/19/2023
 *   Version: 0.1b
-*   Updated: 11/30/2023
+*   Updated: 12/17/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -36,11 +36,21 @@ void AGIDL_TIMSetClrFmt(AGIDL_TIM *tim, AGIDL_CLR_FMT fmt){
 }
 
 void AGIDL_TIMSetClr(AGIDL_TIM *tim, int x, int y, COLOR clr){
-	AGIDL_SetClr(tim->pixels.pix32,clr,x,y,AGIDL_TIMGetWidth(tim),AGIDL_TIMGetHeight(tim));
+	if(AGIDL_GetBitCount(AGIDL_TIMGetClrFmt(tim)) != 16){
+		AGIDL_SetClr(tim->pixels.pix32,clr,x,y,AGIDL_TIMGetWidth(tim),AGIDL_TIMGetHeight(tim));
+	}
+	else{
+		AGIDL_SetClr16(tim->pixels.pix16,AGIDL_CLR_TO_CLR16(clr,AGIDL_BGR_888,AGIDL_TIMGetClrFmt(tim)),x,y,AGIDL_TIMGetWidth(tim),AGIDL_TIMGetHeight(tim));
+	}
 }
 
 void AGIDL_TIMSetClr16(AGIDL_TIM *tim, int x, int y, COLOR16 clr){
-	AGIDL_SetClr16(tim->pixels.pix16,clr,x,y,AGIDL_TIMGetWidth(tim),AGIDL_TIMGetHeight(tim));
+	if(AGIDL_GetBitCount(AGIDL_TIMGetClrFmt(tim) == 16)){
+		AGIDL_SetClr16(tim->pixels.pix16,clr,x,y,AGIDL_TIMGetWidth(tim),AGIDL_TIMGetHeight(tim));
+	}
+	else{
+		AGIDL_SetClr(tim->pixels.pix32,AGIDL_CLR16_TO_CLR(clr,AGIDL_RGB_555,AGIDL_TIMGetClrFmt(tim)),x,y,AGIDL_TIMGetWidth(tim),AGIDL_TIMGetHeight(tim));
+	}
 }
 
 void AGIDL_TIMSetRGB(AGIDL_TIM *tim, int x, int y, u8 r, u8 g, u8 b){
@@ -66,11 +76,21 @@ void AGIDL_TIMSetMaxDiff(AGIDL_TIM* tim, int max_diff){
 }
 
 void AGIDL_ClearTIM(AGIDL_TIM *tim, COLOR clr){
-	AGIDL_ClrMemset(tim->pixels.pix32,clr,AGIDL_TIMGetWidth(tim)*AGIDL_TIMGetHeight(tim));
+	if(AGIDL_GetBitCount(AGIDL_TIMGetClrFmt(tim)) != 16){
+		AGIDL_ClrMemset(tim->pixels.pix32,clr,AGIDL_TIMGetSize(tim));
+	}
+	else{
+		AGIDL_ClrMemset16(tim->pixels.pix16,(COLOR16)clr,AGIDL_TIMGetSize(tim));
+	}
 }
 
 void AGIDL_ClearTIM16(AGIDL_TIM *tim, COLOR16 clr){
-	AGIDL_ClrMemset16(tim->pixels.pix16,clr,AGIDL_TIMGetWidth(tim)*AGIDL_TIMGetHeight(tim));
+	if(AGIDL_GetBitCount(AGIDL_TIMGetClrFmt(tim)) == 16){
+		AGIDL_ClrMemset16(tim->pixels.pix16,clr,AGIDL_TIMGetSize(tim));
+	}
+	else{
+		AGIDL_ClrMemset(tim->pixels.pix32,AGIDL_CLR16_TO_CLR(clr,AGIDL_RGB_555,AGIDL_TIMGetClrFmt(tim)),AGIDL_TIMGetSize(tim));
+	}
 }
 
 int AGIDL_TIMGetWidth(AGIDL_TIM *tim){
@@ -105,15 +125,42 @@ COLOR16 AGIDL_TIMGetClr16(AGIDL_TIM *tim, int x, int y){
 	}
 }
 
-int AGIDL_IsTIM(u32 type){
-	if(type == 0x2 || type == 0x3 || type == 0x8 || type == 0x9){
-		return 1;
+int AGIDL_IsTIM(AGIDL_TIM* tim){
+	if(tim->header.version == TIM_8BPP || tim->header.version == TIM_4BPP){
+		if(AGIDL_IsTIMHeader(tim) && AGIDL_TIMGetWidth(tim) > 0 && AGIDL_TIMGetHeight(tim) > 0 && AGIDL_TIMGetWidth(tim) < 1024
+		&& AGIDL_TIMGetHeight(tim) < 1024 && tim->clut_header.num_icps > 0 && tim->clut_header.num_clrs >= 16
+		&& tim->clut_header.num_clrs <= 256){
+			return 1;
+		}
+		else return 0;
 	}
-	else return 0;
+	else{
+		if(AGIDL_IsTIMHeader(tim) && AGIDL_TIMGetWidth(tim) > 0 && AGIDL_TIMGetHeight(tim) > 0 && AGIDL_TIMGetWidth(tim) < 1024
+		&& AGIDL_TIMGetHeight(tim) < 1024){
+			return 1;
+		}
+		else return 0;
+	}
+}
+
+int AGIDL_IsTIMHeader(AGIDL_TIM* tim){
+	if(tim->header.magic == 0x10 && (tim->header.version == 0x02
+		|| tim->header.version == 0x03 || tim->header.version == 0x08 || tim->header.version == 0x09)){
+			return 1;
+		}
+		else return 0;
 }
 
 void AGIDL_FreeTIM(AGIDL_TIM *tim){
-	free(tim);
+	free(tim->filename);
+	
+	if(AGIDL_GetBitCount(AGIDL_TIMGetClrFmt(tim)) == 16){
+		free(tim->pixels.pix16);
+	}
+	else{
+		free(tim->pixels.pix32);
+	}
+
 	if(tim != NULL){
 		tim = NULL;
 	}
@@ -242,6 +289,10 @@ void AGIDL_TIMDecodeIMG(AGIDL_TIM* tim, FILE* file){
 			
 			tim->pixels.pix16 = (COLOR16*)malloc(sizeof(COLOR16)*(AGIDL_TIMGetWidth(tim)*AGIDL_TIMGetHeight(tim)));
 			
+			if(!AGIDL_IsTIM(tim)){
+				return;
+			}
+			
 			int x,y;
 			for(y = 0; y < AGIDL_TIMGetHeight(tim); y++){
 				for(x = 0; x < AGIDL_TIMGetWidth(tim); x+=4){
@@ -253,10 +304,10 @@ void AGIDL_TIMDecodeIMG(AGIDL_TIM* tim, FILE* file){
 					u16 index3 = (index & 0xF00) >> 8;
 					u16 index4 = (index & 0xF000) >> 12;
 					
-					COLOR clr  = tim->palette.icp.palette_16b_16[index1];
-					COLOR clr2 = tim->palette.icp.palette_16b_16[index2];
-					COLOR clr3 = tim->palette.icp.palette_16b_16[index3];
-					COLOR clr4 = tim->palette.icp.palette_16b_16[index4];
+					COLOR16 clr  = tim->palette.icp.palette_16b_16[index1];
+					COLOR16 clr2 = tim->palette.icp.palette_16b_16[index2];
+					COLOR16 clr3 = tim->palette.icp.palette_16b_16[index3];
+					COLOR16 clr4 = tim->palette.icp.palette_16b_16[index4];
 					
 					AGIDL_TIMSetClr16(tim,x,y,clr);
 					AGIDL_TIMSetClr16(tim,x+1,y,clr2);
@@ -266,12 +317,10 @@ void AGIDL_TIMDecodeIMG(AGIDL_TIM* tim, FILE* file){
 			}
 		}
 	}
-	
-	if(tim->header.version == TIM_8BPP){
-		
+	else if(tim->header.version == TIM_8BPP){
+
 		AGIDL_TIMSetClrFmt(tim,AGIDL_BGR_555);
-	
-		fread(&tim->header.version,4,1,file);
+		
 		fread(&tim->clut_header.clut_size,4,1,file);
 		fread(&tim->clut_header.pal_mem_add_x,2,1,file);
 		fread(&tim->clut_header.pal_mem_add_y,2,1,file);
@@ -279,6 +328,7 @@ void AGIDL_TIMDecodeIMG(AGIDL_TIM* tim, FILE* file){
 		fread(&tim->clut_header.num_icps,2,1,file);
 	
 		if(tim->clut_header.num_clrs == 256 || tim->clut_header.num_icps == 256){
+	
 			int i;
 			for(i = 0; i < 256; i++){
 				COLOR16 clr = 0;
@@ -296,6 +346,10 @@ void AGIDL_TIMDecodeIMG(AGIDL_TIM* tim, FILE* file){
 			
 			tim->pixels.pix16 = (COLOR16*)malloc(sizeof(COLOR16)*(AGIDL_TIMGetWidth(tim)*AGIDL_TIMGetHeight(tim)));
 			
+			if(!AGIDL_IsTIM(tim)){
+				return;
+			}
+			
 			int x,y;
 			for(y = 0; y < AGIDL_TIMGetHeight(tim); y++){
 				for(x = 0; x < AGIDL_TIMGetWidth(tim); x++){
@@ -309,8 +363,7 @@ void AGIDL_TIMDecodeIMG(AGIDL_TIM* tim, FILE* file){
 			}
 		}
 	}
-	
-	if(tim->header.version == TIM_16BPP){
+	else if(tim->header.version == TIM_16BPP){
 	
 		AGIDL_TIMSetClrFmt(tim,AGIDL_BGR_555);
 		
@@ -319,6 +372,10 @@ void AGIDL_TIMDecodeIMG(AGIDL_TIM* tim, FILE* file){
 		fread(&tim->img_header.img_mem_add_y,2,1,file);
 		fread(&tim->img_header.width,2,1,file);
 		fread(&tim->img_header.height,2,1,file);
+		
+		if(!AGIDL_IsTIM(tim)){
+			return;
+		}
 		
 		tim->pixels.pix16 = (COLOR16*)malloc(sizeof(COLOR16)*(AGIDL_TIMGetWidth(tim)*AGIDL_TIMGetHeight(tim)));
 		
@@ -331,8 +388,7 @@ void AGIDL_TIMDecodeIMG(AGIDL_TIM* tim, FILE* file){
 			}
 		}
 	}
-	
-	if(tim->header.version == TIM_24BPP){
+	else{
 		
 		AGIDL_TIMSetClrFmt(tim,AGIDL_RGB_888);
 	
@@ -341,6 +397,10 @@ void AGIDL_TIMDecodeIMG(AGIDL_TIM* tim, FILE* file){
 		fread(&tim->img_header.img_mem_add_y,2,1,file);
 		fread(&tim->img_header.width,2,1,file);
 		fread(&tim->img_header.height,2,1,file);
+		
+		if(!AGIDL_IsTIM(tim)){
+			return;
+		}
 		
 		tim->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*(AGIDL_TIMGetWidth(tim)*AGIDL_TIMGetHeight(tim)));
 		

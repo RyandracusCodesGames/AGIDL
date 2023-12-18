@@ -13,7 +13,7 @@
 *   File: agidl_img_types.c
 *   Date: 9/16/2023
 *   Version: 0.1b
-*   Updated: 11/30/2023
+*   Updated: 12/17/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -30,6 +30,15 @@ void AGIDL_FilenameCpy(char *filedest, const char *filesrc){
 	filedest[strlen(filesrc)] = '\0';
 }
 
+void AGIDL_StrCpy2(char* dest, char *a, char *b){
+	int lenA = strlen(a);
+	int lenB = strlen(b);
+	
+	memcpy(dest,a,lenA);
+	memcpy(dest+lenA,b,lenB);
+	dest[lenA+lenB] = '\0';
+}
+
 char* AGIDL_StrCpy(char *a, char *b){
 	int lenA = strlen(a);
 	int lenB = strlen(b);
@@ -39,11 +48,10 @@ char* AGIDL_StrCpy(char *a, char *b){
 	memcpy(c,a,lenA);
 	memcpy(c+lenA,b,lenB);
 	c[lenA+lenB] = '\0';
-	return c;
 }
 
 char* AGIDL_GetImgExtension(AGIDL_IMG_TYPE img){
-	char* ext;
+	char* ext = (char*)malloc(sizeof(char)*5);
 	switch(img){
 		case AGIDL_IMG_BMP:{
 			ext = ".bmp";
@@ -84,7 +92,7 @@ char* AGIDL_GetImgName(char* filename){
 			break;
 		}
 	}
-	char* name = (char*)malloc((sizeof(char)*count)+1);
+	char* name = (char*)malloc((sizeof(char)*(count)+1));
 	memcpy(name,filename,count);
 	name[count] = '\0';
 	return name;
@@ -213,6 +221,278 @@ void AGIDL_ExtractAndPrintRGBA(FILE* file, COLOR clr, AGIDL_CLR_FMT fmt){
 			fwrite(&g,1,1,file);
 			fwrite(&b,1,1,file);
 		}break;
+	}
+}
+
+u32 count = 0;
+
+void AGIDL_ExportRawColors(void* data, u32 width, u32 height, AGIDL_CLR_FMT fmt, AGIDL_FILE_TYPE ftype, AGIDL_ARR_TYPE arrtype, u8 rgb){
+	if(AGIDL_GetBitCount(fmt) == 24){
+		COLOR* clrs = (COLOR*)data;
+		if((ftype & F_HEADER) && (arrtype & ARR)){
+			char filename[50];
+			sprintf(filename,"imgdata_%d.h",count);
+			
+			FILE* file = fopen(filename,"w");
+			
+			fprintf(file,"#ifndef IMG_DATA_%d_H\n",count);
+			fprintf(file,"#define IMG_DATA_%d_H\n",count);
+			fputs("\n",file);
+			fprintf(file,"int width = %d;\n",width);
+			fprintf(file,"int height = %d;\n",height);
+			fputs("\n",file);
+			
+			if(rgb != 2){
+				fprintf(file,"int img[%d] = {\n",width*height*3);
+			}
+			else{
+				fprintf(file,"int img[%d] = {\n",width*height);
+			}
+			
+			int x,y;
+			for(y = 0; y < height; y++){
+				for(x = 0; x < width; x++){
+					COLOR clr = AGIDL_GetClr(clrs,x,y,width,height);
+					u8 r = AGIDL_GetR(clr,fmt);
+					u8 g = AGIDL_GetG(clr,fmt);
+					u8 b = AGIDL_GetB(clr,fmt);
+					if(x > 0 && (x % 15) == 0){
+						fputs("\n",file);
+					}
+					
+					if(rgb == 1){
+						fprintf(file,"%d,%d,%d,",r,g,b);
+					}
+					else if(rgb == 2){
+						fprintf(file,"0x%x,",clr);
+					}
+					else{
+						fprintf(file,"%d,%d,%d,",b,g,r);
+					}
+				}
+
+				if(y != height-1){
+					fputs("\n",file);
+				}
+			}
+			
+			fputs("\n};",file);
+			fputs("\n\n",file);
+			fputs("#endif",file);
+			
+			fclose(file);
+			
+			count++;
+		}
+		if((ftype & F_SOURCE) && (arrtype & ARR)){
+			char filename[50];
+			sprintf(filename,"imgdata_%d.c",count);
+			
+			FILE* file = fopen(filename,"w");
+
+			fprintf(file,"int width = %d;\n",width);
+			fprintf(file,"int height = %d;\n",height);
+			fputs("\n",file);
+			
+			if(rgb != 2){
+				fprintf(file,"int img[%d] = {\n",width*height*3);
+			}
+			else{
+				fprintf(file,"int img[%d] = {\n",width*height);
+			}
+
+			
+			int x,y;
+			for(y = 0; y < height; y++){
+				for(x = 0; x < width; x++){
+					COLOR clr = AGIDL_GetClr(clrs,x,y,width,height);
+					u8 r = AGIDL_GetR(clr,fmt);
+					u8 g = AGIDL_GetG(clr,fmt);
+					u8 b = AGIDL_GetB(clr,fmt);
+					if(x > 0 && (x % 15) == 0){
+						fputs("\n",file);
+					}
+					
+					if(rgb == 1){
+						fprintf(file,"%d,%d,%d,",r,g,b);
+					}
+					else if(rgb == 2){
+						fprintf(file,"0x%x,",clr);
+					}
+					else{
+						fprintf(file,"%d,%d,%d,",b,g,r);
+					}
+				}
+
+				if(y != height-1){
+					fputs("\n",file);
+				}
+			}
+			
+			fputs("\n};",file);
+			
+			fclose(file);
+			
+			count++;
+		}
+		
+		if((ftype & F_BIN) && (arrtype & ARR)){
+			char filename[50];
+			sprintf(filename,"imgdata_%d.bin",count);
+			FILE* file = fopen(filename,"wb");
+			
+			int x,y;
+			for(y = 0; y < height; y++){
+				for(x = 0; x < width; x++){
+					COLOR clr = AGIDL_GetClr(clrs,x,y,width,height);
+					
+					if(rgb == 1){
+						AGIDL_ExtractAndPrintRGB(file,clr,fmt);
+					}
+					else{
+						AGIDL_ExtractAndPrintBGR(file,clr,fmt);
+					}
+				}
+			}
+			
+			fclose(file);
+			
+			count++;
+		}
+	}
+	else if(AGIDL_GetBitCount(fmt) == 16){
+		COLOR16* clrs = (COLOR16*)data;
+		if((ftype & F_HEADER) && (arrtype & ARR)){
+			char filename[50];
+			sprintf(filename,"imgdata_%d.h",count);
+			
+			FILE* file = fopen(filename,"w");
+			
+			fprintf(file,"#ifndef IMG_DATA_%d_H\n",count);
+			fprintf(file,"#define IMG_DATA_%d_H\n",count);
+			fputs("\n",file);
+			fprintf(file,"int width = %d;\n",width);
+			fprintf(file,"int height = %d;\n",height);
+			fputs("\n",file);
+			
+			if(rgb != 2){
+				fprintf(file,"unsigned char img[%d] = {\n",width*height*3);
+			}
+			else{
+				fprintf(file,"unsigned short img[%d] = {\n",width*height);
+			}
+
+			
+			int x,y;
+			for(y = 0; y < height; y++){
+				for(x = 0; x < width; x++){
+					COLOR16 clr = AGIDL_GetClr16(clrs,x,y,width,height);
+					u8 r = AGIDL_GetR(clr,fmt);
+					u8 g = AGIDL_GetG(clr,fmt);
+					u8 b = AGIDL_GetB(clr,fmt);
+					if(x > 0 && (x % 15) == 0){
+						fputs("\n",file);
+					}
+					
+					if(rgb == 1){
+						fprintf(file,"%d,%d,%d,",r,g,b);
+					}
+					else if(rgb == 2){
+						fprintf(file,"0x%x,",clr);
+					}
+					else{
+						fprintf(file,"%d,%d,%d,",b,g,r);
+					}
+				}
+
+				if(y != height-1){
+					fputs("\n",file);
+				}
+			}
+			
+			fputs("\n};",file);
+			fputs("\n\n",file);
+			fputs("#endif",file);
+			
+			fclose(file);
+			
+			count++;
+		}
+		if((ftype & F_SOURCE) && (arrtype & ARR)){
+			char filename[50];
+			sprintf(filename,"imgdata_%d.c",count);
+			
+			FILE* file = fopen(filename,"w");
+
+			fprintf(file,"int width = %d;\n",width);
+			fprintf(file,"int height = %d;\n",height);
+			fputs("\n",file);
+			
+			if(rgb != 2){
+				fprintf(file,"unsigned char img[%d] = {\n",width*height*3);
+			}
+			else{
+				fprintf(file,"unsigned short img[%d] = {\n",width*height);
+			}
+
+			
+			int x,y;
+			for(y = 0; y < height; y++){
+				for(x = 0; x < width; x++){
+					COLOR16 clr = AGIDL_GetClr16(clrs,x,y,width,height);
+					u8 r = AGIDL_GetR(clr,fmt);
+					u8 g = AGIDL_GetG(clr,fmt);
+					u8 b = AGIDL_GetB(clr,fmt);
+					if(x > 0 && (x % 15) == 0){
+						fputs("\n",file);
+					}
+					
+					if(rgb == 1){
+						fprintf(file,"%d,%d,%d,",r,g,b);
+					}
+					else if(rgb == 2){
+						fprintf(file,"0x%x,",clr);
+					}
+					else{
+						fprintf(file,"%d,%d,%d,",b,g,r);
+					}
+				}
+
+				if(y != height-1){
+					fputs("\n",file);
+				}
+			}
+			
+			fputs("\n};",file);
+			
+			fclose(file);
+			
+			count++;
+		}
+		
+		if((ftype & F_BIN) && (arrtype & ARR)){
+			char filename[50];
+			sprintf(filename,"imgdata_%d.bin",count);
+			FILE* file = fopen(filename,"wb");
+			
+			int x,y;
+			for(y = 0; y < height; y++){
+				for(x = 0; x < width; x++){
+					COLOR16 clr = AGIDL_GetClr16(clrs,x,y,width,height);
+					
+					if(rgb == 1){
+						AGIDL_ExtractAndPrintRGB(file,clr,fmt);
+					}
+					else{
+						AGIDL_ExtractAndPrintBGR(file,clr,fmt);
+					}
+				}
+			}
+			
+			fclose(file);
+			
+			count++;
+		}
 	}
 }
 

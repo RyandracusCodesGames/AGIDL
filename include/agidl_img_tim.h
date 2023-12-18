@@ -10,7 +10,7 @@
 *   File: agidl_img_tim.h
 *   Date: 9/19/2023
 *   Version: 0.1b
-*   Updated: 11/25/2023
+*   Updated: 12/17/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -23,10 +23,10 @@
 #define TIM_MAGIC 0x10
 
 typedef enum TIM_TYPE{
-	TIM_4BPP = 0x8,
-	TIM_8BPP = 0x9,
-	TIM_16BPP = 0x2,
-	TIM_24BPP = 0x3,
+	TIM_4BPP = 0x08,
+	TIM_8BPP = 0x09,
+	TIM_16BPP = 0x02,
+	TIM_24BPP = 0x03,
 }TIM_TYPE;
 
 typedef struct TIM_HEADER{
@@ -98,5 +98,6 @@ void AGIDL_TIMEncodeICP(AGIDL_TIM* tim);
 void AGIDL_TIMEncodeIMG(AGIDL_TIM* tim, FILE* file);
 void AGIDL_TIMDecodeHeader(AGIDL_TIM* tim, FILE* file);
 void AGIDL_TIMDecodeIMG(AGIDL_TIM* tim, FILE* file);
-int AGIDL_IsTIM(u32 type);
+int AGIDL_IsTIM(AGIDL_TIM* tim);
+int AGIDL_IsTIMHeader(AGIDL_TIM* tim);
 #endif

@@ -15,7 +15,7 @@
 *   File: agidl_img_bmp.c
 *   Date: 9/12/2023
 *   Version: 0.1b
-*   Updated: 11/30/2023
+*   Updated: 12/17/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -70,11 +70,21 @@ void AGIDL_BMPSetRGBA(AGIDL_BMP *bmp, int x, int y, u8 r, u8 g, u8 b, u8 a){
 }
 
 void AGIDL_BMPSetClr(AGIDL_BMP *bmp, int x, int y, COLOR clr){
-	AGIDL_SetClr(bmp->pixels.pix32,clr,x,y,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp));
+	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) != 16){
+		AGIDL_SetClr(bmp->pixels.pix32,clr,x,y,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp));
+	}
+	else{
+		AGIDL_SetClr16(bmp->pixels.pix16,AGIDL_CLR_TO_CLR16(clr,AGIDL_BGR_888,AGIDL_BMPGetClrFmt(bmp)),x,y,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp));
+	}
 }
 
 void AGIDL_BMPSetClr16(AGIDL_BMP *bmp, int x, int y, COLOR16 clr){
-	AGIDL_SetClr16(bmp->pixels.pix16,clr,x,y,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp));
+	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp) == 16)){
+		AGIDL_SetClr16(bmp->pixels.pix16,clr,x,y,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp));
+	}
+	else{
+		AGIDL_SetClr(bmp->pixels.pix32,AGIDL_CLR16_TO_CLR(clr,AGIDL_RGB_555,AGIDL_BMPGetClrFmt(bmp)),x,y,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp));
+	}
 }
 
 void AGIDL_BMPSetICPMode(AGIDL_BMP *bmp, int mode){
@@ -86,11 +96,21 @@ void AGIDL_BMPSetCompression(AGIDL_BMP *bmp, int compress){
 }
 
 void AGIDL_ClearBMP(AGIDL_BMP *bmp, COLOR clr){
-	AGIDL_ClrMemset(bmp->pixels.pix32,clr,AGIDL_BMPGetSize(bmp));
+	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) != 16){
+		AGIDL_ClrMemset(bmp->pixels.pix32,clr,AGIDL_BMPGetSize(bmp));
+	}
+	else{
+		AGIDL_ClrMemset16(bmp->pixels.pix16,(COLOR16)clr,AGIDL_BMPGetSize(bmp));
+	}
 }
 
 void AGIDL_ClearBMP16(AGIDL_BMP *bmp, COLOR16 clr){
-	AGIDL_ClrMemset16(bmp->pixels.pix16,clr,AGIDL_BMPGetSize(bmp));
+	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
+		AGIDL_ClrMemset16(bmp->pixels.pix16,clr,AGIDL_BMPGetSize(bmp));
+	}
+	else{
+		AGIDL_ClrMemset(bmp->pixels.pix32,AGIDL_CLR16_TO_CLR(clr,AGIDL_RGB_555,AGIDL_BMPGetClrFmt(bmp)),AGIDL_BMPGetSize(bmp));
+	}
 }
 
 void AGIDL_BMPRGB2BGR(AGIDL_BMP *bmp){
@@ -156,7 +176,15 @@ void AGIDL_BMPSyncPix16(AGIDL_BMP *bmp, COLOR16 *clrs){
 }
 
 void AGIDL_FreeBMP(AGIDL_BMP *bmp){
-	free(bmp);
+	free(bmp->filename);
+	
+	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
+		free(bmp->pixels.pix16);
+	}
+	else{
+		free(bmp->pixels.pix32);
+	}
+	
 	if(bmp != NULL){
 		bmp = NULL;
 	}

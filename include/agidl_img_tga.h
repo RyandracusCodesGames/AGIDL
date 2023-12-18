@@ -10,7 +10,7 @@
 *   File: agidl_img_tga.h
 *   Date: 9/13/2023
 *   Version: 0.1b
-*   Updated: 11/25/2023
+*   Updated: 12/14/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -93,6 +93,7 @@ AGIDL_TGA * AGIDL_CreateTGA(const char *filename, int width, int height, AGIDL_C
 void AGIDL_ExportTGA(AGIDL_TGA *tga);
 TGA_ICP_TYPE AGIDL_TGAGetICPType(int num);
 TGA_IMG_TYPE AGIDL_TGAGetIMGType(int bits);
+int AGIDL_IsTGA(AGIDL_TGA* tga);
 void AGIDL_TGADecodeHeader(AGIDL_TGA* tga, FILE* file);
 void AGIDL_TGADecodeIMG(AGIDL_TGA *tga, FILE* file, TGA_ICP_TYPE icp, TGA_IMG_TYPE img_type);
 void AGIDL_TGADecodeRLE(AGIDL_TGA *tga, FILE* file, TGA_ICP_TYPE icp, TGA_IMG_TYPE img_type);

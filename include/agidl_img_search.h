@@ -10,7 +10,7 @@
 *   File: agidl_img_search.h
 *   Date: 11/11/2023
 *   Version: 0.1b
-*   Updated: 11/25/2023
+*   Updated: 12/14/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -19,5 +19,6 @@
 #include "agidl_img_converter.h"
 
 void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE img_type);
+void AGIDL_TGASearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE img_type);
 
 #endif

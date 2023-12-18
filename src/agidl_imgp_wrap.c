@@ -70,11 +70,7 @@ void * AGIDL_WrapAndMirrorImgData(void* data, u16* width, u16* height, AGIDL_CLR
 		u16 glacew = *width;
 		u16 glaceh = *height;
 		
-		printf("hello\n");
-		
 		COLOR* glace = (COLOR*)AGIDL_MirrorImgData(clrs,&glacew,&glaceh,fmt,mirror);
-		
-		printf("hello\n");
 		
 		COLOR* wrap = (COLOR*)malloc(sizeof(COLOR)*(glacew*num_of_wraps)*glaceh);
 		

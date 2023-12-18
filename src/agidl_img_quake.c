@@ -13,7 +13,7 @@
 *   File: agidl_img_quake.c
 *   Date: 10/3/2023
 *   Version: 0.1b
-*   Updated: 11/30/2023
+*   Updated: 12/14/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -36,11 +36,21 @@ void AGIDL_LMPSetClrFmt(AGIDL_LMP *lmp, AGIDL_CLR_FMT fmt){
 }
 
 void AGIDL_LMPSetClr(AGIDL_LMP *lmp, int x, int y, COLOR clr){
-	AGIDL_SetClr(lmp->pixels.pix32,clr,x,y,AGIDL_LMPGetWidth(lmp),AGIDL_LMPGetHeight(lmp));
+	if(AGIDL_GetBitCount(AGIDL_LMPGetClrFmt(lmp)) != 16){
+		AGIDL_SetClr(lmp->pixels.pix32,clr,x,y,AGIDL_LMPGetWidth(lmp),AGIDL_LMPGetHeight(lmp));
+	}
+	else{
+		AGIDL_SetClr16(lmp->pixels.pix16,AGIDL_CLR_TO_CLR16(clr,AGIDL_BGR_888,AGIDL_LMPGetClrFmt(lmp)),x,y,AGIDL_LMPGetWidth(lmp),AGIDL_LMPGetHeight(lmp));
+	}
 }
 
 void AGIDL_LMPSetClr16(AGIDL_LMP *lmp, int x, int y, COLOR16 clr){
-	AGIDL_SetClr16(lmp->pixels.pix16,clr,x,y,AGIDL_LMPGetWidth(lmp),AGIDL_LMPGetHeight(lmp));
+	if(AGIDL_GetBitCount(AGIDL_LMPGetClrFmt(lmp) == 16)){
+		AGIDL_SetClr16(lmp->pixels.pix16,clr,x,y,AGIDL_LMPGetWidth(lmp),AGIDL_LMPGetHeight(lmp));
+	}
+	else{
+		AGIDL_SetClr(lmp->pixels.pix32,AGIDL_CLR16_TO_CLR(clr,AGIDL_RGB_555,AGIDL_LMPGetClrFmt(lmp)),x,y,AGIDL_LMPGetWidth(lmp),AGIDL_LMPGetHeight(lmp));
+	}
 }
 
 void AGIDL_LMPSetRGB(AGIDL_LMP *lmp, int x, int y, u8 r, u8 g, u8 b){
@@ -58,11 +68,21 @@ void AGIDL_LMPSetRGB(AGIDL_LMP *lmp, int x, int y, u8 r, u8 g, u8 b){
 }
 
 void AGIDL_ClearLMP(AGIDL_LMP *lmp, COLOR clr){
-	AGIDL_ClrMemset(lmp->pixels.pix32,clr,AGIDL_LMPGetWidth(lmp)*AGIDL_LMPGetHeight(lmp));
+	if(AGIDL_GetBitCount(AGIDL_LMPGetClrFmt(lmp)) != 16){
+		AGIDL_ClrMemset(lmp->pixels.pix32,clr,AGIDL_LMPGetSize(lmp));
+	}
+	else{
+		AGIDL_ClrMemset16(lmp->pixels.pix16,(COLOR16)clr,AGIDL_LMPGetSize(lmp));
+	}
 }
 
 void AGIDL_ClearLMP16(AGIDL_LMP *lmp, COLOR16 clr){
-	AGIDL_ClrMemset16(lmp->pixels.pix16,clr,AGIDL_LMPGetWidth(lmp)*AGIDL_LMPGetHeight(lmp));
+	if(AGIDL_GetBitCount(AGIDL_LMPGetClrFmt(lmp)) == 16){
+		AGIDL_ClrMemset16(lmp->pixels.pix16,clr,AGIDL_LMPGetSize(lmp));
+	}
+	else{
+		AGIDL_ClrMemset(lmp->pixels.pix32,AGIDL_CLR16_TO_CLR(clr,AGIDL_RGB_555,AGIDL_LMPGetClrFmt(lmp)),AGIDL_LMPGetSize(lmp));
+	}
 }
 
 int AGIDL_LMPGetWidth(AGIDL_LMP *lmp){
@@ -94,7 +114,15 @@ COLOR16 AGIDL_LMPGetClr16(AGIDL_LMP *lmp, int x, int y){
 }
 
 void AGIDL_FreeLMP(AGIDL_LMP *lmp){
-	free(lmp);
+	free(lmp->filename);
+	
+	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(lmp)) == 16){
+		free(lmp->pixels.pix16);
+	}
+	else{
+		free(lmp->pixels.pix32);
+	}
+	
 	if(lmp != NULL){
 		lmp = NULL;
 	}
