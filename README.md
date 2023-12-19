@@ -145,9 +145,9 @@ int main(){
 	return 0;
 }
 ```
-OpenGL Color Mixing Results
+OpenGL Color Mixing Results<br>
 ![blendclr](https://github.com/RyandracusCodesGames/AGIDL/assets/108719757/8309ae1d-6543-453d-96e5-824c81937e1f)
-Ninetendo64-esque Color Mixing Results
+Ninetendo64-esque Color Mixing Results<br>
 ![n64_blendclr](https://github.com/RyandracusCodesGames/AGIDL/assets/108719757/e10bd260-2427-47d5-b658-f2921aa35689)
 
 ### Image Filtering
@@ -172,11 +172,11 @@ int main(){
 	return 0;
 }
 ```
-*No-Filtering*
+*No-Filtering*<br>
 ![quake_tex](https://github.com/RyandracusCodesGames/AGIDL/assets/108719757/67db37ed-da77-41fa-9da1-c927c04a9642)
-*Bilinear Filtering*
+*Bilinear Filtering*<br>
 ![agidl_bi_filter](https://github.com/RyandracusCodesGames/AGIDL/assets/108719757/499a2c8d-ab48-47ed-b73d-a72aa7b27844)
-*Trilinear Filtering*
+*Trilinear Filtering*<br>
 ![agidl_tri_filter](https://github.com/RyandracusCodesGames/AGIDL/assets/108719757/7e901d01-b028-4bca-bcd3-d51f66926cee)
 
 ## Compilation
