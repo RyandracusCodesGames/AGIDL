@@ -150,6 +150,34 @@ OpenGL Color Mixing Results
 Ninetendo64-esque Color Mixing Results
 ![n64_blendclr](https://github.com/RyandracusCodesGames/AGIDL/assets/108719757/e10bd260-2427-47d5-b658-f2921aa35689)
 
+### Image Filtering
+```c
+#include <stdio.h>
+#include <agidl.h> 
+
+int main(){
+	
+	AGIDL_BMP* bmp = AGIDL_LoadBMP("quake_tex.bmp");
+	AGIDL_SetBMPFilename(bmp,"bilin_filter.bmp");
+	AGIDL_FilterBilerpBMP(bmp);
+	AGIDL_ExportBMP(bmp);
+	AGIDL_FreeBMP(bmp);
+	
+	AGIDL_BMP* bmp2 = AGIDL_LoadBMP("quake_tex.bmp");
+	AGIDL_SetBMPFilename(bmp2,"trilin_filter.bmp");
+	AGIDL_FilterTrilerpBMP(bmp2);
+	AGIDL_ExportBMP(bmp2);
+	AGIDL_FreeBMP(bmp2);
+	
+	return 0;
+}
+```
+*No-Filtering*
+![quake_tex](https://github.com/RyandracusCodesGames/AGIDL/assets/108719757/67db37ed-da77-41fa-9da1-c927c04a9642)
+*Bilinear Filtering*
+![agidl_bi_filter](https://github.com/RyandracusCodesGames/AGIDL/assets/108719757/499a2c8d-ab48-47ed-b73d-a72aa7b27844)
+*Trilinear Filtering*
+![agidl_tri_filter](https://github.com/RyandracusCodesGames/AGIDL/assets/108719757/7e901d01-b028-4bca-bcd3-d51f66926cee)
 
 ## Compilation
 
