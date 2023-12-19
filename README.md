@@ -48,6 +48,7 @@ As stated previously, AGIDL is a very feature-rich image library for those who f
   * Grayscale Image
 
 ## Examples
+AGIDL implements a very simple, easy-to-use API that is surprisingly intuitive. **Every function begins with the prefix AGIDL_** and is followed by some operation request to create, save, load, export, or manipulate an image. If you wish to load any image, you simply write **AGIDL_LoadIMG**. For an original Sony Playstation TIM image, you would write **AGIDL_LoadTIM("mytim.tim")**. In the load functions, the file extension doesn't matter as long as it contains properly formatted TIM image data. When the eventual all-encompassing LoadIMG() function is added to AGIDL, the file extension will become important. It's also important to note that **AGIDL relies heavily on pointers to its image structures**, so almost any image that you use should be a pointer type to any image supported in AGIDL.
 
 ### Image Creation and Saving
 ```c
@@ -65,6 +66,90 @@ int main(){
 }
 
 ```
+![mybmp](https://github.com/RyandracusCodesGames/AGIDL/assets/108719757/ab055d6a-d978-4c14-b1db-9245dc07d355)
+
+### Image Conversion
+```c
+#include <stdio.h>
+#include <agidl.h>
+
+int main(){
+
+  AGIDL_BTI* bti = AGIDL_LoadBTI("cube.bti");
+  AGIDL_BMP* bmp = AGIDL_ConvertBTI2BMP(bti);
+  AGIDL_ExportBMP(bmp);
+  AGIDL_FreeBMP(bmp);
+  AGIDL_FreeBTI(bti);
+
+  return 0;
+}
+```
+### Wrap and Mirror Image
+```c
+#include <stdio.h>
+#include <agidl.h> 
+
+int main(){
+	
+	AGIDL_BMP* bmp = AGIDL_LoadBMP("mirror.bmp");
+	AGIDL_SetBMPFilename(bmp,"forest.bmp");
+	AGIDL_WrapAndMirrorBMP(bmp,4,MIRROR_LEFT_TO_RIGHT);
+	AGIDL_ExportBMP(bmp);
+	AGIDL_FreeBMP(bmp);
+	
+	return 0;
+}
+```
+![mirror](https://github.com/RyandracusCodesGames/AGIDL/assets/108719757/cad08cb2-fd8a-4652-9b73-300f93616191)
+![wrap_and_mirror_tree](https://github.com/RyandracusCodesGames/AGIDL/assets/108719757/e08c89a4-ba91-4588-bac8-cff0616d9f93)
+
+### Image Search
+```c
+#include <stdio.h>
+#include <agidl.h>
+
+int main(){
+
+  AGIDL_TIMSearchFileOnDisk("GAME.RSC",AGIDL_IMG_BMP,1);
+  
+  return 0;
+}
+```
+The joys of randomly extracting image data from a PS1 game. A random angel T-Posing!
+![tpose](https://github.com/RyandracusCodesGames/AGIDL/assets/108719757/73a21125-e48e-479b-a6ab-c1a0b0a3853b)
+
+### Retro Pixel Shader
+```c
+#include <stdio.h>
+#include <agidl.h> 
+
+int main(){
+	AGIDL_CLR_FMT fmt = AGIDL_RGB_888;
+	
+	COLOR blue = AGIDL_GetColor(BLUE,fmt), red = AGIDL_GetColor(RED,fmt);
+	COLOR purple = AGIDL_BlendColor(blue,red,0.3f,CC_BLEND_CLR_SRCINV,fmt);
+	
+	AGIDL_BMP* bmp = AGIDL_CreateBMP("blendclr.bmp",100,50,fmt);
+	AGIDL_ClearBMP(bmp,purple);
+	AGIDL_ExportBMP(bmp);
+	AGIDL_FreeBMP(bmp);
+	
+	blue = AGIDL_RGB(1,1,255,fmt); red = AGIDL_RGB(255,1,1,fmt);
+	purple = AGIDL_ColorCombine(blue,red,CC_SUB_AND_INTERP_CLR2,fmt);
+	
+	AGIDL_BMP* bmp2 = AGIDL_CreateBMP("n64_blendclr.bmp",100,50,fmt);
+	AGIDL_ClearBMP(bmp2,purple);
+	AGIDL_ExportBMP(bmp2);
+	AGIDL_FreeBMP(bmp2);
+	
+	return 0;
+}
+```
+OpenGL Color Mixing Results
+![blendclr](https://github.com/RyandracusCodesGames/AGIDL/assets/108719757/8309ae1d-6543-453d-96e5-824c81937e1f)
+Ninetendo64-esque Color Mixing Results
+![n64_blendclr](https://github.com/RyandracusCodesGames/AGIDL/assets/108719757/e10bd260-2427-47d5-b658-f2921aa35689)
+
 
 ## Compilation
 
