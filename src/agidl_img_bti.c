@@ -12,7 +12,7 @@
 *   File: agidl_img_bti.c
 *   Date: 11/22/2023
 *   Version: 0.1b
-*   Updated: 12/14/2023
+*   Updated: 12/17/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -234,7 +234,6 @@ AGIDL_BTI* AGIDL_BTICpyImg(AGIDL_BTI* bti){
 
 void AGIDL_FreeBTI(AGIDL_BTI* bti){
 	free(bti->filename);
-	free(bti);
 	
 	if(AGIDL_GetBitCount(AGIDL_BTIGetClrFmt(bti)) == 16){
 		free(bti->pixels.pix16);
@@ -242,6 +241,8 @@ void AGIDL_FreeBTI(AGIDL_BTI* bti){
 	else{
 		free(bti->pixels.pix32);
 	}
+	
+	free(bti);
 	
 	if(bti != NULL){
 		bti = NULL;

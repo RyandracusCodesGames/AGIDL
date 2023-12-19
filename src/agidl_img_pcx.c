@@ -15,7 +15,7 @@
 *   File: agidl_img_pcx.c
 *   Date: 9/25/2023
 *   Version: 0.1b
-*   Updated: 12/14/2023
+*   Updated: 12/17/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -138,7 +138,6 @@ COLOR16 AGIDL_PCXGetClr16(AGIDL_PCX *pcx, int x, int y){
 
 void AGIDL_FreePCX(AGIDL_PCX *pcx){
 	free(pcx->filename);
-	free(pcx);
 	
 	if(AGIDL_GetBitCount(AGIDL_PCXGetClrFmt(pcx)) == 16){
 		free(pcx->pixels.pix16);
@@ -146,6 +145,8 @@ void AGIDL_FreePCX(AGIDL_PCX *pcx){
 	else{
 		free(pcx->pixels.pix32);
 	}
+	
+	free(pcx);
 	
 	if(pcx != NULL){
 		pcx = NULL;

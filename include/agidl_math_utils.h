@@ -10,7 +10,7 @@
 *   File: agidl_math_utils.h
 *   Date: 10/22/2023
 *   Version: 0.1b
-*   Updated: 12/9/2023
+*   Updated: 12/18/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -35,5 +35,11 @@ float AGIDL_Tanf(float ang);
 int AGIDL_Floor(int a);
 float AGIDL_FModf(float a, float b);
 float AGIDL_FixAng(float ang);
+u32 AGIDL_Pow2(u32 num);
+u32 AGIDL_Bin2Dec(char* bin);
+u32 AGIDL_BitXor(u32 i, u32 j);
+u32 AGIDL_BitInterleave(u32 a, u32 b);
+char* AGIDL_Dec2Bin(u32 num);
+u32 AGIDL_BitReverse(char* bin);
 
 #endif

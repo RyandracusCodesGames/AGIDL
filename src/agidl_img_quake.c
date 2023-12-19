@@ -13,7 +13,7 @@
 *   File: agidl_img_quake.c
 *   Date: 10/3/2023
 *   Version: 0.1b
-*   Updated: 12/14/2023
+*   Updated: 12/17/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -115,7 +115,6 @@ COLOR16 AGIDL_LMPGetClr16(AGIDL_LMP *lmp, int x, int y){
 
 void AGIDL_FreeLMP(AGIDL_LMP *lmp){
 	free(lmp->filename);
-	free(lmp);
 	
 	if(AGIDL_GetBitCount(AGIDL_LMPGetClrFmt(lmp)) == 16){
 		free(lmp->pixels.pix16);
@@ -123,6 +122,8 @@ void AGIDL_FreeLMP(AGIDL_LMP *lmp){
 	else{
 		free(lmp->pixels.pix32);
 	}
+	
+	free(lmp);
 	
 	if(lmp != NULL){
 		lmp = NULL;

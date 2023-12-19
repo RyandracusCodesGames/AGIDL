@@ -14,7 +14,7 @@
 *   File: agidl_img_pvr.c
 *   Date: 10/28/2023
 *   Version: 0.1b
-*   Updated: 12/14/2023
+*   Updated: 12/17/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -137,7 +137,6 @@ COLOR16 AGIDL_PVRGetClr16(AGIDL_PVR* pvr, int x, int y){
 
 void AGIDL_FreePVR(AGIDL_PVR* pvr){
 	free(pvr->filename);
-	free(pvr);
 	
 	if(AGIDL_GetBitCount(AGIDL_PVRGetClrFmt(pvr)) == 16){
 		free(pvr->pixels.pix16);
@@ -145,6 +144,8 @@ void AGIDL_FreePVR(AGIDL_PVR* pvr){
 	else{
 		free(pvr->pixels.pix32);
 	}
+	
+	free(pvr);
 	
 	if(pvr != NULL){
 		pvr = NULL;
@@ -522,7 +523,8 @@ AGIDL_PVR * AGIDL_LoadPVR(char* filename){
 	}
 	
 	AGIDL_PVR* pvr = (AGIDL_PVR*)malloc(sizeof(AGIDL_PVR));
-	AGIDL_SetPVRFilename(pvr,filename);
+	pvr->filename = (char*)malloc(strlen(filename)+1);
+	AGIDL_FilenameCpy(pvr->filename,filename);
 	AGIDL_PVRDecodeHeader(pvr,file);
 	
 	PVRClrFmt fmt = AGIDL_GetPVRClrFmt(pvr->header.pvr_clr_fmt);

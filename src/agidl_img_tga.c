@@ -14,7 +14,7 @@
 *   File: agidl_img_tga.c
 *   Date: 9/13/2023
 *   Version: 0.1b
-*   Updated: 12/17/2023
+*   Updated: 12/19/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -151,7 +151,6 @@ void AGIDL_TGASyncPix16(AGIDL_TGA *tga, COLOR16 *clrs){
 
 void AGIDL_FreeTGA(AGIDL_TGA *tga){
 	free(tga->filename);
-	free(tga);
 	
 	if(AGIDL_GetBitCount(AGIDL_TGAGetClrFmt(tga)) == 16){
 		free(tga->pixels.pix16);
@@ -159,6 +158,8 @@ void AGIDL_FreeTGA(AGIDL_TGA *tga){
 	else{
 		free(tga->pixels.pix32);
 	}
+	
+	free(tga);
 	
 	if(tga != NULL){
 		tga = NULL;
@@ -903,7 +904,7 @@ void AGIDL_TGAEncodeICP(AGIDL_TGA* tga, FILE* file){
 }
 
 void AGIDL_TGAEncodeRLE(AGIDL_TGA* tga, FILE* file){
-	if(tga->compression){
+	if(tga->compression == 1){
 		switch(tga->fmt){
 			case AGIDL_BGR_888:{
 				int x,y;
@@ -912,7 +913,7 @@ void AGIDL_TGAEncodeRLE(AGIDL_TGA* tga, FILE* file){
 					
 						COLOR clr = AGIDL_TGAGetClr(tga,x,y);
 					
-						u32 count = AGIDL_EncodeRLE(tga->pixels.pix32,24,x,y,AGIDL_TGAGetWidth(tga),AGIDL_TGAGetHeight(tga),AGIDL_TGAGetWidth(tga));
+						u32 count = AGIDL_EncodeRLE(tga->pixels.pix32,24,x,y,AGIDL_TGAGetWidth(tga),AGIDL_TGAGetHeight(tga),127);
 						
 						x += count - 1;
 						
@@ -925,7 +926,7 @@ void AGIDL_TGAEncodeRLE(AGIDL_TGA* tga, FILE* file){
 							free(rle);
 						}
 						else{
-							u8 zero = 1;
+							u8 zero = 0;
 							fwrite(&zero,1,1,file);
 							AGIDL_ExtractAndPrintBGR(file,clr,AGIDL_BGR_888);
 						}
@@ -938,7 +939,7 @@ void AGIDL_TGAEncodeRLE(AGIDL_TGA* tga, FILE* file){
 					for(x = 0; x < AGIDL_TGAGetWidth(tga); x++){
 						COLOR16 clr = AGIDL_TGAGetClr16(tga,x,y);
 						
-						u32 count = AGIDL_EncodeRLE(tga->pixels.pix16,16,x,y,AGIDL_TGAGetWidth(tga),AGIDL_TGAGetHeight(tga),AGIDL_TGAGetWidth(tga));
+						u32 count = AGIDL_EncodeRLE(tga->pixels.pix16,16,x,y,AGIDL_TGAGetWidth(tga),AGIDL_TGAGetHeight(tga),127);
 						
 						x += count - 1;
 						
@@ -953,7 +954,7 @@ void AGIDL_TGAEncodeRLE(AGIDL_TGA* tga, FILE* file){
 						else{
 							u8 zero = 0;
 							fwrite(&zero,1,1,file);
-							fwrite(&clr,1,1,file);
+							fwrite(&clr,2,1,file);
 						}
 					}
 				}

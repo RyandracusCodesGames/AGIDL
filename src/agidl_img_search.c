@@ -16,7 +16,7 @@
 *
 ********************************************/
 
-void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type){
+void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type, int flip){
 	FILE* file = fopen(filename,"rb");
 	
 	if(file == NULL){
@@ -66,6 +66,9 @@ void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type){
 					tim->filename = (char*)malloc(strlen(file_name)+1);
 					AGIDL_FilenameCpy(tim->filename,file_name);
 					AGIDL_BMP* bmp = AGIDL_ConvertTIM2BMP(tim);
+					if(flip == 1){
+						AGIDL_FlipHorzBMP(bmp);
+					}
 					AGIDL_ExportBMP(bmp);
 					AGIDL_FreeBMP(bmp);
 				}break;
@@ -75,6 +78,9 @@ void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type){
 					tim->filename = (char*)malloc(strlen(file_name)+1);
 					AGIDL_FilenameCpy(tim->filename,file_name);
 					AGIDL_TGA* tga = AGIDL_ConvertTIM2TGA(tim);
+					if(flip == 1){
+						AGIDL_FlipHorzTGA(tga);
+					}
 					AGIDL_ExportTGA(tga);
 					AGIDL_FreeTGA(tga);
 				}break;
@@ -84,6 +90,9 @@ void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type){
 					tim->filename = (char*)malloc(strlen(file_name)+1);
 					AGIDL_FilenameCpy(tim->filename,file_name);
 					AGIDL_PCX* pcx = AGIDL_ConvertTIM2PCX(tim);
+					if(flip == 1){
+						AGIDL_FlipHorzPCX(pcx);
+					}
 					AGIDL_ExportPCX(pcx);
 					AGIDL_FreePCX(pcx);
 				}break;
@@ -93,6 +102,9 @@ void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type){
 					tim->filename = (char*)malloc(strlen(file_name)+1);
 					AGIDL_FilenameCpy(tim->filename,file_name);
 					AGIDL_LMP* lmp = AGIDL_ConvertTIM2LMP(tim);
+					if(flip == 1){
+						AGIDL_FlipHorzLMP(lmp);
+					}
 					AGIDL_LMPSetMaxDiff(lmp,32);
 					AGIDL_ExportLMP(lmp);
 					AGIDL_FreeLMP(lmp);
@@ -103,6 +115,9 @@ void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type){
 					tim->filename = (char*)malloc(strlen(file_name)+1);
 					AGIDL_FilenameCpy(tim->filename,file_name);
 					AGIDL_PVR* pvr = AGIDL_ConvertTIM2PVR(tim);
+					if(flip == 1){
+						AGIDL_FlipHorzPVR(pvr);
+					}
 					AGIDL_ExportPVR(pvr);
 					AGIDL_FreePVR(pvr);
 				}break;
@@ -112,6 +127,9 @@ void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type){
 					tim->filename = (char*)malloc(strlen(file_name)+1);
 					AGIDL_FilenameCpy(tim->filename,file_name);
 					AGIDL_GXT* gxt = AGIDL_ConvertTIM2GXT(tim);
+					if(flip == 1){
+						AGIDL_FlipHorzGXT(gxt);
+					}
 					AGIDL_ExportGXT(gxt);
 					AGIDL_FreeGXT(gxt);
 				}break;
@@ -121,11 +139,16 @@ void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type){
 					tim->filename = (char*)malloc(strlen(file_name)+1);
 					AGIDL_FilenameCpy(tim->filename,file_name);
 					AGIDL_BTI* bti = AGIDL_ConvertTIM2BTI(tim);
+					if(flip == 1){
+						AGIDL_FlipHorzBTI(bti);
+					}
 					AGIDL_ExportBTI(bti);
 					AGIDL_FreeBTI(bti);
 				}break;
-				AGIDL_FreeTIM(tim);
+				
 			}
+			
+			AGIDL_FreeTIM(tim);
 		}
 		else{
 			if(tim->header.version == 0x08){

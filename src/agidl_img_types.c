@@ -48,39 +48,42 @@ char* AGIDL_StrCpy(char *a, char *b){
 	memcpy(c,a,lenA);
 	memcpy(c+lenA,b,lenB);
 	c[lenA+lenB] = '\0';
+	
+	return c;
 }
 
 char* AGIDL_GetImgExtension(AGIDL_IMG_TYPE img){
-	char* ext = (char*)malloc(sizeof(char)*5);
+	char* ext = (char*)malloc(sizeof(char)*4);
 	switch(img){
 		case AGIDL_IMG_BMP:{
-			ext = ".bmp";
+			strcpy(ext,".bmp");
 		}break;
 		case AGIDL_IMG_TGA:{
-			ext = ".tga";
+			strcpy(ext,".tga");
 		}break;
 		case AGIDL_IMG_TIM:{
-			ext = ".tim";
+			strcpy(ext,".tim");
 		}break;
 		case AGIDL_IMG_PCX:{
-			ext = ".pcx";
+			strcpy(ext,".pcx");
 		}break;
 		case AGIDL_IMG_LMP:{
-			ext = ".lmp";
+			strcpy(ext,".lmp");
 		}break;
 		case AGIDL_IMG_PVR:{
-			ext = ".pvr";
+			strcpy(ext,".pvr");
 		}break;
 		case AGIDL_IMG_GXT:{
-			ext = ".gxt";
+			strcpy(ext,".gxt");
 		}break;
 		case AGIDL_IMG_BTI:{
-			ext = ".bti";
+			strcpy(ext,".bti");
 		}break;
 		case AGIDL_IMG_SPR:{
-			ext = ".spr";
+			strcpy(ext,".spr");
 		}break;
 	}
+	ext[4] = '\0';
 	return ext;
 }
 
