@@ -179,5 +179,44 @@ int main(){
 *Trilinear Filtering*<br>
 ![agidl_tri_filter](https://github.com/RyandracusCodesGames/AGIDL/assets/108719757/7e901d01-b028-4bca-bcd3-d51f66926cee)<br>
 
+### Image Flipping and Rotation
+```c
+#include <stdio.h>
+#include <agidl.h>
+
+int main(){
+
+	AGIDL_BMP* bmp = AGIDL_LoadBMP("trucker_twiddle_rgb_555.BMP");
+	AGIDL_SetBMPFilename(bmp,"flip_trucker_rgb.bmp");
+	AGIDL_FlipHorzBMP(bmp);
+	AGIDL_ExportBMP(bmp);
+	AGIDL_FreeBMP(bmp);
+
+	AGIDL_BMP* bmp2 = AGIDL_LoadBMP("trucker_twiddle_rgb_555.BMP");
+	AGIDL_SetBMPFilename(bmp2,"vhflip_trucker_rgb.bmp");
+	AGIDL_FlipHorzAndVertBMP(bmp2);
+	AGIDL_ExportBMP(bmp2);
+	AGIDL_FreeBMP(bmp2);
+
+	AGIDL_BMP* bmp3 = AGIDL_LoadBMP("trucker_twiddle_rgb_555.BMP");
+	AGIDL_SetBMPFilename(bmp3,"rotate_trucker_rgb.bmp");
+	AGIDL_RotateBMP(bmp3,ANGLE_270_DEG);
+	AGIDL_ExportBMP(bmp3);
+	AGIDL_FreeBMP(bmp3);
+	
+	return 0;
+}
+```
+*Original Image*<br>
+![trucker_twiddle_rgb_555](https://github.com/RyandracusCodesGames/AGIDL/assets/108719757/240f2404-b6e7-46d8-8994-f8c181b3400d)<br>
+*Horizontally Flipped Image*<br>
+![flip_trucker_rgb](https://github.com/RyandracusCodesGames/AGIDL/assets/108719757/f657d040-80e8-4d28-8d25-e19d9772f28c)<br>
+*Vertically and Horizontally Flipped*<br>
+![vhflip_trucker_rgb](https://github.com/RyandracusCodesGames/AGIDL/assets/108719757/4741b8a1-e587-48fe-9ca5-1453ee89e275)<br>
+*Rotated 270 Degrees*<br>
+![rotate_trucker_rgb](https://github.com/RyandracusCodesGames/AGIDL/assets/108719757/b1f2ee53-0991-4197-a208-ef696e0256a9)<br>
+
+
+
 ## Compilation
 
