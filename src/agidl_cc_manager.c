@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "agidl_cc_manager.h"
 #include "agidl_math_utils.h"
 #include "agidl_img_types.h"
@@ -11,7 +12,7 @@
 *   File: agidl_cc_manager.c
 *   Date: 9/8/2023
 *   Version: 0.1b
-*   Updated: 12/13/2023
+*   Updated: 12/21/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -372,6 +373,40 @@ COLOR16 AGIDL_RGB16(u8 r, u8 g, u8 b, AGIDL_CLR_FMT fmt){
 			return b << 11 | g << 5 | r;
 		}break;
 		default: return 0; break;
+	}
+}
+
+COLOR AGIDL_Color3f(float r, float g, float b, AGIDL_CLR_FMT fmt){
+	r = AGIDL_Clampf(0.0f,r,1.0f);
+	g = AGIDL_Clampf(0.0f,g,1.0f);
+	b = AGIDL_Clampf(0.0f,b,1.0f);
+	
+	if(AGIDL_GetBitCount(fmt) == 24){
+		return AGIDL_RGB(r*255.0f,g*255.0f,b*255.0f,fmt);
+	}
+	else if(AGIDL_GetBitCount(fmt) == 32){
+		return AGIDL_RGBA(r*255.0f,g*255.0f,b*255.0f,0xff,fmt);
+	}
+	else{
+		if(fmt == AGIDL_RGB_565 || fmt == AGIDL_BGR_565){
+			return AGIDL_RGB16(r*31.0f,g*63.0f,b*31.0f,fmt);
+		}
+		else{
+			return AGIDL_RGB16(r*31.0f,g*31.0f,b*31.0f,fmt);
+		}
+	}
+}
+
+COLOR AGIDL_Color4f(float r, float g, float b, float a, AGIDL_CLR_FMT fmt){
+	r = AGIDL_Clampf(0.0f,r,1.0f);
+	g = AGIDL_Clampf(0.0f,g,1.0f);
+	b = AGIDL_Clampf(0.0f,b,1.0f);
+	
+	if(AGIDL_GetBitCount(fmt) == 32){
+		return AGIDL_RGBA(r*255.0f,g*255.0f,b*255.0f,a*255.0f,fmt);
+	}
+	else{
+		return AGIDL_Color3f(r,g,b,fmt);
 	}
 }
 
@@ -738,6 +773,286 @@ int AGIDL_IsInThreshold(COLOR clr1, COLOR clr2, AGIDL_CLR_FMT fmt, AGIDL_CLR_FMT
 	}
 }
 
+void AGIDL_SetICPMode(AGIDL_ICP* palette, int mode, AGIDL_CLR_FMT fmt){
+	palette->mode = mode;
+	palette->fmt = fmt;
+}
+
+void AGIDL_ClearICP(AGIDL_ICP* palette, COLOR clr){
+	switch(palette->mode){
+		case AGIDL_ICP_256:{
+			int i;
+			for(i = 0; i < 256; i++){
+				palette->icp.palette_256[i] = clr;
+			}
+		}break;
+		case AGIDL_ICP_16:{
+			int i;
+			for(i = 0; i < 16; i++){
+				palette->icp.palette_16[i] = clr;
+			}
+		}break;
+		case AGIDL_ICP_16b_256:{
+			int i;
+			for(i = 0; i < 256; i++){
+				palette->icp.palette_16b_256[i] = (COLOR16)clr;
+			}
+		}break;
+		case AGIDL_ICP_16b_16:{
+			int i;
+			for(i = 0; i < 16; i++){
+				palette->icp.palette_16b_16[i] = (COLOR16)clr;
+			}
+		}break;
+	}
+}
+
+void AGIDL_ClearColorICP(AGIDL_ICP* palette, float r, float g, float b){
+	switch(palette->mode){
+		case AGIDL_ICP_256:{
+			int i;
+			for(i = 0; i < 256; i++){
+				palette->icp.palette_256[i] = AGIDL_Color3f(r,g,b,palette->mode);
+			}
+		}break;
+		case AGIDL_ICP_16:{
+			int i;
+			for(i = 0; i < 16; i++){
+				palette->icp.palette_16[i] = AGIDL_Color3f(r,g,b,palette->mode);
+			}
+		}break;
+		case AGIDL_ICP_16b_256:{
+			int i;
+			for(i = 0; i < 256; i++){
+				palette->icp.palette_16b_256[i] = (COLOR16)AGIDL_Color3f(r,g,b,palette->mode);
+			}
+		}break;
+		case AGIDL_ICP_16b_16:{
+			int i;
+			for(i = 0; i < 16; i++){
+				palette->icp.palette_16b_16[i] = (COLOR16)AGIDL_Color3f(r,g,b,palette->mode);
+			}
+		}break;
+	}
+}
+
+void AGIDL_ClearRGBICP(AGIDL_ICP* palette, u8 r, u8 g, u8 b){
+	switch(palette->mode){
+		case AGIDL_ICP_256:{
+			int i;
+			for(i = 0; i < 256; i++){
+				palette->icp.palette_256[i] = AGIDL_RGB(r,g,b,palette->mode);
+			}
+		}break;
+		case AGIDL_ICP_16:{
+			int i;
+			for(i = 0; i < 16; i++){
+				palette->icp.palette_16[i] = AGIDL_RGB(r,g,b,palette->mode);
+			}
+		}break;
+		case AGIDL_ICP_16b_256:{
+			int i;
+			for(i = 0; i < 256; i++){
+				palette->icp.palette_16b_256[i] = (COLOR16)AGIDL_RGB(r,g,b,palette->mode);
+			}
+		}break;
+		case AGIDL_ICP_16b_16:{
+			int i;
+			for(i = 0; i < 16; i++){
+				palette->icp.palette_16b_16[i] = (COLOR16)AGIDL_RGB(r,g,b,palette->mode);
+			}
+		}break;
+	}
+}
+
+AGIDL_CLR_MDL AGIDL_GetClrMDL(AGIDL_CLR_FMT fmt){
+	if(fmt == AGIDL_RGB_888 || fmt == AGIDL_RGB_555 || fmt == AGIDL_RGB_565){
+		return AGIDL_CLR_RGB;
+	}
+	else if(fmt == AGIDL_BGR_888 || fmt == AGIDL_BGR_555 || fmt == AGIDL_BGR_565){
+		return AGIDL_CLR_BGR;
+	}
+	else if(fmt == AGIDL_RGBA_8888){
+		return AGIDL_CLR_RGBA;
+	}
+	else{
+		return AGIDL_CLR_ARGB;
+	}
+}
+
+AGIDL_CLR_FMT AGIDL_GetClrFmt(AGIDL_CLR_MDL mdl, AGIDL_BITS bits){
+	if(mdl == AGIDL_CLR_RGB && bits == 16){
+		return AGIDL_RGB_565;	
+	}
+	else if(mdl == AGIDL_CLR_RGB && bits == 15){
+		return AGIDL_RGB_555;	
+	}
+	else if(mdl == AGIDL_CLR_BGR && bits == 16){
+		return AGIDL_BGR_565;	
+	}
+	else if(mdl == AGIDL_CLR_RGB && bits == 15){
+		return AGIDL_BGR_555;	
+	}
+	else if(mdl == AGIDL_CLR_RGB && bits == 24){
+		return AGIDL_RGB_888;
+	}
+	else if(mdl == AGIDL_CLR_BGR && bits == 24){
+		return AGIDL_BGR_888;
+	}
+	else if(mdl == AGIDL_CLR_RGBA && bits == 32){
+		return AGIDL_RGBA_8888;
+	}
+	else{
+		return AGIDL_ARGB_8888;
+	}
+}
+
+void AGIDL_ExportICP(const char* name, AGIDL_ICP icp){
+	char* filename = AGIDL_StrCpy(name,".icp");
+	FILE* file = fopen(filename,"wb");
+	
+	u8 clrmdl = AGIDL_GetClrMDL(icp.fmt);
+	u8 bits = AGIDL_GetBitCount(icp.fmt);
+	
+	fwrite(&clrmdl,1,1,file);
+	fwrite(&bits,1,1,file);
+	
+	u16 num_of_clrs = 0;
+		
+	if(icp.mode == AGIDL_ICP_256 || icp.mode == AGIDL_ICP_16b_256){
+		num_of_clrs = 256;
+	}
+	else{
+		num_of_clrs = 16;
+	}
+	
+	fwrite(&num_of_clrs,2,1,file);
+	
+	switch(icp.mode){
+		case AGIDL_ICP_256:{
+			int i;
+			for(i = 0; i < 256; i++){
+				COLOR clr = icp.icp.palette_256[i];
+				u8 r = AGIDL_GetR(clr,icp.fmt);
+				u8 g = AGIDL_GetR(clr,icp.fmt);
+				u8 b = AGIDL_GetR(clr,icp.fmt);
+				fwrite(&r,1,1,file);
+				fwrite(&g,1,1,file);
+				fwrite(&b,1,1,file);
+			}
+		}break;
+		case AGIDL_ICP_16:{
+			int i;
+			for(i = 0; i < 16; i++){
+				COLOR clr = icp.icp.palette_256[i];
+				u8 r = AGIDL_GetR(clr,icp.fmt);
+				u8 g = AGIDL_GetR(clr,icp.fmt);
+				u8 b = AGIDL_GetR(clr,icp.fmt);
+				fwrite(&r,1,1,file);
+				fwrite(&g,1,1,file);
+				fwrite(&b,1,1,file);
+			}
+		}break;
+		case AGIDL_ICP_16b_256:{
+			int i;
+			for(i = 0; i < 256; i++){
+				COLOR16 clr = icp.icp.palette_16b_256[i];
+				u8 r = AGIDL_GetR(clr,icp.fmt);
+				u8 g = AGIDL_GetR(clr,icp.fmt);
+				u8 b = AGIDL_GetR(clr,icp.fmt);
+				fwrite(&r,1,1,file);
+				fwrite(&g,1,1,file);
+				fwrite(&b,1,1,file);
+			}
+		}break;
+		case AGIDL_ICP_16b_16:{
+			int i;
+			for(i = 0; i < 16; i++){
+				COLOR16 clr = icp.icp.palette_16b_256[i];
+				u8 r = AGIDL_GetR(clr,icp.fmt);
+				u8 g = AGIDL_GetR(clr,icp.fmt);
+				u8 b = AGIDL_GetR(clr,icp.fmt);
+				fwrite(&r,1,1,file);
+				fwrite(&g,1,1,file);
+				fwrite(&b,1,1,file);
+			}
+		}break;
+	}
+	fclose(file);
+}
+
+AGIDL_ICP AGIDL_LoadICP(const char* filename){
+	FILE* file = fopen(filename,"rb");
+	
+	if(file == NULL){
+		printf("Cannot find/located AGIDL Indexed Color Palette(ICP) - %s!\n",filename);
+	}
+	
+	AGIDL_ICP icp;
+	
+	u8 clrmdl = 0, bits = 0;
+	u16 num_of_colors = 0;
+	
+	fread(&clrmdl,1,1,file);
+	fread(&bits,1,1,file);
+	fread(&num_of_colors,2,1,file);
+	
+	icp.fmt = AGIDL_GetClrFmt(clrmdl,bits);
+	
+	if(num_of_colors == 256 && bits != 16){
+		icp.mode = AGIDL_ICP_256;
+		
+		int i;
+		for(i = 0; i < num_of_colors; i++){
+			u8 r = 0, g = 0, b = 0;
+			fread(&r,1,1,file);
+			fread(&g,1,1,file);
+			fread(&b,1,1,file);
+			icp.icp.palette_256[i] = AGIDL_RGB(r,g,b,icp.fmt);
+		}
+	}
+	else if(num_of_colors == 16 && bits != 16){
+		icp.mode = AGIDL_ICP_16;
+		
+		int i;
+		for(i = 0; i < num_of_colors; i++){
+			u8 r = 0, g = 0, b = 0;
+			fread(&r,1,1,file);
+			fread(&g,1,1,file);
+			fread(&b,1,1,file);
+			icp.icp.palette_16[i] = AGIDL_RGB(r,g,b,icp.fmt);
+		}
+	}
+	else if(num_of_colors == 16 && bits != 256){
+		icp.mode = AGIDL_ICP_16b_256;
+		
+		int i;
+		for(i = 0; i < num_of_colors; i++){
+			u8 r = 0, g = 0, b = 0;
+			fread(&r,1,1,file);
+			fread(&g,1,1,file);
+			fread(&b,1,1,file);
+			icp.icp.palette_16b_256[i] = AGIDL_RGB16(r,g,b,icp.fmt);
+		}
+	}
+	else{
+		icp.mode = AGIDL_ICP_16b_16;
+		
+		int i;
+		for(i = 0; i < num_of_colors; i++){
+			u8 r = 0, g = 0, b = 0;
+			fread(&r,1,1,file);
+			fread(&g,1,1,file);
+			fread(&b,1,1,file);
+			icp.icp.palette_16b_16[i] = AGIDL_RGB16(r,g,b,icp.fmt);
+		}
+	}
+	
+	fclose(file);
+	
+	return icp;
+}
+
 void AGIDL_InitICP(AGIDL_ICP *palette, int mode){
 	palette->mode = mode;
 	
@@ -885,6 +1200,27 @@ void AGIDL_AddColorICP16(AGIDL_ICP *palette, u8 index, COLOR16 clr, AGIDL_CLR_FM
 			
 			*pass = 1;
 		}break;
+	}
+}
+
+void AGIDL_ForceAddColor(AGIDL_ICP* palette, COLOR clr, u8 index){
+	if(palette->mode == AGIDL_ICP_16 || palette->mode == AGIDL_ICP_16b_16){
+		index = AGIDL_Max(index,16);
+		
+		if(palette->mode == AGIDL_ICP_16){
+			palette->icp.palette_16[index] = (COLOR16)clr;
+		}
+		else{
+			palette->icp.palette_16b_16[index] = (COLOR16)clr;
+		}
+	}
+	else{
+		if(palette->mode == AGIDL_ICP_256){
+			palette->icp.palette_256[index] = clr;
+		}
+		else{
+			palette->icp.palette_16b_256[index] = clr;
+		}
 	}
 }
 

@@ -10,7 +10,7 @@
 *   File: agidl_img_bti.h
 *   Date: 11/22/2023
 *   Version: 0.1b
-*   Updated: 11/22/2023
+*   Updated: 12/21/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -84,6 +84,8 @@ void AGIDL_BTISetRGB(AGIDL_BTI* bti, int x, int y, u8 r, u8 g, u8 b);
 void AGIDL_BTISetRGBA(AGIDL_BTI* bti, int x, int y, u8 r, u8 g, u8 b, u8 a);
 void AGIDL_ClearBTI(AGIDL_BTI* bti, COLOR clr);
 void AGIDL_ClearBTI16(AGIDL_BTI* bti, COLOR16 clr);
+void AGIDL_ClearColorBTI(AGIDL_BTI* bti, float r, float g, float b);
+void AGIDL_FlushBTI(AGIDL_BTI* bti);
 int AGIDL_BTIGetWidth(AGIDL_BTI* bti);
 int AGIDL_BTIGetHeight(AGIDL_BTI* bti);
 u32 AGIDL_BTIGetSize(AGIDL_BTI* bti);
@@ -98,8 +100,10 @@ void AGIDL_BTIConvert16BPPTO24BPP(AGIDL_BTI* bti);
 void AGIDL_BTIRGBATORGB(AGIDL_BTI* bti);
 void AGIDL_BTI555TO565(AGIDL_BTI* bti);
 void AGIDL_BTI565TO555(AGIDL_BTI* bti);
-void AGIDL_BTISyncPix(AGIDL_BTI* bti, COLOR* clrs);
-void AGIDL_BTISyncPix16(AGIDL_BTI* bti, COLOR16* clrs);
+void AGIDL_BTISyncPix(AGIDL_BTI *bti, COLOR *clrs);
+void AGIDL_BTISyncPix16(AGIDL_BTI *bti, COLOR16 *clrs);
+void AGIDL_BTICopyPix(AGIDL_BTI* bti, COLOR* clrs, u32 count);
+void AGIDL_BTICopyPix16(AGIDL_BTI* bti, COLOR16* clrs, u32 count);
 AGIDL_BTI* AGIDL_LoadBTI(char* filename);
 AGIDL_BTI* AGIDL_CreateBTI(const char* filename, int width, int height, AGIDL_CLR_FMT fmt);
 AGIDL_BTI* AGIDL_BTICpyImg(AGIDL_BTI* bti);

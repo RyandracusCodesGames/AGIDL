@@ -10,7 +10,7 @@
 *   File: agidl_img_tim.h
 *   Date: 9/19/2023
 *   Version: 0.1b
-*   Updated: 12/17/2023
+*   Updated: 12/21/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -73,6 +73,8 @@ void AGIDL_TIMSetICPMode(AGIDL_TIM *tim, int mode);
 void AGIDL_TIMSetMaxDiff(AGIDL_TIM *tim, int max_diff);
 void AGIDL_ClearTIM(AGIDL_TIM *tim, COLOR clr);
 void AGIDL_ClearTIM16(AGIDL_TIM *tim, COLOR16 clr);
+void AGIDL_ClearColorTIM(AGIDL_TIM* tim, float r, float g, float b);
+void AGIDL_FlushTIM(AGIDL_TIM* tim);
 int AGIDL_TIMGetWidth(AGIDL_TIM *tim);
 int AGIDL_TIMGetHeight(AGIDL_TIM *tim);
 u32 AGIDL_TIMGetSize(AGIDL_TIM* tim);
@@ -89,6 +91,8 @@ void AGIDL_TIMConvert555TO565(AGIDL_TIM *tim);
 void AGIDL_TIMConvert565TO555(AGIDL_TIM *tim);
 void AGIDL_TIMSyncPix(AGIDL_TIM *tim, COLOR *clrs);
 void AGIDL_TIMSyncPix16(AGIDL_TIM *tim, COLOR16 *clrs);
+void AGIDL_TIMCopyPix(AGIDL_TIM* tim, COLOR* clrs, u32 count);
+void AGIDL_TIMCopyPix16(AGIDL_TIM* tim, COLOR16* clrs, u32 count);
 AGIDL_TIM * AGIDL_LoadTIM(char *filename);
 AGIDL_TIM * AGIDL_CreateTIM(const char *filename, int width, int height, AGIDL_CLR_FMT fmt);
 void AGIDL_ExportTIM(AGIDL_TIM *tim);

@@ -10,7 +10,7 @@
 *   File: agidl_img_quake.h
 *   Date: 10/3/2023
 *   Version: 0.1b
-*   Updated: 11/25/2023
+*   Updated: 12/21/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -71,6 +71,8 @@ int AGIDL_LMPGetMaxDiff(AGIDL_LMP* lmp);
 void AGIDL_LMPSetRGB(AGIDL_LMP *lmp, int x, int y, u8 r, u8 g, u8 b);
 void AGIDL_ClearLMP(AGIDL_LMP *lmp, COLOR clr);
 void AGIDL_ClearLMP16(AGIDL_LMP *lmp, COLOR16 clr);
+void AGIDL_ClearColorLMP(AGIDL_LMP* lmp, float r, float g, float b);
+void AGIDL_FlushLMP(AGIDL_LMP* lmp);
 int AGIDL_LMPGetWidth(AGIDL_LMP *lmp);
 int AGIDL_LMPGetHeight(AGIDL_LMP *lmp);
 u32 AGIDL_LMPGetSize(AGIDL_LMP* lmp);
@@ -86,6 +88,8 @@ void AGIDL_LMPConvert555TO565(AGIDL_LMP *lmp);
 void AGIDL_LMPCOnvert565TO555(AGIDL_LMP *lmp);
 void AGIDL_LMPSyncPix(AGIDL_LMP *lmp, COLOR *clrs);
 void AGIDL_LMPSyncPix16(AGIDL_LMP *lmp, COLOR16 *clrs);
+void AGIDL_LMPCopyPix(AGIDL_LMP* lmp, COLOR* clrs, u32 count);
+void AGIDL_LMPCopyPix16(AGIDL_LMP* lmp, COLOR16* clrs, u32 count);
 AGIDL_LMP * AGIDL_LoadLMP(char *filename);
 AGIDL_LMP * AGIDL_CreateLMP(const char *filename, int width, int height, AGIDL_CLR_FMT fmt);
 void AGIDL_ExportLMP(AGIDL_LMP *lmp);

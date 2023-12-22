@@ -10,7 +10,7 @@
 *   File: agidl_img_gxt.h
 *   Date: 11/19/2023
 *   Version: 0.1b
-*   Updated: 11/25/2023
+*   Updated: 12/21/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -88,6 +88,8 @@ void AGIDL_GXTSetClr16(AGIDL_GXT* gxt, int x, int y, COLOR16 clr);
 void AGIDL_GXTSetRGB(AGIDL_GXT* gxt, int x, int y, u8 r, u8 g, u8 b);
 void AGIDL_ClearGXT(AGIDL_GXT* gxt, COLOR clr);
 void AGIDL_ClearGXT16(AGIDL_GXT* gxt, COLOR16 clr);
+void AGIDL_ClearColorGXT(AGIDL_GXT* gxt, float r, float g, float b);
+void AGIDL_FlushGXT(AGIDL_GXT* gxt);
 int AGIDL_GXTGetWidth(AGIDL_GXT* gxt);
 int AGIDL_GXTGetHeight(AGIDL_GXT* gxt);
 u32 AGIDL_GXTGetSize(AGIDL_GXT* gxt);
@@ -101,8 +103,10 @@ void AGIDL_GXTConvert24BPPTO16BPP(AGIDL_GXT* gxt);
 void AGIDL_GXTConvert16BPPTO24BPP(AGIDL_GXT* gxt);
 void AGIDL_GXT555TO565(AGIDL_GXT* gxt);
 void AGIDL_GXT565TO555(AGIDL_GXT* gxt);
-void AGIDL_GXTSyncPix(AGIDL_GXT* gxt, COLOR* clrs);
-void AGIDL_GXTSyncPix16(AGIDL_GXT* gxt, COLOR16* clrs);
+void AGIDL_GXTSyncPix(AGIDL_GXT *gxt, COLOR *clrs);
+void AGIDL_GXTSyncPix16(AGIDL_GXT *gxt, COLOR16 *clrs);
+void AGIDL_GXTCopyPix(AGIDL_GXT* gxt, COLOR* clrs, u32 count);
+void AGIDL_GXTCopyPix16(AGIDL_GXT* gxt, COLOR16* clrs, u32 count);
 AGIDL_GXT* AGIDL_LoadGXT(char* filename);
 AGIDL_GXT* AGIDL_CreateGXT(const char* filename, int width, int height, AGIDL_CLR_FMT fmt);
 AGIDL_GXT* AGIDL_GXTCpyImg(AGIDL_GXT* gxt);

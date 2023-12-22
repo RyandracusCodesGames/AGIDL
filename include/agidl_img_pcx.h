@@ -10,7 +10,7 @@
 *   File: agidl_img_pcx.h
 *   Date: 9/25/2023
 *   Version: 0.1b
-*   Updated: 11/25/2023
+*   Updated: 12/21/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -62,8 +62,12 @@ void AGIDL_PCXSetClr16(AGIDL_PCX *pcx, int x, int y, COLOR16 clr);
 void AGIDL_PCXSetRGB(AGIDL_PCX *pcx, int x, int y, u8 r, u8 g, u8 b);
 void AGIDL_ClearPCX(AGIDL_PCX *pcx, COLOR clr);
 void AGIDL_ClearPCX16(AGIDL_PCX *pcx, COLOR16 clr);
-void AGIDL_PCXSyncPix(AGIDL_PCX *pcx, COLOR* clrs);
-void AGIDL_PCXSyncPix16(AGIDL_PCX *pcx, COLOR16* clrs);
+void AGIDL_ClearColorPCX(AGIDL_PCX* pcx, float r, float g, float b);
+void AGIDL_FlushPCX(AGIDL_PCX* pcx);
+void AGIDL_PCXSyncPix(AGIDL_PCX *pcx, COLOR *clrs);
+void AGIDL_PCXSyncPix16(AGIDL_PCX *pcx, COLOR16 *clrs);
+void AGIDL_PCXCopyPix(AGIDL_PCX* pcx, COLOR* clrs, u32 count);
+void AGIDL_PCXCopyPix16(AGIDL_PCX* pcx, COLOR16* clrs, u32 count);
 int AGIDL_PCXGetWidth(AGIDL_PCX *pcx);
 int AGIDL_PCXGetHeight(AGIDL_PCX *pcx);
 u32 AGIDL_PCXGetSize(AGIDL_PCX* pcx);

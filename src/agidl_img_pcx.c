@@ -5,7 +5,6 @@
 #include "agidl_cc_core.h"
 #include "agidl_img_compression.h"
 
-
 /********************************************
 *   Adaptive Graphics Image Display Library
 *
@@ -15,11 +14,10 @@
 *   File: agidl_img_pcx.c
 *   Date: 9/25/2023
 *   Version: 0.1b
-*   Updated: 12/17/2023
+*   Updated: 12/21/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
-
 
 void AGIDL_SetPCXFilename(AGIDL_PCX *pcx, const char* filename){
 	pcx->filename = (char*)realloc(pcx->filename,strlen(filename));
@@ -96,12 +94,41 @@ void AGIDL_ClearPCX16(AGIDL_PCX *pcx, COLOR16 clr){
 	}
 }
 
-void AGIDL_PCXSyncPix(AGIDL_PCX *pcx, COLOR* clrs){
-	AGIDL_ClrMemcpy(pcx->pixels.pix32,clrs,AGIDL_PCXGetWidth(pcx)*AGIDL_PCXGetHeight(pcx));
+void AGIDL_ClearColorPCX(AGIDL_PCX* pcx, float r, float g, float b){
+	if(AGIDL_GetBitCount(AGIDL_PCXGetClrFmt(pcx)) == 16){
+		AGIDL_ClearColorBuffer(pcx->pixels.pix16,r,g,b,AGIDL_PCXGetClrFmt(pcx),AGIDL_PCXGetSize(pcx));
+	}
+	else{
+		AGIDL_ClearColorBuffer(pcx->pixels.pix32,r,g,b,AGIDL_PCXGetClrFmt(pcx),AGIDL_PCXGetSize(pcx));
+	}
 }
 
-void AGIDL_PCXSyncPix16(AGIDL_PCX *pcx, COLOR16* clrs){
-	AGIDL_ClrMemcpy16(pcx->pixels.pix16,clrs,AGIDL_PCXGetWidth(pcx)*AGIDL_PCXGetHeight(pcx));
+void AGIDL_FlushPCX(AGIDL_PCX* pcx){
+	AGIDL_ClearPCX(pcx,0);
+}
+
+void AGIDL_PCXSyncPix(AGIDL_PCX *pcx, COLOR *clrs){
+	if(AGIDL_GetBitCount(AGIDL_PCXGetClrFmt(pcx)) != 16){
+		AGIDL_ClrMemcpy(pcx->pixels.pix32,clrs,AGIDL_PCXGetSize(pcx));
+	}
+}
+
+void AGIDL_PCXSyncPix16(AGIDL_PCX *pcx, COLOR16 *clrs){
+	if(AGIDL_GetBitCount(AGIDL_PCXGetClrFmt(pcx)) == 16){
+		AGIDL_ClrMemcpy16(pcx->pixels.pix16,clrs,AGIDL_PCXGetSize(pcx));
+	}
+}
+
+void AGIDL_PCXCopyPix(AGIDL_PCX* pcx, COLOR* clrs, u32 count){
+	if(AGIDL_GetBitCount(AGIDL_PCXGetClrFmt(pcx)) != 16){
+		AGIDL_ClrMemcpy(pcx->pixels.pix32,clrs,count);
+	}
+}
+
+void AGIDL_PCXCopyPix16(AGIDL_PCX* pcx, COLOR16* clrs, u32 count){
+	if(AGIDL_GetBitCount(AGIDL_PCXGetClrFmt(pcx)) == 16){
+		AGIDL_ClrMemcpy16(pcx->pixels.pix16,clrs,count);
+	}
 }
 
 int AGIDL_PCXGetWidth(AGIDL_PCX *pcx){

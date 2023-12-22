@@ -13,7 +13,7 @@
 *   File: agidl_cc_manager.h
 *   Date: 9/8/2023
 *   Version: 0.1b
-*   Updated: 12/13/2023
+*   Updated: 12/21/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -33,9 +33,21 @@ COLOR AGIDL_RGBA(u8 r, u8 g, u8 b, u8 a, AGIDL_CLR_FMT fmt);
 COLOR16 AGIDL_RGB16(u8 r, u8 g, u8 b, AGIDL_CLR_FMT fmt);
 COLOR AGIDL_GetColor(AGIDL_CLR clr, AGIDL_CLR_FMT fmt);
 COLOR16 AGIDL_GetColor16(AGIDL_CLR clr, AGIDL_CLR_FMT fmt);
+COLOR AGIDL_Color3f(float r, float g, float b, AGIDL_CLR_FMT fmt);
+COLOR AGIDL_Color4f(float r, float g, float b, float a, AGIDL_CLR_FMT fmt);
 
+void AGIDL_SetICPMode(AGIDL_ICP* palette, int mode, AGIDL_CLR_FMT fmt);
+void AGIDL_ClearICP(AGIDL_ICP* palette, COLOR clr);
+void AGIDL_ClearRGBICP(AGIDL_ICP* palette, u8 r, u8 g, u8 b);
+void AGIDL_ClearColorICP(AGIDL_ICP* palette, float r, float g, float b);
 int AGIDL_IsInThreshold(COLOR clr1, COLOR clr2, AGIDL_CLR_FMT fmt, AGIDL_CLR_FMT fmt2, u8 max_diff);
+AGIDL_ICP AGIDL_GenerateVGAICP();
+AGIDL_CLR_MDL AGIDL_GetClrMDL(AGIDL_CLR_FMT fmt);
+AGIDL_CLR_FMT AGIDL_GetClrFmt(AGIDL_CLR_MDL mdl, AGIDL_BITS bits);
+void AGIDL_ExportICP(const char* name, AGIDL_ICP icp);
+AGIDL_ICP AGIDL_LoadICP(const char* filename);
 void AGIDL_InitICP(AGIDL_ICP *palette, int mode);
+void AGIDL_ForceAddColor(AGIDL_ICP* palette, COLOR clr, u8 index);
 void AGIDL_AddColorICP16(AGIDL_ICP *palette, u8 index, COLOR16 clr, AGIDL_CLR_FMT fmt, int max_diff, int *pass);
 void AGIDL_AddColorICP(AGIDL_ICP *palette, u8 index, COLOR clr, AGIDL_CLR_FMT fmt, int max_diff, int *pass);
 u8 AGIDL_FindClosestColor(AGIDL_ICP palette, COLOR clr, AGIDL_CLR_FMT fmt, int max_difference);

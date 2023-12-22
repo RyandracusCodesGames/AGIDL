@@ -15,7 +15,7 @@
 *   File: agidl_img_bmp.c
 *   Date: 9/12/2023
 *   Version: 0.1b
-*   Updated: 12/17/2023
+*   Updated: 12/21/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -113,6 +113,19 @@ void AGIDL_ClearBMP16(AGIDL_BMP *bmp, COLOR16 clr){
 	}
 }
 
+void AGIDL_ClearColorBMP(AGIDL_BMP* bmp, float r, float g, float b){
+	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
+		AGIDL_ClearColorBuffer(bmp->pixels.pix16,r,g,b,AGIDL_BMPGetClrFmt(bmp),AGIDL_BMPGetSize(bmp));
+	}
+	else{
+		AGIDL_ClearColorBuffer(bmp->pixels.pix32,r,g,b,AGIDL_BMPGetClrFmt(bmp),AGIDL_BMPGetSize(bmp));
+	}
+}
+
+void AGIDL_FlushBMP(AGIDL_BMP* bmp){
+	AGIDL_ClearBMP(bmp,0);
+}
+
 void AGIDL_BMPRGB2BGR(AGIDL_BMP *bmp){
 	if(bmp->fmt == AGIDL_RGB_888){
 		AGIDL_RGB2BGR(bmp->pixels.pix32,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp),&bmp->fmt);
@@ -168,11 +181,27 @@ COLOR16 AGIDL_BMPGetClr16(AGIDL_BMP *bmp, int x, int y){
 }
 
 void AGIDL_BMPSyncPix(AGIDL_BMP *bmp, COLOR *clrs){
-	AGIDL_ClrMemcpy(bmp->pixels.pix32,clrs,AGIDL_BMPGetSize(bmp));
+	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) != 16){
+		AGIDL_ClrMemcpy(bmp->pixels.pix32,clrs,AGIDL_BMPGetSize(bmp));
+	}
 }
 
 void AGIDL_BMPSyncPix16(AGIDL_BMP *bmp, COLOR16 *clrs){
-	AGIDL_ClrMemcpy16(bmp->pixels.pix16,clrs,AGIDL_BMPGetSize(bmp));
+	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
+		AGIDL_ClrMemcpy16(bmp->pixels.pix16,clrs,AGIDL_BMPGetSize(bmp));
+	}
+}
+
+void AGIDL_BMPCopyPix(AGIDL_BMP* bmp, COLOR* clrs, u32 count){
+	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) != 16){
+		AGIDL_ClrMemcpy(bmp->pixels.pix32,clrs,count);
+	}
+}
+
+void AGIDL_BMPCopyPix16(AGIDL_BMP* bmp, COLOR16* clrs, u32 count){
+	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
+		AGIDL_ClrMemcpy16(bmp->pixels.pix16,clrs,count);
+	}
 }
 
 void AGIDL_FreeBMP(AGIDL_BMP *bmp){

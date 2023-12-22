@@ -10,7 +10,7 @@
 *   File: agidl_img_types.h
 *   Date: 9/15/2023
 *   Version: 0.1b
-*   Updated: 12/17/2023
+*   Updated: 12/21/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -56,15 +56,19 @@ char* AGIDL_GetImgExtension(AGIDL_IMG_TYPE img);
 char* AGIDL_GetImgName(char* filename);
 void AGIDL_ClrMemcpy(COLOR *dest, COLOR *src, u32 count);
 void AGIDL_ClrMemcpy16(COLOR16 *dest, COLOR16 *src, u32 count);
+int AGIDL_CheckCoordBounds(u32 x, u32 y, u32 width, u32 height);
+void AGIDL_CopyTile(void* dest, void* src, u32 destw, u32 desth, u32 srcw, u32 srch, AGIDL_CLR_FMT destfmt, AGIDL_CLR_FMT srcfmt, u16 xstart, u16 xend, u16 ystart, u16 yend, u16 dx, u16 dy);
 void AGIDL_ClrMemset(COLOR *dest, COLOR clr, u32 count);
 void AGIDL_ClrMemset16(COLOR16 *dest, COLOR16 clr, u32 count);
-void AGIDL_MallocClr(COLOR* clrs, int width, int height);
-void AGIDL_MallocClr16(COLOR16* clrs, int width, int height);
+void AGIDL_ClearColorBuffer(void* data, float r, float g, float b, AGIDL_CLR_FMT fmt, u32 count);
+COLOR * AGIDL_MallocClr(COLOR* clrs, int width, int height);
+COLOR16 * AGIDL_MallocClr16(COLOR16* clrs, int width, int height);
 u8 AGIDL_GetBitCount(AGIDL_CLR_FMT fmt);
 void AGIDL_ExtractAndPrintBGR(FILE* file, COLOR clr, AGIDL_CLR_FMT fmt);
 void AGIDL_ExtractAndPrintRGB(FILE* file, COLOR clr, AGIDL_CLR_FMT fmt);
 void AGIDL_ExtractAndPrintRGBA(FILE* file, COLOR clr, AGIDL_CLR_FMT fmt);
 void AGIDL_ExportRawColors(void* data, u32 width, u32 height, AGIDL_CLR_FMT fmt, AGIDL_FILE_TYPE ftype, AGIDL_ARR_TYPE arrtype, u8 rgb);
+u8 * AGIDL_GenerateImgDataFromICP(void* data, u32 width, u32 height, AGIDL_ICP icp, int max_diff);
 COLOR AGIDL_GetClr(COLOR* clrs, int x, int y, int width, int height);
 COLOR16 AGIDL_GetClr16(COLOR16* clrs, int x, int y, int width, int height);
 void AGIDL_SetClr(COLOR* clrs, COLOR clr, int x, int y, int width, int height);

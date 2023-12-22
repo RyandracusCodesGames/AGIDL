@@ -13,7 +13,7 @@
 *   File: agidl_img_tim.c
 *   Date: 9/19/2023
 *   Version: 0.1b
-*   Updated: 12/17/2023
+*   Updated: 12/21/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -91,6 +91,19 @@ void AGIDL_ClearTIM16(AGIDL_TIM *tim, COLOR16 clr){
 	else{
 		AGIDL_ClrMemset(tim->pixels.pix32,AGIDL_CLR16_TO_CLR(clr,AGIDL_RGB_555,AGIDL_TIMGetClrFmt(tim)),AGIDL_TIMGetSize(tim));
 	}
+}
+
+void AGIDL_ClearColorTIM(AGIDL_TIM* tim, float r, float g, float b){
+	if(AGIDL_GetBitCount(AGIDL_TIMGetClrFmt(tim)) == 16){
+		AGIDL_ClearColorBuffer(tim->pixels.pix16,r,g,b,AGIDL_TIMGetClrFmt(tim),AGIDL_TIMGetSize(tim));
+	}
+	else{
+		AGIDL_ClearColorBuffer(tim->pixels.pix32,r,g,b,AGIDL_TIMGetClrFmt(tim),AGIDL_TIMGetSize(tim));
+	}
+}
+
+void AGIDL_FlushTIM(AGIDL_TIM* tim){
+	AGIDL_ClearTIM(tim,0);
 }
 
 int AGIDL_TIMGetWidth(AGIDL_TIM *tim){
@@ -214,11 +227,27 @@ void AGIDL_TIMConvert565TO555(AGIDL_TIM *tim){
 }
 
 void AGIDL_TIMSyncPix(AGIDL_TIM *tim, COLOR *clrs){
-	AGIDL_ClrMemcpy(tim->pixels.pix32,clrs,(AGIDL_TIMGetWidth(tim)*(AGIDL_TIMGetHeight(tim))));
+	if(AGIDL_GetBitCount(AGIDL_TIMGetClrFmt(tim)) != 16){
+		AGIDL_ClrMemcpy(tim->pixels.pix32,clrs,AGIDL_TIMGetSize(tim));
+	}
 }
 
 void AGIDL_TIMSyncPix16(AGIDL_TIM *tim, COLOR16 *clrs){
-	AGIDL_ClrMemcpy16(tim->pixels.pix16,clrs,(AGIDL_TIMGetWidth(tim)*(AGIDL_TIMGetHeight(tim))));
+	if(AGIDL_GetBitCount(AGIDL_TIMGetClrFmt(tim)) == 16){
+		AGIDL_ClrMemcpy16(tim->pixels.pix16,clrs,AGIDL_TIMGetSize(tim));
+	}
+}
+
+void AGIDL_TIMCopyPix(AGIDL_TIM* tim, COLOR* clrs, u32 count){
+	if(AGIDL_GetBitCount(AGIDL_TIMGetClrFmt(tim)) != 16){
+		AGIDL_ClrMemcpy(tim->pixels.pix32,clrs,count);
+	}
+}
+
+void AGIDL_TIMCopyPix16(AGIDL_TIM* tim, COLOR16* clrs, u32 count){
+	if(AGIDL_GetBitCount(AGIDL_TIMGetClrFmt(tim)) == 16){
+		AGIDL_ClrMemcpy16(tim->pixels.pix16,clrs,count);
+	}
 }
 
 AGIDL_TIM * AGIDL_CreateTIM(const char *filename, int width, int height, AGIDL_CLR_FMT fmt){

@@ -10,7 +10,7 @@
 *   File: agidl_img_tga.h
 *   Date: 9/13/2023
 *   Version: 0.1b
-*   Updated: 12/14/2023
+*   Updated: 12/21/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -72,6 +72,8 @@ void AGIDL_TGASetICPMode(AGIDL_TGA *tga, int mode);
 void AGIDL_TGASetCompression(AGIDL_TGA* tga, int compress);
 void AGIDL_ClearTGA(AGIDL_TGA *tga, COLOR clr);
 void AGIDL_ClearTGA16(AGIDL_TGA *tga, COLOR16 clr);
+void AGIDL_ClearColorTGA(AGIDL_TGA* tga, float r, float g, float b);
+void AGIDL_FlushTGA(AGIDL_TGA* tga);
 int AGIDL_TGAGetWidth(AGIDL_TGA *tga);
 int AGIDL_TGAGetHeight(AGIDL_TGA *tga);
 u32 AGIDL_TGAGetSize(AGIDL_TGA* tga);
@@ -88,6 +90,8 @@ void AGIDL_TGAConvert555TO565(AGIDL_TGA *tga);
 void AGIDL_TGAConvert565TO555(AGIDL_TGA *tga);
 void AGIDL_TGASyncPix(AGIDL_TGA *tga, COLOR *clrs);
 void AGIDL_TGASyncPix16(AGIDL_TGA *tga, COLOR16 *clrs);
+void AGIDL_TGACopyPix(AGIDL_TGA* tga, COLOR* clrs, u32 count);
+void AGIDL_TGACopyPix16(AGIDL_TGA* tga, COLOR16* clrs, u32 count);
 AGIDL_TGA * AGIDL_LoadTGA(char *filename);
 AGIDL_TGA * AGIDL_CreateTGA(const char *filename, int width, int height, AGIDL_CLR_FMT fmt);
 void AGIDL_ExportTGA(AGIDL_TGA *tga);

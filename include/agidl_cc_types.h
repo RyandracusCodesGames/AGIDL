@@ -10,7 +10,7 @@
 *   File: agidl_cc_types.h
 *   Date: 9/8/2023
 *   Version: 0.1b
-*   Updated: 10/21/2023
+*   Updated: 12/21/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -53,6 +53,21 @@ typedef enum AGIDL_CLR_FMT{
 	AGIDL_HSV_FMT = 0x13,
 	AGIDL_ICP_FMT = 0x14,
 }AGIDL_CLR_FMT;
+
+typedef enum AGIDL_CLR_MDL{
+	AGIDL_CLR_RGB = 0x1,
+	AGIDL_CLR_BGR = 0x2,
+	AGIDL_CLR_RGBA = 0x3,
+	AGIDL_CLR_ARGB = 0x4,
+}AGIDL_CLR_MDL;
+
+typedef enum AGIDL_BITS{
+	AGIDL_BITS_888 = 24,
+	AGIDL_BITS_555 = 15,
+	AGIDL_BITS_565 = 16,
+	AGIDL_BITS_8888 = 32,
+	AGIDL_BITS_ICP = 8,
+}AGIDL_BITS;
 
 /*Enumeration that holds the most fundamental, named colors that when 
   called through the AGIDL_GetColor() function, it will provide a way to call 
@@ -192,6 +207,7 @@ typedef union ICP{
 
 typedef struct AGIDL_ICP{
 	int mode; /*The bit-depth of the color and num. of colors to use in the ICP*/
+	AGIDL_CLR_FMT fmt;
 	ICP icp;
 }AGIDL_ICP;
 

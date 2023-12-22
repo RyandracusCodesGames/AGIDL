@@ -13,7 +13,7 @@
 *   File: agidl_img_types.c
 *   Date: 9/16/2023
 *   Version: 0.1b
-*   Updated: 12/17/2023
+*   Updated: 12/21/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -133,8 +133,127 @@ void AGIDL_ClrMemset16(COLOR16 *dest, COLOR16 clr, u32 count){
 	}
 }
 
-void AGIDL_MallocClr16(COLOR16* clrs, int width, int height){
-	clrs = (COLOR16*)malloc(sizeof(COLOR16)*(width*height));
+void AGIDL_ClearColorBuffer(void* data, float r, float g, float b, AGIDL_CLR_FMT fmt, u32 count){
+	if(AGIDL_GetBitCount(fmt) == 16){
+		COLOR16* clrdata = (COLOR16*)data;
+		AGIDL_ClrMemset16(clrdata,AGIDL_Color3f(r,g,b,fmt),count);
+	}
+	else{
+		COLOR* clrdata = (COLOR*)data;
+		AGIDL_ClrMemset(clrdata,AGIDL_Color3f(r,g,b,fmt),count);
+	}
+}
+
+int AGIDL_InsideClipBounds(u32 x, u32 y, u32 width, u32 height){
+	if(x >= 0 && y >= 0 && x < width && y < height){
+		return 1;
+	}
+	else return 0;
+}
+
+void AGIDL_CopyTile(void* dest, void* src, u32 destw, u32 desth, u32 srcw, u32 srch, AGIDL_CLR_FMT destfmt, AGIDL_CLR_FMT srcfmt, u16 xstart, u16 xend, u16 ystart, u16 yend, u16 dx, u16 dy){
+	if((AGIDL_GetBitCount(destfmt) == AGIDL_GetBitCount(srcfmt)) && (AGIDL_GetBitCount(destfmt) == 24 || AGIDL_GetBitCount(destfmt) == 32)){
+		COLOR* destclr = (COLOR*)dest;
+		COLOR* srcclr = (COLOR*)src;
+		
+		u32 dxx = xend - xstart;
+		u32 dyy = yend - ystart;
+		
+		u32 maxw = dx + dxx;
+		u32 maxh = dy + dyy;
+		
+		if(AGIDL_InsideClipBounds(dxx,dyy,srcw,srch) && AGIDL_InsideClipBounds(maxw,maxh,destw,desth)){
+			int x,y,incrx = 0, incry = 0;
+			for(y = ystart; y < yend; y++){
+				incrx = 0;
+				for(x = xstart; x < xend; x++){
+					COLOR clr = AGIDL_GetClr(srcclr,x,y,srcw,srch);
+					AGIDL_SetClr(destclr,clr,dx+incrx,dy+incry,destw,desth);
+					incrx++;
+				}
+				incry++;
+			}
+		}
+	}
+	else if((AGIDL_GetBitCount(destfmt) == AGIDL_GetBitCount(srcfmt)) && AGIDL_GetBitCount(destfmt) == 16){
+		COLOR16* destclr = (COLOR16*)dest;
+		COLOR16* srcclr = (COLOR16*)src;
+		
+		u32 dxx = xend - xstart;
+		u32 dyy = yend - ystart;
+		
+		u32 maxw = dx + dxx;
+		u32 maxh = dy + dyy;
+		
+		if(AGIDL_InsideClipBounds(dxx,dyy,srcw,srch) && AGIDL_InsideClipBounds(maxw,maxh,destw,desth)){
+			int x,y,incrx = 0, incry = 0;
+			for(y = ystart; y < yend; y++){
+				incrx = 0;
+				for(x = xstart; x < xend; x++){
+					COLOR16 clr = AGIDL_GetClr16(srcclr,x,y,srcw,srch);
+					AGIDL_SetClr16(destclr,clr,dx+incrx,dy+incry,destw,desth);
+					incrx++;
+				}
+				incry++;
+			}
+		}
+	}
+	else if((AGIDL_GetBitCount(destfmt) != AGIDL_GetBitCount(srcfmt)) && (AGIDL_GetBitCount(destfmt) == 24 || AGIDL_GetBitCount(destfmt) == 32) && AGIDL_GetBitCount(srcfmt) == 16){
+		COLOR* destclr = (COLOR*)dest;
+		COLOR16* srcclr = (COLOR16*)src;
+		
+		u32 dxx = xend - xstart;
+		u32 dyy = yend - ystart;
+		
+		u32 maxw = dx + dxx;
+		u32 maxh = dy + dyy;
+		
+		if(AGIDL_InsideClipBounds(dxx,dyy,srcw,srch) && AGIDL_InsideClipBounds(maxw,maxh,destw,desth)){
+			int x,y,incrx = 0, incry = 0;
+			for(y = ystart; y < yend; y++){
+				incrx = 0;
+				for(x = xstart; x < xend; x++){
+					COLOR16 clr16 = AGIDL_GetClr16(srcclr,x,y,srcw,srch);
+					COLOR clr = AGIDL_CLR16_TO_CLR(clr16,srcfmt,destfmt);
+					AGIDL_SetClr(destclr,clr,dx+incrx,dy+incry,destw,desth);
+					incrx++;
+				}
+				incry++;
+			}
+		}
+	}
+	if((AGIDL_GetBitCount(destfmt) != AGIDL_GetBitCount(srcfmt)) && (AGIDL_GetBitCount(srcfmt) == 24 || AGIDL_GetBitCount(srcfmt) == 32) && AGIDL_GetBitCount(destfmt) == 16){
+		COLOR16* destclr = (COLOR16*)dest;
+		COLOR* srcclr = (COLOR*)src;
+		
+		u32 dxx = xend - xstart;
+		u32 dyy = yend - ystart;
+		
+		u32 maxw = dx + dxx;
+		u32 maxh = dy + dyy;
+		
+		if(AGIDL_InsideClipBounds(dxx,dyy,srcw,srch) && AGIDL_InsideClipBounds(maxw,maxh,destw,desth)){
+			int x,y,incrx = 0, incry = 0;
+			for(y = ystart; y < yend; y++){
+				incrx = 0;
+				for(x = xstart; x < xend; x++){
+					COLOR clr24 = AGIDL_GetClr(srcclr,x,y,srcw,srch);
+					COLOR16 clr = AGIDL_CLR_TO_CLR16(clr24,srcfmt,destfmt);
+					AGIDL_SetClr16(destclr,clr,dx+incrx,dy+incry,destw,desth);
+					incrx++;
+				}
+				incry++;
+			}
+		}
+	}
+}
+
+COLOR * AGIDL_MallocClr(COLOR* clrs, int width, int height){
+	return clrs = (COLOR*)malloc(sizeof(COLOR)*(width*height));
+}
+
+COLOR16 * AGIDL_MallocClr16(COLOR16* clrs, int width, int height){
+	return clrs = (COLOR16*)malloc(sizeof(COLOR16)*(width*height));
 }
 
 u8 AGIDL_GetBitCount(AGIDL_CLR_FMT fmt){
@@ -496,6 +615,41 @@ void AGIDL_ExportRawColors(void* data, u32 width, u32 height, AGIDL_CLR_FMT fmt,
 			
 			count++;
 		}
+	}
+}
+
+u8 * AGIDL_GenerateImgDataFromICP(void* data, u32 width, u32 height, AGIDL_ICP icp, int max_diff){
+	max_diff = AGIDL_Clamp(0,max_diff,255);
+	
+	if(AGIDL_GetBitCount(icp.fmt) != 16){
+		COLOR* clrdata = (COLOR*)data;
+		u8* buffer = (u8*)malloc(sizeof(u8)*(width*height));
+		
+		u32 x,y;
+		for(y = 0; y < height; y++){
+			for(x = 0; x < width; x++){
+				COLOR clr = AGIDL_GetClr(clrdata,x,y,width,height);
+				u8 clricp = AGIDL_FindClosestColor(icp,clr,icp.fmt,max_diff);
+				buffer[x+y*width] = clricp;
+			}
+		}
+		
+		return buffer;
+	}
+	else{
+		COLOR16* clrdata = (COLOR16*)data;
+		u8* buffer = (u8*)malloc(sizeof(u8)*(width*height));
+		
+		u32 x,y;
+		for(y = 0; y < height; y++){
+			for(x = 0; x < width; x++){
+				COLOR16 clr = AGIDL_GetClr16(clrdata,x,y,width,height);
+				u8 clricp = AGIDL_FindClosestColor(icp,clr,icp.fmt,max_diff);
+				buffer[x+y*width] = clricp;
+			}
+		}
+		
+		return buffer;
 	}
 }
 
