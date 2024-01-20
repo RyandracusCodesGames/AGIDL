@@ -4,13 +4,13 @@
 /********************************************
 *   Adaptive Graphics Image Display Library
 *
-*   Copyright (c) 2023 Ryandracus Chapman
+*   Copyright (c) 2023-2024 Ryandracus Chapman
 *
 *   Library: libagidl
 *   File: agidl_img_tim.h
 *   Date: 9/19/2023
 *   Version: 0.1b
-*   Updated: 12/21/2023
+*   Updated: 1/20/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -100,8 +100,9 @@ AGIDL_TIM* AGIDL_TIMCpyImg(AGIDL_TIM* tim);
 void AGIDL_TIMEncodeHeader(AGIDL_TIM* tim, FILE* file);
 void AGIDL_TIMEncodeICP(AGIDL_TIM* tim);
 void AGIDL_TIMEncodeIMG(AGIDL_TIM* tim, FILE* file);
-void AGIDL_TIMDecodeHeader(AGIDL_TIM* tim, FILE* file);
-void AGIDL_TIMDecodeIMG(AGIDL_TIM* tim, FILE* file);
+int AGIDL_TIMDecodeHeader(AGIDL_TIM* tim, FILE* file);
+int AGIDL_TIMDecodeIMG(AGIDL_TIM* tim, FILE* file);
+void AGIDL_TIMEncodeNearestICP(AGIDL_TIM* tim, AGIDL_ICP palette, FILE* file);
 int AGIDL_IsTIM(AGIDL_TIM* tim);
 int AGIDL_IsTIMHeader(AGIDL_TIM* tim);
 #endif

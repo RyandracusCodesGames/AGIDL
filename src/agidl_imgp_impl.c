@@ -1,13 +1,13 @@
 /********************************************
 *   Adaptive Graphics Image Display Library
 *
-*   Copyright (c) 2023 Ryandracus Chapman
+*   Copyright (c) 2023-2024 Ryandracus Chapman
 *
 *   Library: libagidl
 *   File: agidl_imgp_impl.c
 *   Date: 12/17/2023
 *   Version: 0.2b
-*   Updated: 12/17/2023
+*   Updated: 1/19/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/

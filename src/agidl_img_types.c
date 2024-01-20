@@ -2,18 +2,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include "agidl_img_types.h"
+#include "agidl_imgp_scale.h"
 #include "agidl_cc_core.h"
 
 /********************************************
 *   Adaptive Graphics Image Display Library
 *
-*   Copyright (c) 2023 Ryandracus Chapman
+*   Copyright (c) 2023-2024 Ryandracus Chapman
 *
 *   Library: libagidl
 *   File: agidl_img_types.c
 *   Date: 9/16/2023
 *   Version: 0.1b
-*   Updated: 12/21/2023
+*   Updated: 1/19/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -244,6 +245,175 @@ void AGIDL_CopyTile(void* dest, void* src, u32 destw, u32 desth, u32 srcw, u32 s
 				}
 				incry++;
 			}
+		}
+	}
+}
+
+void AGIDL_CopyScanline(void* dest, void* src, u32 destw, u32 desth, u32 srcw, u32 srch, AGIDL_CLR_FMT destfmt, AGIDL_CLR_FMT srcfmt, u16 destscanline, u16 srcscanline){
+	if((AGIDL_GetBitCount(destfmt) == AGIDL_GetBitCount(srcfmt)) && (AGIDL_GetBitCount(srcfmt) == 24 || AGIDL_GetBitCount(srcfmt) == 32)){
+		if(AGIDL_InsideClipBounds(0,srcscanline,srcw,srch) && AGIDL_InsideClipBounds(0,destscanline,destw,desth)){
+			COLOR* destclr = (COLOR*)dest;
+			COLOR* srcclr = (COLOR*)src;
+			
+			if(destw > srcw){
+				COLOR* cpyrow = (COLOR*)malloc(sizeof(COLOR)*srcw);
+				COLOR* cpydata = (COLOR*)malloc(sizeof(COLOR)*srcw*srch);
+				AGIDL_ClrMemcpy(cpydata,srcclr,srcw*srch);
+				
+				u16 width = srcw;
+				u16 height = srch;
+
+				cpydata = (COLOR*)AGIDL_ScaleImgDataNearest(cpydata,&width,&height,destw/(float)srcw,1,srcfmt);
+				
+				int x;
+				for(x = 0; x < destw; x++){
+					COLOR clr = AGIDL_GetClr(cpydata,x,srcscanline,width,height);
+					AGIDL_SetClr(cpyrow,clr,x,0,destw,1);
+				}
+				
+				for(x = 0; x < destw; x++){
+					COLOR clr = AGIDL_GetClr(cpyrow,x,0,srcw,srch);
+					AGIDL_SetClr(destclr,clr,x,destscanline,destw,desth);
+				}
+				
+				free(cpydata);
+				free(cpyrow);
+			}
+			else{
+				int x;
+				for(x = 0; x < destw; x++){
+					COLOR clr = AGIDL_GetClr(srcclr,x,srcscanline,srcw,srch);
+					AGIDL_SetClr(destclr,clr,x,destscanline,destw,desth);
+				}
+			}
+		}
+		else if((AGIDL_GetBitCount(destfmt) == AGIDL_GetBitCount(srcfmt)) && AGIDL_GetBitCount(srcfmt) == 16){
+			COLOR16* destclr = (COLOR16*)dest;
+			COLOR16* srcclr = (COLOR16*)src;
+			
+			if(AGIDL_InsideClipBounds(0,srcscanline,srcw,srch) && AGIDL_InsideClipBounds(0,destscanline,destw,desth)){
+				if(destw > srcw){
+					COLOR16* cpyrow = (COLOR16*)malloc(sizeof(COLOR16)*srcw);
+					COLOR16* cpydata = (COLOR16*)malloc(sizeof(COLOR16)*srcw*srch);
+					AGIDL_ClrMemcpy16(cpydata,srcclr,srcw*srch);
+					
+					u16 width = srcw;
+					u16 height = srch;
+
+					cpydata = (COLOR16*)AGIDL_ScaleImgDataNearest(cpydata,&width,&height,destw/(float)srcw,1,srcfmt);
+					
+					int x;
+					for(x = 0; x < destw; x++){
+						COLOR16 clr = AGIDL_GetClr16(cpydata,x,srcscanline,width,height);
+						AGIDL_SetClr16(cpyrow,clr,x,0,destw,1);
+					}
+					
+					for(x = 0; x < destw; x++){
+						COLOR16 clr = AGIDL_GetClr16(cpyrow,x,0,srcw,srch);
+						AGIDL_SetClr16(destclr,clr,x,destscanline,destw,desth);
+					}
+					
+					free(cpydata);
+					free(cpyrow);
+				}
+				else{
+					int x;
+					for(x = 0; x < destw; x++){
+						COLOR16 clr = AGIDL_GetClr16(srcclr,x,srcscanline,srcw,srch);
+						AGIDL_SetClr16(destclr,clr,x,destscanline,destw,desth);
+					}
+				}
+			}
+		}
+	}
+	else if((AGIDL_GetBitCount(destfmt) == 24 || AGIDL_GetBitCount(destfmt) == 32) && AGIDL_GetBitCount(srcfmt) == 16){
+		if(AGIDL_InsideClipBounds(0,srcscanline,srcw,srch) && AGIDL_InsideClipBounds(0,destscanline,destw,desth)){
+			COLOR* destclr = (COLOR*)dest;
+			COLOR16* srcclr16 = (COLOR16*)src;
+			
+			COLOR* srcclr = (COLOR*)malloc(sizeof(COLOR)*srcw*srch);
+			
+			AGIDL_CLR_FMT fmt = srcfmt;
+			AGIDL_16BPPTO24BPP(srcclr16,srcclr,srcw,srch,&fmt);
+			
+			if(destw > srcw){
+				COLOR* cpyrow = (COLOR*)malloc(sizeof(COLOR)*srcw);
+				COLOR* cpydata = (COLOR*)malloc(sizeof(COLOR)*srcw*srch);
+				AGIDL_ClrMemcpy(cpydata,srcclr,srcw*srch);
+				
+				u16 width = srcw;
+				u16 height = srch;
+
+				cpydata = (COLOR*)AGIDL_ScaleImgDataNearest(cpydata,&width,&height,destw/(float)srcw,1,fmt);
+				
+				int x;
+				for(x = 0; x < destw; x++){
+					COLOR clr = AGIDL_GetClr(cpydata,x,srcscanline,width,height);
+					AGIDL_SetClr(cpyrow,clr,x,0,destw,1);
+				}
+				
+				for(x = 0; x < destw; x++){
+					COLOR clr = AGIDL_GetClr(cpyrow,x,0,srcw,srch);
+					AGIDL_SetClr(destclr,clr,x,destscanline,destw,desth);
+				}
+				
+				free(cpydata);
+				free(cpyrow);
+			}
+			else{
+				int x;
+				for(x = 0; x < destw; x++){
+					COLOR clr = AGIDL_GetClr(srcclr,x,srcscanline,srcw,srch);
+					AGIDL_SetClr(destclr,clr,x,destscanline,destw,desth);
+				}
+			}
+			
+			free(srcclr);
+		}
+	}
+	else if(AGIDL_GetBitCount(destfmt) == 16 && (AGIDL_GetBitCount(srcfmt) == 24 || AGIDL_GetBitCount(srcfmt) == 32)){
+		if(AGIDL_InsideClipBounds(0,srcscanline,srcw,srch) && AGIDL_InsideClipBounds(0,destscanline,destw,desth)){
+			COLOR16* destclr = (COLOR16*)dest;
+			COLOR* srcclr24 = (COLOR*)src;
+			
+			COLOR16* srcclr = (COLOR16*)malloc(sizeof(COLOR16)*srcw*srch);
+			
+			AGIDL_CLR_FMT fmt = srcfmt;
+			AGIDL_24BPPTO16BPP(srcclr24,srcclr,srcw,srch,&fmt);
+			
+			if(destw > srcw){
+				COLOR16* cpyrow = (COLOR16*)malloc(sizeof(COLOR16)*srcw);
+				COLOR16* cpydata = (COLOR16*)malloc(sizeof(COLOR16)*srcw*srch);
+				AGIDL_ClrMemcpy16(cpydata,srcclr,srcw*srch);
+				
+				u16 width = srcw;
+				u16 height = srch;
+
+				cpydata = (COLOR16*)AGIDL_ScaleImgDataNearest(cpydata,&width,&height,destw/(float)srcw,1,fmt);
+				
+				int x;
+				for(x = 0; x < destw; x++){
+					COLOR16 clr = AGIDL_GetClr16(cpydata,x,srcscanline,width,height);
+					AGIDL_SetClr16(cpyrow,clr,x,0,destw,1);
+				}
+				
+				for(x = 0; x < destw; x++){
+					COLOR16 clr = AGIDL_GetClr16(cpyrow,x,0,srcw,srch);
+					AGIDL_SetClr16(destclr,clr,x,destscanline,destw,desth);
+				}
+				
+				free(cpydata);
+				free(cpyrow);
+			}
+			else{
+				int x;
+				for(x = 0; x < destw; x++){
+					COLOR clr16 = AGIDL_GetClr16(srcclr,x,srcscanline,srcw,srch);
+					AGIDL_SetClr16(destclr,clr16,x,destscanline,destw,desth);
+				}
+			}
+			
+			free(srcclr);
 		}
 	}
 }
@@ -899,26 +1069,26 @@ u8* AGIDL_GenerateRGBABuffer(COLOR* clrs, int width, int height, AGIDL_CLR_FMT f
 
 COLOR* AGIDL_RGBSyncColor(u8* rgbbuf, int width, int height, AGIDL_CLR_FMT fmt){
 	COLOR* clr = (COLOR*)malloc(sizeof(COLOR)*(width*height));
-	int i;
-	for(i = 0; i < width*height*3; i+=3){
+	int i, count;
+	for(i = 0, count = 0; i < width*height*3; i+=3, count++){
 		switch(fmt){
 			case AGIDL_RGB_888:{
-				clr[i] = AGIDL_RGB(rgbbuf[i],rgbbuf[i+1],rgbbuf[i+2],fmt);
+				clr[count] = AGIDL_RGB(rgbbuf[i],rgbbuf[i+1],rgbbuf[i+2],fmt);
 			}break;
 			case AGIDL_BGR_888:{
-				clr[i] = AGIDL_RGB(rgbbuf[i+2],rgbbuf[i+1],rgbbuf[i],fmt);
+				clr[count] = AGIDL_RGB(rgbbuf[i+2],rgbbuf[i+1],rgbbuf[i],fmt);
 			}break;
 			case AGIDL_RGB_555:{
-				clr[i] = AGIDL_RGB16(rgbbuf[i],rgbbuf[i+1],rgbbuf[i+2],fmt);
+				clr[count] = AGIDL_RGB16(rgbbuf[i],rgbbuf[i+1],rgbbuf[i+2],fmt);
 			}break;
 			case AGIDL_BGR_555:{
-				clr[i] = AGIDL_RGB16(rgbbuf[i+2],rgbbuf[i+1],rgbbuf[i],fmt);
+				clr[count] = AGIDL_RGB16(rgbbuf[i+2],rgbbuf[i+1],rgbbuf[i],fmt);
 			}break;
 			case AGIDL_RGB_565:{
-				clr[i] = AGIDL_RGB16(rgbbuf[i],rgbbuf[i+1],rgbbuf[i+2],fmt);
+				clr[count] = AGIDL_RGB16(rgbbuf[i],rgbbuf[i+1],rgbbuf[i+2],fmt);
 			}break;
 			case AGIDL_BGR_565:{
-				clr[i] = AGIDL_RGB16(rgbbuf[i+2],rgbbuf[i+1],rgbbuf[i],fmt);
+				clr[count] = AGIDL_RGB16(rgbbuf[i+2],rgbbuf[i+1],rgbbuf[i],fmt);
 			}break;
 		}
 	}
@@ -927,9 +1097,9 @@ COLOR* AGIDL_RGBSyncColor(u8* rgbbuf, int width, int height, AGIDL_CLR_FMT fmt){
 
 COLOR* AGIDL_RGBASyncClrs(u8* rgbbuf, int width, int height, AGIDL_CLR_FMT fmt){
 	COLOR* clr = (COLOR*)malloc(sizeof(COLOR)*(width*height));
-	int i;
-	for(i = 0; i < width*height*4; i+=4){
-		clr[i] = AGIDL_RGBA(rgbbuf[i],rgbbuf[i+1],rgbbuf[i+2],rgbbuf[i+3],fmt);
+	int i, count;
+	for(i = 0, count = 0; i < width*height*4; i+=4, count++){
+		clr[count] = AGIDL_RGBA(rgbbuf[i],rgbbuf[i+1],rgbbuf[i+2],rgbbuf[i+3],fmt);
 	}
 	return clr;
 }

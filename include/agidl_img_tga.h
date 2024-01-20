@@ -4,13 +4,13 @@
 /********************************************
 *   Adaptive Graphics Image Display Library
 *
-*   Copyright (c) 2023 Ryandracus Chapman
+*   Copyright (c) 2023-2024 Ryandracus Chapman
 *
 *   Library: libagidl
 *   File: agidl_img_tga.h
 *   Date: 9/13/2023
 *   Version: 0.1b
-*   Updated: 12/21/2023
+*   Updated: 1/19/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -28,6 +28,7 @@ typedef enum TGA_ICP_TYPE{
 }TGA_ICP_TYPE;
 
 typedef enum TGA_IMG_TYPE{
+	TGA_IMG_TYPE_ICP_CLR = 8,
 	TGA_IMG_TYPE_HIGH_CLR = 16,
 	TGA_IMG_TYPE_TRUE_CLR = 24,
 	TGA_IMG_TYPE_DEEP_CLR = 32,
@@ -98,7 +99,8 @@ void AGIDL_ExportTGA(AGIDL_TGA *tga);
 TGA_ICP_TYPE AGIDL_TGAGetICPType(int num);
 TGA_IMG_TYPE AGIDL_TGAGetIMGType(int bits);
 int AGIDL_IsTGA(AGIDL_TGA* tga);
-void AGIDL_TGADecodeHeader(AGIDL_TGA* tga, FILE* file);
+int AGIDL_TGADecodeHeader(AGIDL_TGA* tga, FILE* file);
+void AGIDL_TGAEncodeNearestICP(AGIDL_TGA* tga, AGIDL_ICP palette, FILE* file);
 void AGIDL_TGADecodeIMG(AGIDL_TGA *tga, FILE* file, TGA_ICP_TYPE icp, TGA_IMG_TYPE img_type);
 void AGIDL_TGADecodeRLE(AGIDL_TGA *tga, FILE* file, TGA_ICP_TYPE icp, TGA_IMG_TYPE img_type);
 void AGIDL_TGAEncodeHeader(AGIDL_TGA* tga, FILE* file);

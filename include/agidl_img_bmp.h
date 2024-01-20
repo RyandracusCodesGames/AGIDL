@@ -4,13 +4,13 @@
 /********************************************
 *   Adaptive Graphics Image Display Library
 *
-*   Copyright (c) 2023 Ryandracus Chapman
+*   Copyright (c) 2023-2024 Ryandracus Chapman
 *
 *   Library: libagidl
 *   File: agidl_img_bmp.h
 *   Date: 9/11/2023
 *   Version: 0.1b
-*   Updated: 12/21/2023
+*   Updated: 1/19/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -31,6 +31,8 @@ typedef enum BMP_IMG_TYPE{
 	BMP_IMG_TYPE_ICP_256 = 8,
 	BMP_IMG_TYPE_ICP_16 = 4,
 	BMP_IMG_TYPE_RLE = 1,
+	BMP_IMG_TYPE_1BPP_ICP = 1,
+	BMP_IMG_TYPE_2BPP_ICP = 2,
 }BMP_IMG_TYPE;
 
 typedef struct BMP_HEADER{
@@ -60,6 +62,7 @@ typedef struct AGIDL_BMP{
 	AGIDL_ICP palette;
 	AGIDL_CLR_FMT fmt;
 	Pixels pixels;
+	AGIDL_Bool IsOS2;
 	char *filename;
 }AGIDL_BMP;
 
@@ -103,10 +106,11 @@ BMP_IMG_TYPE AGIDL_BMPGetImgType(int bits);
 u16 AGIDL_BMPGetMaxDiff(AGIDL_BMP *bmp);
 void AGIDL_BMPEncodeHeader(AGIDL_BMP* bmp, FILE* file);
 void AGIDL_BMPEncodeICP(AGIDL_BMP* bmp,FILE* file);
+void AGIDL_BMPEncodeNearestICP(AGIDL_BMP* bmp, AGIDL_ICP palette, FILE* file);
 void AGIDL_BMPEncodeRLE(AGIDL_BMP* bmp,FILE* file);
 void AGIDL_BMPEncodeIMG(AGIDL_BMP* bmp,FILE* file);
 void AGIDL_BMPEncodeIMG0(AGIDL_BMP* bmp, FILE* file);
-void AGIDL_BMPDecodeHeader(AGIDL_BMP* bmp, FILE* file);
+int AGIDL_BMPDecodeHeader(AGIDL_BMP* bmp, FILE* file);
 void AGIDL_BMPDecodeIMG(AGIDL_BMP* bmp, FILE* file, BMP_IMG_TYPE img_type);
 void AGIDL_BMPDecodeRLE(AGIDL_BMP* bmp, FILE* file, BMP_IMG_TYPE img_type);
 AGIDL_BMP* AGIDL_BMPCpyImg(AGIDL_BMP* bmp);

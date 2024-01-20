@@ -1,13 +1,13 @@
 /********************************************
 *   Adaptive Graphics Image Display Library
 *
-*   Copyright (c) 2023 Ryandracus Chapman
+*   Copyright (c) 2023-2024 Ryandracus Chapman
 *
 *   Library: libagidl
 *   File: agidl_imgp_filter.c
 *   Date: 12/13/2023
 *   Version: 0.2b
-*   Updated: 12/13/2023
+*   Updated: 1/19/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -16,6 +16,141 @@
 #include "agidl_imgp_scale.h"
 #include "agidl_img_bmp.h"
 #include "agidl_cc_mixer.h"
+#include "agidl_math_utils.h"
+
+COLOR AGIDL_SamplePointNearest(void* data, float u, float v, u32 width, u32 height, AGIDL_CLR_FMT fmt){
+	u = AGIDL_Clampf(0.0f,u,1.0f);
+	v = AGIDL_Clampf(0.0f,v,1.0f);
+	
+	int x = u * width - 0.5f;
+	int y = v * height - 0.5f;
+	
+	x = AGIDL_Clamp(0,x,width);
+	y = AGIDL_Clamp(0,y,height);
+	
+	if(AGIDL_GetBitCount(fmt) == 16){
+		COLOR16* clrdata = (COLOR16*)data;
+		return AGIDL_GetClr16(clrdata,x,y,width,height);
+	}
+	else{
+		COLOR* clrdata = (COLOR*)data;
+		return AGIDL_GetClr(clrdata,x,y,width,height);
+	}
+}
+
+COLOR AGIDL_SamplePointBilerp(void* data, float u, float v, u32 width, u32 height, AGIDL_CLR_FMT fmt){
+	u = AGIDL_Clampf(0.0f,u,1.0f);
+	v = AGIDL_Clampf(0.0f,v,1.0f);
+	
+	int x = u * width - 0.5f;
+	int y = v * height - 0.5f;
+	
+	x = AGIDL_Clamp(0,x,width);
+	y = AGIDL_Clamp(0,y,height);
+	
+	if(AGIDL_GetBitCount(fmt) == 16){
+		COLOR16* clrdata = (COLOR16*)data;
+		
+		COLOR16 clr1 = AGIDL_GetClr16(clrdata,x,y,width,height);
+		COLOR16 clr2 = AGIDL_GetClr16(clrdata,x+1,y,width,height);
+		COLOR16 clr3 = AGIDL_GetClr16(clrdata,x,y+1,width,height);
+		COLOR16 clr4 = AGIDL_GetClr16(clrdata,x+1,y+1,width,height);
+		
+		return AGIDL_BilerpColor(clr1,clr2,clr3,clr4,0.5f,0.5f,fmt);
+	}
+	else{
+		COLOR* clrdata = (COLOR*)data;
+		
+		COLOR clr1 = AGIDL_GetClr(clrdata,x,y,width,height);
+		COLOR clr2 = AGIDL_GetClr(clrdata,x+1,y,width,height);
+		COLOR clr3 = AGIDL_GetClr(clrdata,x,y+1,width,height);
+		COLOR clr4 = AGIDL_GetClr(clrdata,x+1,y+1,width,height);
+		
+		return AGIDL_BilerpColor(clr1,clr2,clr3,clr4,0.5f,0.5f,fmt);
+	}
+}
+
+COLOR AGIDL_SamplePointTrilerp(void* data, float u, float v, u32 width, u32 height, AGIDL_CLR_FMT fmt){
+	u = AGIDL_Clampf(0.0f,u,1.0f);
+	v = AGIDL_Clampf(0.0f,v,1.0f);
+	
+	int x = u * width - 0.5f;
+	int y = v * height - 0.5f;
+	
+	x = AGIDL_Clamp(0,x,width);
+	y = AGIDL_Clamp(0,y,height);
+	
+	if(AGIDL_GetBitCount(fmt) == 16){
+		COLOR16* clrdata = (COLOR16*)data;
+		COLOR16* clrscpy = (COLOR16*)malloc(sizeof(COLOR16)*width*height);
+		AGIDL_ClrMemcpy16(clrscpy,clrdata,width*height);
+		
+		u16 w = width, h = height;
+		
+		COLOR16* clrscale = (COLOR16*)malloc(sizeof(COLOR16)*w*h);
+		clrscale = (COLOR16*)AGIDL_ScaleImgDataNearest(clrscpy,&w,&h,0.5f,0.5f,fmt);
+		
+		AGIDL_FilterImgDataBilerp(clrscale,w,h,fmt);
+		
+		float x_scale = ((float)(w-1)/width);
+		float y_scale = ((float)(h-1)/height);
+		
+		int xx = x * x_scale;
+		int yy = y * y_scale;
+		
+		COLOR16 clr1 = AGIDL_GetClr16(clrdata,x,y,width,height);
+		COLOR16 clr2 = AGIDL_GetClr16(clrdata,x+1,y,width,height);
+		COLOR16 clr3 = AGIDL_GetClr16(clrdata,x,y+1,width,height);
+		COLOR16 clr4 = AGIDL_GetClr16(clrdata,x+1,y+1,width,height);
+		
+		COLOR16 clr1s = AGIDL_GetClr16(clrscale,xx,yy,w,h);
+		COLOR16 clr2s = AGIDL_GetClr16(clrscale,xx+1,yy,w,h);
+		COLOR16 clr3s = AGIDL_GetClr16(clrscale,xx,yy+1,w,h);
+		COLOR16 clr4s = AGIDL_GetClr16(clrscale,xx+1,yy+1,w,h);
+		
+		COLOR16 bilerp1 = AGIDL_BilerpColor(clr1,clr2,clr3,clr4,0.5f,0.5f,fmt);
+		COLOR16 bilerp2 = AGIDL_BilerpColor(clr1s,clr2s,clr3s,clr4s,0.5f,0.5f,fmt);
+		
+		free(clrscpy);
+		
+		return AGIDL_InterpColor(bilerp1,bilerp2,0.5f,fmt);
+	}
+	else{
+		COLOR* clrdata = (COLOR*)data;
+		COLOR* clrscpy = (COLOR*)malloc(sizeof(COLOR)*width*height);
+		AGIDL_ClrMemcpy(clrscpy,clrdata,width*height);
+		
+		u16 w = width, h = height;
+		
+		COLOR* clrscale = (COLOR*)malloc(sizeof(COLOR)*w*h);
+		clrscale = (COLOR*)AGIDL_ScaleImgDataNearest(clrscpy,&w,&h,0.5f,0.5f,fmt);
+		
+		AGIDL_FilterImgDataBilerp(clrscale,w,h,fmt);
+		
+		float x_scale = ((float)(w-1)/width);
+		float y_scale = ((float)(h-1)/height);
+		
+		int xx = x * x_scale;
+		int yy = y * y_scale;
+		
+		COLOR clr1 = AGIDL_GetClr(clrdata,x,y,width,height);
+		COLOR clr2 = AGIDL_GetClr(clrdata,x+1,y,width,height);
+		COLOR clr3 = AGIDL_GetClr(clrdata,x,y+1,width,height);
+		COLOR clr4 = AGIDL_GetClr(clrdata,x+1,y+1,width,height);
+		
+		COLOR clr1s = AGIDL_GetClr(clrscale,xx,yy,w,h);
+		COLOR clr2s = AGIDL_GetClr(clrscale,xx+1,yy,w,h);
+		COLOR clr3s = AGIDL_GetClr(clrscale,xx,yy+1,w,h);
+		COLOR clr4s = AGIDL_GetClr(clrscale,xx+1,yy+1,w,h);
+		
+		COLOR bilerp1 = AGIDL_BilerpColor(clr1,clr2,clr3,clr4,0.5f,0.5f,fmt);
+		COLOR bilerp2 = AGIDL_BilerpColor(clr1s,clr2s,clr3s,clr4s,0.5f,0.5f,fmt);
+		
+		free(clrscpy);
+		
+		return AGIDL_InterpColor(bilerp1,bilerp2,0.5f,fmt);
+	}
+}
 
 void AGIDL_FilterImgDataBilerp(void* data, u32 width, u32 height, AGIDL_CLR_FMT fmt){
 	if(AGIDL_GetBitCount(fmt) == 24 || AGIDL_GetBitCount(fmt) == 32){

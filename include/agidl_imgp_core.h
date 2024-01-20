@@ -4,13 +4,13 @@
 /********************************************
 *   Adaptive Graphics Image Display Library
 *
-*   Copyright (c) 2023 Ryandracus Chapman
+*   Copyright (c) 2023-2024 Ryandracus Chapman
 *
 *   Library: libagidl
 *   File: agidl_imgp_core.h
 *   Date: 11/27/2023
 *   Version: 0.1b
-*   Updated: 12/18/2023
+*   Updated: 1/19/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -18,5 +18,6 @@
 #include "agidl_imgp_impl.h"
 #include "agidl_imgp_lightmap.h"
 #include "agidl_imgp_blend.h"
+#include "agidl_imgp_font.h"
 
 #endif

@@ -4,13 +4,13 @@
 /********************************************
 *   Adaptive Graphics Image Display Library
 *
-*   Copyright (c) 2023 Ryandracus Chapman
+*   Copyright (c) 2023-2024 Ryandracus Chapman
 *
 *   Library: libagidl
 *   File: agidl_img_types.h
 *   Date: 9/15/2023
 *   Version: 0.1b
-*   Updated: 12/21/2023
+*   Updated: 1/19/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -58,6 +58,7 @@ void AGIDL_ClrMemcpy(COLOR *dest, COLOR *src, u32 count);
 void AGIDL_ClrMemcpy16(COLOR16 *dest, COLOR16 *src, u32 count);
 int AGIDL_CheckCoordBounds(u32 x, u32 y, u32 width, u32 height);
 void AGIDL_CopyTile(void* dest, void* src, u32 destw, u32 desth, u32 srcw, u32 srch, AGIDL_CLR_FMT destfmt, AGIDL_CLR_FMT srcfmt, u16 xstart, u16 xend, u16 ystart, u16 yend, u16 dx, u16 dy);
+void AGIDL_CopyScanline(void* dest, void* src, u32 destw, u32 desth, u32 srcw, u32 srch, AGIDL_CLR_FMT destfmt, AGIDL_CLR_FMT srcfmt, u16 destscanline, u16 srcscanline);
 void AGIDL_ClrMemset(COLOR *dest, COLOR clr, u32 count);
 void AGIDL_ClrMemset16(COLOR16 *dest, COLOR16 clr, u32 count);
 void AGIDL_ClearColorBuffer(void* data, float r, float g, float b, AGIDL_CLR_FMT fmt, u32 count);

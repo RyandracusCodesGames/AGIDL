@@ -7,13 +7,13 @@
 /********************************************
 *   Adaptive Graphics Image Display Library
 *
-*   Copyright (c) 2023 Ryandracus Chapman
+*   Copyright (c) 2023-2024 Ryandracus Chapman
 *
 *   Library: libagidl
 *   File: agidl_cc_manager.h
 *   Date: 9/8/2023
 *   Version: 0.1b
-*   Updated: 12/21/2023
+*   Updated: 1/19/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -42,6 +42,7 @@ void AGIDL_ClearRGBICP(AGIDL_ICP* palette, u8 r, u8 g, u8 b);
 void AGIDL_ClearColorICP(AGIDL_ICP* palette, float r, float g, float b);
 int AGIDL_IsInThreshold(COLOR clr1, COLOR clr2, AGIDL_CLR_FMT fmt, AGIDL_CLR_FMT fmt2, u8 max_diff);
 AGIDL_ICP AGIDL_GenerateVGAICP();
+AGIDL_ICP AGIDL_GenerateAloneInTheDarkICP();
 AGIDL_CLR_MDL AGIDL_GetClrMDL(AGIDL_CLR_FMT fmt);
 AGIDL_CLR_FMT AGIDL_GetClrFmt(AGIDL_CLR_MDL mdl, AGIDL_BITS bits);
 void AGIDL_ExportICP(const char* name, AGIDL_ICP icp);
@@ -51,6 +52,9 @@ void AGIDL_ForceAddColor(AGIDL_ICP* palette, COLOR clr, u8 index);
 void AGIDL_AddColorICP16(AGIDL_ICP *palette, u8 index, COLOR16 clr, AGIDL_CLR_FMT fmt, int max_diff, int *pass);
 void AGIDL_AddColorICP(AGIDL_ICP *palette, u8 index, COLOR clr, AGIDL_CLR_FMT fmt, int max_diff, int *pass);
 u8 AGIDL_FindClosestColor(AGIDL_ICP palette, COLOR clr, AGIDL_CLR_FMT fmt, int max_difference);
+u8 AGIDL_FindNearestColor(AGIDL_ICP palette, COLOR clr, AGIDL_CLR_FMT fmt);
+AGIDL_ICP AGIDL_GenerateVGAICP();
+AGIDL_ICP AGIDL_GenerateVGAICP16();
 /*BASIC SETTERS FOR ALL COLOR SPACES*/
 void AGIDL_SetY(AGIDL_YCbCr *ycbcr, u8 y);
 void AGIDL_SetCb(AGIDL_YCbCr *ycbcr, u8 cb);
