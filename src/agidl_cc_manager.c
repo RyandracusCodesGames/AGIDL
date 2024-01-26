@@ -730,6 +730,46 @@ COLOR AGIDL_GetColor(AGIDL_CLR clr, AGIDL_CLR_FMT fmt){
 	return 0;
 }
 
+COLOR AGIDL_GammaCorrectColor(COLOR clr, f32 gamma, AGIDL_CLR_FMT fmt){
+	switch(AGIDL_GetBitCount(fmt)){
+		case 24:{
+			u8 r = AGIDL_GetR(clr,fmt);
+			u8 g = AGIDL_GetG(clr,fmt);
+			u8 b = AGIDL_GetB(clr,fmt);
+			
+			r = pow((r/255.0f),1/gamma)*255;
+			g = pow((g/255.0f),1/gamma)*255;
+			b = pow((b/255.0f),1/gamma)*255;
+			
+			return AGIDL_RGB(r,g,b,fmt);
+		}break;
+		case 16:{
+			u8 r = AGIDL_GetR(clr,fmt);
+			u8 g = AGIDL_GetG(clr,fmt);
+			u8 b = AGIDL_GetB(clr,fmt);
+			
+			r = pow((r/31.0f),1/gamma)*31;
+			g = pow((g/31.0f),1/gamma)*31;
+			b = pow((b/31.0f),1/gamma)*31;
+			
+			return AGIDL_RGB16(r,g,b,fmt);
+		}break;
+		case 32:{
+			u8 r = AGIDL_GetR(clr,fmt);
+			u8 g = AGIDL_GetG(clr,fmt);
+			u8 b = AGIDL_GetB(clr,fmt);
+			u8 a = AGIDL_GetA(clr,fmt);
+			
+			r = pow((r/255.0f),1/gamma)*255;
+			g = pow((g/255.0f),1/gamma)*255;
+			b = pow((b/255.0f),1/gamma)*255;
+			
+			return AGIDL_RGBA(r,g,b,a,fmt);
+		}break;
+	}
+	return 0;
+}
+
 int AGIDL_IsInThreshold(COLOR clr1, COLOR clr2, AGIDL_CLR_FMT fmt, AGIDL_CLR_FMT fmt2, u8 max_diff){
 	if((AGIDL_GetBitCount(fmt) == 24 || AGIDL_GetBitCount(fmt) == 32) && (AGIDL_GetBitCount(fmt2) == 24 || AGIDL_GetBitCount(fmt2) == 32)){
 		u8 r = AGIDL_GetR(clr1,fmt);

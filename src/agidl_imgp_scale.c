@@ -7,7 +7,7 @@
 *   File: agidl_imgp_scale.c
 *   Date: 12/9/2023
 *   Version: 0.2b
-*   Updated: 1/19/2024
+*   Updated: 1/23/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -15,6 +15,65 @@
 #include <string.h>
 #include "agidl_imgp_scale.h"
 #include "agidl_cc_mixer.h"
+
+void * AGIDL_HalfImgDataNearest(void* data, u16* width, u16* height, AGIDL_CLR_FMT fmt){
+	if(AGIDL_GetBitCount(fmt) == 16){
+		u16 worg = *width;
+		u16 horg = *height;
+		
+		u16 w = worg >> 1;
+		u16 h = horg >> 1;
+		
+		COLOR16* org_data = (COLOR16*)data;
+		COLOR16* clr_data = (COLOR16*)malloc(sizeof(COLOR16)*w*h);
+		
+		u16 x,y;
+		for(y = 0; y < h; y++){
+			for(x = 0; x < w; x++){
+				u16 x2 = (x << 1);
+				u16 y2 = (y << 1);
+				
+				COLOR16 clr = AGIDL_GetClr16(org_data,x2,y2,worg,horg);
+				AGIDL_SetClr16(clr_data,clr,x,y,w,h);
+			}
+		}
+		
+		free(data);
+		
+		*width = w;
+		*height = h;
+		
+		return clr_data;
+	}
+	else{
+		u16 worg = *width;
+		u16 horg = *height;
+		
+		u16 w = worg >> 1;
+		u16 h = horg >> 1;
+		
+		COLOR* org_data = (COLOR*)data;
+		COLOR* clr_data = (COLOR*)malloc(sizeof(COLOR)*w*h);
+		
+		u16 x,y;
+		for(y = 0; y < h; y++){
+			for(x = 0; x < w; x++){
+				u16 x2 = (x << 1);
+				u16 y2 = (y << 1);
+				
+				COLOR clr = AGIDL_GetClr(org_data,x2,y2,worg,horg);
+				AGIDL_SetClr(clr_data,clr,x,y,w,h);
+			}
+		}
+		
+		free(data);
+		
+		*width = w;
+		*height = h;
+		
+		return clr_data;
+	}
+}
 
 void * AGIDL_ScaleImgDataNearest(void* data, u16* width, u16* height, float sx, float sy, AGIDL_CLR_FMT fmt){
 	if(AGIDL_GetBitCount(fmt) == 24 || AGIDL_GetBitCount(fmt) == 32){

@@ -13,7 +13,7 @@
 *   File: agidl_img_quake.c
 *   Date: 10/3/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 1/21/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -381,7 +381,8 @@ AGIDL_LMP * AGIDL_LoadLMP(char *filename){
 	}
 	
 	AGIDL_LMP* lmp = (AGIDL_LMP*)malloc(sizeof(AGIDL_LMP));
-	AGIDL_SetLMPFilename(lmp,filename);
+	lmp->filename = (char*)malloc(strlen(filename)+1);
+	AGIDL_FilenameCpy(lmp->filename,filename);
 	lmp->palette = AGIDL_GenerateQuakeICP();
 	AGIDL_LMPSetClrFmt(lmp,AGIDL_RGB_888);
 	AGIDL_LMPDecodeHeader(lmp,file);
@@ -407,18 +408,18 @@ void AGIDL_LMPEncodeICP(AGIDL_LMP* lmp, FILE* file){
 	int x,y;
 	for(y = AGIDL_LMPGetHeight(lmp) - 1; y >= 0; y--){
 		for(x = 0; x < AGIDL_LMPGetWidth(lmp); x++){
-			if(AGIDL_GetBitCount(AGIDL_LMPGetClrFmt(lmp))){
+			if(AGIDL_GetBitCount(AGIDL_LMPGetClrFmt(lmp)) == 32){
 				COLOR clr = AGIDL_LMPGetClr(lmp,x,y);
 				u8 r = AGIDL_GetR(clr,AGIDL_LMPGetClrFmt(lmp));
 				u8 g = AGIDL_GetG(clr,AGIDL_LMPGetClrFmt(lmp));
 				u8 b = AGIDL_GetB(clr,AGIDL_LMPGetClrFmt(lmp));
 				clr = AGIDL_RGB(r,g,b,AGIDL_RGB_888);
-				u8 index = AGIDL_FindClosestColor(lmp->palette,clr,AGIDL_RGB_888,AGIDL_LMPGetMaxDiff(lmp));
+				u8 index = AGIDL_FindNearestColor(lmp->palette,clr,AGIDL_RGB_888);
 				fwrite(&index,1,1,file);
 			}
 			else{
 				COLOR clr = AGIDL_LMPGetClr(lmp,x,y);
-				u8 index = AGIDL_FindClosestColor(lmp->palette,clr,AGIDL_RGB_888,AGIDL_LMPGetMaxDiff(lmp));
+				u8 index = AGIDL_FindNearestColor(lmp->palette,clr,AGIDL_RGB_888);
 				fwrite(&index,1,1,file);
 			}
 		}

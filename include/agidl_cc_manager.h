@@ -13,7 +13,7 @@
 *   File: agidl_cc_manager.h
 *   Date: 9/8/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 1/20/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -35,6 +35,9 @@ COLOR AGIDL_GetColor(AGIDL_CLR clr, AGIDL_CLR_FMT fmt);
 COLOR16 AGIDL_GetColor16(AGIDL_CLR clr, AGIDL_CLR_FMT fmt);
 COLOR AGIDL_Color3f(float r, float g, float b, AGIDL_CLR_FMT fmt);
 COLOR AGIDL_Color4f(float r, float g, float b, float a, AGIDL_CLR_FMT fmt);
+
+COLOR AGIDL_GammaCorrectColor(COLOR clr, f32 gamma, AGIDL_CLR_FMT fmt);
+u8 AGIDL_GammaCorrectColorComponent(u8 rgb, f32 gamma, AGIDL_CLR_FMT fmt);
 
 void AGIDL_SetICPMode(AGIDL_ICP* palette, int mode, AGIDL_CLR_FMT fmt);
 void AGIDL_ClearICP(AGIDL_ICP* palette, COLOR clr);

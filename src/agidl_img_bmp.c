@@ -16,7 +16,7 @@
 *   File: agidl_img_bmp.c
 *   Date: 9/12/2023
 *   Version: 0.1b
-*   Updated: 1/19/2023
+*   Updated: 1/25/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -298,9 +298,8 @@ void AGIDL_BMPEncodeICP(AGIDL_BMP* bmp, FILE* file){
 	int i;
 	for(i = 0; i < 256; i++){
 		COLOR clr = bmp->palette.icp.palette_256[i];
-		AGIDL_ExtractAndPrintRGB(file,clr,AGIDL_RGB_888);
-		u8 pad = 0;
-		fwrite(&pad,1,1,file);
+		AGIDL_WriteRGB(file,clr,AGIDL_RGB_888,AGIDL_RGB_888);
+		AGIDL_WriteByte(file,0);
 	}
 }
 
@@ -310,36 +309,32 @@ void AGIDL_BMPEncodeNearestICP(AGIDL_BMP* bmp, AGIDL_ICP palette, FILE* file){
 			int i;
 			for(i = 0; i < 256; i++){
 				COLOR clr = palette.icp.palette_256[i];
-				AGIDL_ExtractAndPrintRGB(file,clr,palette.fmt);
-				u8 pad = 0;
-				fwrite(&pad,1,1,file);
+				AGIDL_WriteRGB(file,clr,palette.fmt,AGIDL_BGR_888);
+				AGIDL_WriteByte(file,0);
 			}
 		}break;
 		case AGIDL_ICP_16:{
 			int i;
 			for(i = 0; i < 16; i++){
 				COLOR clr = palette.icp.palette_16[i];
-				AGIDL_ExtractAndPrintRGB(file,clr,palette.fmt);
-				u8 pad = 0;
-				fwrite(&pad,1,1,file);
+				AGIDL_WriteRGB(file,clr,palette.fmt,AGIDL_BGR_888);
+				AGIDL_WriteByte(file,0);
 			}
 		}break;
 		case AGIDL_ICP_16b_256:{
 			int i;
 			for(i = 0; i < 256; i++){
 				COLOR16 clr = palette.icp.palette_16b_256[i];
-				AGIDL_ExtractAndPrintRGB(file,clr,palette.fmt);
-				u8 pad = 0;
-				fwrite(&pad,1,1,file);
+				AGIDL_WriteRGB(file,clr,palette.fmt,AGIDL_BGR_888);
+				AGIDL_WriteByte(file,0);
 			}
 		}break;
 		case AGIDL_ICP_16b_16:{
 			int i;
 			for(i = 0; i < 16; i++){
 				COLOR16 clr = palette.icp.palette_16b_16[i];
-				AGIDL_ExtractAndPrintRGB(file,clr,palette.fmt);
-				u8 pad = 0;
-				fwrite(&pad,1,1,file);
+				AGIDL_WriteRGB(file,clr,palette.fmt,AGIDL_BGR_888);
+				AGIDL_WriteByte(file,0);
 			}
 		}break;
 	}
@@ -359,12 +354,12 @@ void AGIDL_BMPEncodeNearestICP(AGIDL_BMP* bmp, AGIDL_ICP palette, FILE* file){
 			if(AGIDL_GetBitCount(bmp->fmt) == 24 || AGIDL_GetBitCount(bmp->fmt) == 32){
 				COLOR clr = AGIDL_BMPGetClr(bmp,x,y);
 				u8 index = AGIDL_FindNearestColor(palette,clr,AGIDL_BMPGetClrFmt(bmp));
-				fwrite(&index,1,1,file);
+				AGIDL_WriteByte(file,index);
 			}
 			else{
 				COLOR clr = AGIDL_BMPGetClr16(bmp,x,y);
 				u8 index = AGIDL_FindNearestColor(palette,clr,AGIDL_BMPGetClrFmt(bmp));
-				fwrite(&index,1,1,file);
+				AGIDL_WriteByte(file,index);
 			}
 		}
 		if(pad != 0){
@@ -374,6 +369,7 @@ void AGIDL_BMPEncodeNearestICP(AGIDL_BMP* bmp, AGIDL_ICP palette, FILE* file){
 }
 
 void AGIDL_BMPEncodeRLE(AGIDL_BMP* bmp, FILE* file){
+	int counter = 0;
 	int x,y;
 	for(y = 0; y < AGIDL_BMPGetHeight(bmp); y++){
 		for(x = 0; x < AGIDL_BMPGetWidth(bmp); x++){
@@ -383,31 +379,28 @@ void AGIDL_BMPEncodeRLE(AGIDL_BMP* bmp, FILE* file){
 			
 			x += count - 1;
 			
-			u8 index;
+			u8 index = 0;
 			if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 32){
 				u8 r = AGIDL_GetR(clr,AGIDL_BMPGetClrFmt(bmp));
 				u8 g = AGIDL_GetG(clr,AGIDL_BMPGetClrFmt(bmp));
 				u8 b = AGIDL_GetB(clr,AGIDL_BMPGetClrFmt(bmp));
 				clr = AGIDL_RGB(r,g,b,AGIDL_BGR_888);
-				index = AGIDL_FindClosestColor(bmp->palette,clr,AGIDL_BGR_888,AGIDL_BMPGetMaxDiff(bmp));			
+				index = AGIDL_FindNearestColor(bmp->palette,clr,AGIDL_BGR_888);			
 			}
 			else{
-				index = AGIDL_FindClosestColor(bmp->palette,clr,bmp->fmt,AGIDL_BMPGetMaxDiff(bmp));
+				index = AGIDL_FindNearestColor(bmp->palette,clr,AGIDL_BMPGetClrFmt(bmp));
 			}
 			
-
 			fwrite(&count,1,1,file);
 			fwrite(&index,1,1,file);
 			
 			if(x == AGIDL_BMPGetWidth(bmp)-1){
+				AGIDL_WriteShort(file,0);
+				
 				if(y == AGIDL_BMPGetHeight(bmp)-1){
-					u8 zero = 0, one = 1;
-					fwrite(&zero,1,1,file);
-					fwrite(&one,1,1,file);
+					AGIDL_WriteShort(file,0);
+					AGIDL_WriteShort(file,1);
 				}
-				u16 zero = 0;
-				fwrite(&zero,2,1,file);
-				break;
 			}
 		}
 	}
@@ -432,7 +425,7 @@ void AGIDL_BMPEncodeIMG(AGIDL_BMP* bmp, FILE* file){
 			else{
 			    index = AGIDL_FindClosestColor(bmp->palette,clr,bmp->fmt,AGIDL_BMPGetMaxDiff(bmp));
 			}
-			fwrite(&index,1,1,file);
+			AGIDL_WriteByte(file,index);
 		}
 		if(!(pad) == 0){
 			fwrite(&padding,pad,1,file);
@@ -454,9 +447,9 @@ void AGIDL_BMPEncodeIMG0(AGIDL_BMP* bmp, FILE* file){
 				u8 g = AGIDL_GetG(clr,AGIDL_BMPGetClrFmt(bmp));
 				u8 b = AGIDL_GetB(clr,AGIDL_BMPGetClrFmt(bmp));
 				
-				fwrite(&b,1,1,file);
-				fwrite(&g,1,1,file);
-				fwrite(&r,1,1,file);
+				AGIDL_WriteByte(file,b);
+				AGIDL_WriteByte(file,g);
+				AGIDL_WriteByte(file,r);
 				
 				if(count == AGIDL_BMPGetWidth(bmp)){
 					count = 0;
@@ -470,55 +463,49 @@ void AGIDL_BMPEncodeIMG0(AGIDL_BMP* bmp, FILE* file){
 			fwrite(bmp->pixels.pix16,2,AGIDL_BMPGetWidth(bmp)*AGIDL_BMPGetHeight(bmp),file);
 		}break;
 		case AGIDL_RGBA_8888:{
-			int i;
-			for(i = 0; i < AGIDL_BMPGetWidth(bmp)*AGIDL_BMPGetHeight(bmp); i++){
-				COLOR clr = bmp->pixels.pix32[i];
-				
-				u8 r = AGIDL_GetR(clr,AGIDL_RGBA_8888);
-				u8 g = AGIDL_GetG(clr,AGIDL_RGBA_8888);
-				u8 b = AGIDL_GetB(clr,AGIDL_RGBA_8888);
-				u8 a = AGIDL_GetA(clr,AGIDL_RGBA_8888);
-				
-				fwrite(&b,1,1,file);
-				fwrite(&g,1,1,file);
-				fwrite(&r,1,1,file);
-				fwrite(&a,1,1,file);
-			}
+			AGIDL_WriteBufBGRA(file,bmp->pixels.pix32,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp),AGIDL_BMPGetClrFmt(bmp));
 		}break;
 	}
 }
 
 int AGIDL_BMPDecodeHeader(AGIDL_BMP* bmp, FILE* file){
-	fread(&bmp->header.magic,2,1,file);
-	fread(&bmp->header.file_size,4,1,file);
-	fread(&bmp->header.reserved1,2,1,file);
-	fread(&bmp->header.reserved2,2,1,file);
-	fread(&bmp->header.offset,4,1,file);
-	fread(&bmp->header.header_size,4,1,file);
+	bmp->header.magic = AGIDL_ReadShort(file);
+	bmp->header.file_size = AGIDL_ReadLong(file);
+	bmp->header.reserved1 = AGIDL_ReadShort(file);
+	bmp->header.reserved2 = AGIDL_ReadShort(file);
+	bmp->header.offset = AGIDL_ReadLong(file);
+	bmp->header.header_size = AGIDL_ReadLong(file);
 	
 	if(bmp->header.header_size == 12){
 		bmp->IsOS2 = TRUE;
-		fread(&bmp->header.width,2,1,file);
-		fread(&bmp->header.height,2,1,file);
-		fread(&bmp->header.num_of_planes,2,1,file);
-		fread(&bmp->header.bits,2,1,file);
+		bmp->header.width = AGIDL_ReadShort(file);
+		bmp->header.height = AGIDL_ReadShort(file);
+		bmp->header.num_of_planes = AGIDL_ReadShort(file);
+		bmp->header.bits = AGIDL_ReadShort(file);
+		
+		if(bmp->header.width > 65535 || bmp->header.height > 65535 || !(bmp->header.bits == 1 || bmp->header.bits == 2 || 
+		bmp->header.bits == 4 || bmp->header.bits == 8 || bmp->header.bits == 16 || bmp->header.bits == 24 || bmp->header.bits != 32)){
+			return INVALID_HEADER_FORMATTING_ERROR;
+		}
+		
+		return NO_IMG_ERROR;
 	}
 	else{
 		bmp->IsOS2 = FALSE;
-		fread(&bmp->header.width,4,1,file);
-		fread(&bmp->header.height,4,1,file);
-		fread(&bmp->header.num_of_planes,2,1,file);
-		fread(&bmp->header.bits,2,1,file);
-		fread(&bmp->header.compress,4,1,file);
-		fread(&bmp->header.img_size,4,1,file);
-		fread(&bmp->header.x_resolution,4,1,file);
-		fread(&bmp->header.y_resolution,4,1,file);
-		fread(&bmp->header.num_of_colors,4,1,file);
-		fread(&bmp->header.important_colors,4,1,file);
+		bmp->header.width = AGIDL_ReadLong(file);
+		bmp->header.height = AGIDL_ReadLong(file);
+		bmp->header.num_of_planes = AGIDL_ReadShort(file);
+		bmp->header.bits = AGIDL_ReadShort(file);
+		bmp->header.compress = AGIDL_ReadLong(file);
+		bmp->header.img_size = AGIDL_ReadLong(file);
+		bmp->header.x_resolution = AGIDL_ReadLong(file);
+		bmp->header.y_resolution = AGIDL_ReadLong(file);
+		bmp->header.num_of_colors = AGIDL_ReadLong(file);
+		bmp->header.important_colors = AGIDL_ReadLong(file);
 	}
 
 	if(bmp->header.magic != 0x4d42 || bmp->header.file_size > 64000000 || bmp->header.num_of_colors > 512 || !(bmp->header.bits == 1 || bmp->header.bits == 2 || 
-	bmp->header.bits == 4 || bmp->header.bits == 8 || bmp->header.bits == 16 || bmp->header.bits == 24 || bmp->header.bits != 32) || bmp->header.header_size > 40 ||
+	bmp->header.bits == 4 || bmp->header.bits == 8 || bmp->header.bits == 16 || bmp->header.bits == 24 || bmp->header.bits == 32) || bmp->header.header_size > 40 ||
 	bmp->header.reserved1 != 0 || bmp->header.reserved2 != 0){
 		return INVALID_HEADER_FORMATTING_ERROR;
 	}
@@ -540,11 +527,7 @@ void AGIDL_BMPDecodeIMG(AGIDL_BMP* bmp, FILE* file, BMP_IMG_TYPE img_type){
 				
 				int i, count;
 				for(i = 0, count = 1; i < AGIDL_BMPGetSize(bmp); i++, count++){
-						u32 r,g,b;
-						fread(&b,1,1,file);
-						fread(&g,1,1,file);
-						fread(&r,1,1,file);
-						COLOR clr = AGIDL_RGB(r,g,b,bmp->fmt);
+						COLOR clr = AGIDL_ReadRGB(file,AGIDL_BMPGetClrFmt(bmp));
 						
 						bmp->pixels.pix32[i] = clr;
 						
@@ -557,22 +540,12 @@ void AGIDL_BMPDecodeIMG(AGIDL_BMP* bmp, FILE* file, BMP_IMG_TYPE img_type){
 			case BMP_IMG_TYPE_HIGH_CLR:{
 				AGIDL_BMPSetClrFmt(bmp,AGIDL_RGB_555);
 				bmp->pixels.pix16 = (COLOR16*)malloc(sizeof(COLOR16)*(AGIDL_BMPGetSize(bmp)));
-				fread(bmp->pixels.pix16,2,AGIDL_BMPGetSize(bmp),file);
+				AGIDL_ReadBufRGB16(file,bmp->pixels.pix16,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp));
 			}break;
 			case BMP_IMG_TYPE_DEEP_CLR:{
 				AGIDL_BMPSetClrFmt(bmp,AGIDL_RGBA_8888);
-				
 				bmp->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*(AGIDL_BMPGetSize(bmp)));
-				u8* rgbabuf = (u8*)malloc(4*AGIDL_BMPGetSize(bmp));
-				
-				fread(rgbabuf,1,AGIDL_BMPGetSize(bmp)*4,file);
-				
-				int i,count;
-				for(i = 0, count = 0; i < AGIDL_BMPGetSize(bmp)*4; i+=4, count++){
-					bmp->pixels.pix32[count] = AGIDL_RGBA(rgbabuf[i+2],rgbabuf[i+1],rgbabuf[i],rgbabuf[i+3],AGIDL_BMPGetClrFmt(bmp));
-				}
-				
-				free(rgbabuf);
+				AGIDL_ReadBufBGRA(file,bmp->pixels.pix32,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp));
 			}break;
 			case BMP_IMG_TYPE_ICP_256:{
 				AGIDL_BMPSetClrFmt(bmp,AGIDL_RGB_888);
@@ -591,12 +564,7 @@ void AGIDL_BMPDecodeIMG(AGIDL_BMP* bmp, FILE* file, BMP_IMG_TYPE img_type){
 				if(bmp->IsOS2 == FALSE){
 					int i;
 					for(i = 0; i < bmp->header.num_of_colors; i++){
-						COLOR clr = 0;
-						u8 r,g,b;
-						fread(&b,1,1,file);
-						fread(&g,1,1,file);
-						fread(&r,1,1,file);
-						clr = AGIDL_RGB(r,g,b,bmp->fmt);
+						COLOR clr = AGIDL_ReadRGB(file,AGIDL_BMPGetClrFmt(bmp));
 						bmp->palette.icp.palette_256[i] = clr;
 						fseek(file,1,SEEK_CUR);
 					}
@@ -604,12 +572,7 @@ void AGIDL_BMPDecodeIMG(AGIDL_BMP* bmp, FILE* file, BMP_IMG_TYPE img_type){
 				else{
 					int i;
 					for(i = 0; i < 1 << bmp->header.bits; i++){
-						COLOR clr = 0;
-						u8 r,g,b;
-						fread(&b,1,1,file);
-						fread(&g,1,1,file);
-						fread(&r,1,1,file);
-						clr = AGIDL_RGB(r,g,b,bmp->fmt);
+						COLOR clr = AGIDL_ReadRGB(file,AGIDL_BMPGetClrFmt(bmp));
 						bmp->palette.icp.palette_256[i] = clr;
 					}
 				}
@@ -617,8 +580,7 @@ void AGIDL_BMPDecodeIMG(AGIDL_BMP* bmp, FILE* file, BMP_IMG_TYPE img_type){
 				int x,y;
 				for(y = 0; y < AGIDL_BMPGetHeight(bmp); y++){
 					for(x = 0; x < AGIDL_BMPGetWidth(bmp); x++){
-						u8 index;
-						fread(&index,1,1,file);
+						u8 index = AGIDL_ReadByte(file);
 						AGIDL_BMPSetClr(bmp,x,y,bmp->palette.icp.palette_256[index]);
 					}
 					if(pad){
@@ -627,7 +589,7 @@ void AGIDL_BMPDecodeIMG(AGIDL_BMP* bmp, FILE* file, BMP_IMG_TYPE img_type){
 				}
 			}break;
 			case BMP_IMG_TYPE_ICP_16:{
-				AGIDL_BMPSetClrFmt(bmp,AGIDL_RGB_888);
+				AGIDL_BMPSetClrFmt(bmp,AGIDL_BGR_888);
 				
 				bmp->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*(AGIDL_BMPGetWidth(bmp)*AGIDL_BMPGetHeight(bmp)));
 
@@ -635,21 +597,14 @@ void AGIDL_BMPDecodeIMG(AGIDL_BMP* bmp, FILE* file, BMP_IMG_TYPE img_type){
 				
 				int i;
 				for(i = 0; i < bmp->header.num_of_colors; i++){
-					COLOR clr = 0;
-					u8 r,g,b;
-					fread(&b,1,1,file);
-					fread(&g,1,1,file);
-					fread(&r,1,1,file);
-					clr = AGIDL_RGB(r,g,b,bmp->fmt);
-					palette[i] = clr;
+					palette[i] = AGIDL_ReadRGB(file,AGIDL_BGR_888);
 					fseek(file,1,SEEK_CUR);
 				}
 				
 				int x,y;
 				for(y = 0; y < AGIDL_BMPGetHeight(bmp); y++){
 					for(x = 0; x < AGIDL_BMPGetWidth(bmp); x += 2){
-						u8 index;
-						fread(&index,1,1,file);
+						u8 index = AGIDL_ReadByte(file);
 						
 						int j, count;
 						for(j = 7, count = 0; j >= 0; j -= 4, count++){
@@ -666,7 +621,7 @@ void AGIDL_BMPDecodeIMG(AGIDL_BMP* bmp, FILE* file, BMP_IMG_TYPE img_type){
 				}
 			}break;
 			case BMP_IMG_TYPE_1BPP_ICP:{
-				AGIDL_BMPSetClrFmt(bmp,AGIDL_RGB_888);
+				AGIDL_BMPSetClrFmt(bmp,AGIDL_BGR_888);
 				
 				bmp->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*(AGIDL_BMPGetSize(bmp)));
 				
@@ -674,21 +629,14 @@ void AGIDL_BMPDecodeIMG(AGIDL_BMP* bmp, FILE* file, BMP_IMG_TYPE img_type){
 				
 				int i;
 				for(i = 0; i < 2; i++){
-					COLOR clr = 0;
-					u8 r,g,b;
-					fread(&b,1,1,file);
-					fread(&g,1,1,file);
-					fread(&r,1,1,file);
-					clr = AGIDL_RGB(r,g,b,AGIDL_BMPGetClrFmt(bmp));
-					palette[i] = clr;
+					palette[i] = AGIDL_ReadRGB(file,AGIDL_BGR_888);
 					fseek(file,1,SEEK_CUR);
 				}
 
 				int x,y;
 				for(y = 0; y < AGIDL_BMPGetHeight(bmp); y++){
 					for(x = 0; x < AGIDL_BMPGetWidth(bmp); x += 8){
-						u8 index;
-						fread(&index,1,1,file);
+						u8 index = AGIDL_ReadByte(file);
 						
 						int j;
 						for(j = 7; j >= 0; j--){
@@ -705,7 +653,7 @@ void AGIDL_BMPDecodeIMG(AGIDL_BMP* bmp, FILE* file, BMP_IMG_TYPE img_type){
 				}
 			}break;
 			case BMP_IMG_TYPE_2BPP_ICP:{
-				AGIDL_BMPSetClrFmt(bmp,AGIDL_RGB_888);
+				AGIDL_BMPSetClrFmt(bmp,AGIDL_BGR_888);
 				
 				bmp->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*(AGIDL_BMPGetSize(bmp)));
 				
@@ -713,21 +661,14 @@ void AGIDL_BMPDecodeIMG(AGIDL_BMP* bmp, FILE* file, BMP_IMG_TYPE img_type){
 				
 				int i;
 				for(i = 0; i < 4; i++){
-					COLOR clr = 0;
-					u8 r,g,b;
-					fread(&b,1,1,file);
-					fread(&g,1,1,file);
-					fread(&r,1,1,file);
-					clr = AGIDL_RGB(r,g,b,AGIDL_BMPGetClrFmt(bmp));
-					palette[i] = clr;
+					palette[i] = AGIDL_ReadRGB(file,AGIDL_BGR_888);
 					fseek(file,1,SEEK_CUR);
 				}
 
 				int x,y;
 				for(y = 0; y < AGIDL_BMPGetHeight(bmp); y++){
 					for(x = 0; x < AGIDL_BMPGetWidth(bmp); x += 4){
-						u8 index;
-						fread(&index,1,1,file);
+						u8 index = AGIDL_ReadByte(file);
 						
 						int j, count;
 						for(j = 7, count = 0; j >= 0; j -= 2, count++){
@@ -749,47 +690,46 @@ void AGIDL_BMPDecodeRLE(AGIDL_BMP* bmp, FILE* file, BMP_IMG_TYPE img_type){
 	if(bmp->header.compress){
 		switch(img_type){
 			case BMP_IMG_TYPE_ICP_256:{
-				AGIDL_BMPSetClrFmt(bmp,AGIDL_RGB_888);
+				AGIDL_BMPSetClrFmt(bmp,AGIDL_BGR_888);
 				int i;
 				for(i = 0; i < bmp->header.num_of_colors; i++){
-					COLOR clr = 0;
-					u8 r,g,b;
-					fread(&b,1,1,file);
-					fread(&g,1,1,file);
-					fread(&r,1,1,file);
-					clr = AGIDL_RGB(r,g,b,bmp->fmt);
-					bmp->palette.icp.palette_256[i] = clr;
+					bmp->palette.icp.palette_256[i] = AGIDL_ReadRGB(file,AGIDL_BGR_888);
 					fseek(file,1,SEEK_CUR);
 				}
 				
-				if(img_type == BMP_IMG_TYPE_ICP_256){
-					bmp->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*(AGIDL_BMPGetWidth(bmp)*(AGIDL_BMPGetHeight(bmp))));
-					
-					int x,y;
-					for(y = 0; y < AGIDL_BMPGetHeight(bmp); y++){
-						for(x = 0; x < AGIDL_BMPGetWidth(bmp); x++){
-							u8 rle, index;
-							fread(&rle,1,1,file);
-							fread(&index,1,1,file);
-							
+				bmp->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*(AGIDL_BMPGetWidth(bmp)*(AGIDL_BMPGetHeight(bmp))));
+				
+				u32 count = 0;
+				
+				int x,y;
+				for(y = 0; y < AGIDL_BMPGetHeight(bmp); y++){
+					for(x = 0; x < AGIDL_BMPGetWidth(bmp); x++){
+						u8 rle = AGIDL_ReadByte(file);
+						u8 index = AGIDL_ReadByte(file);
+						
+						if(rle != 0){
 							int i;
 							for(i = 0; i < rle; i++){
 								AGIDL_BMPSetClr(bmp,x+i,y,bmp->palette.icp.palette_256[index]);
 							}
 							
 							x += rle - 1;
-							
-							if(x == AGIDL_BMPGetWidth(bmp) && rle != 0 && index != 0){
-								fread(&rle,1,1,file);
-								fread(&index,1,1,file);
-								
-								if(rle == 0 && index == 0){
-									break;
-								}
+						}
+						else if(index != 0){
+							int i;
+							for(i = 0; i < index; i++){
+								u8 byte = AGIDL_ReadByte(file);
+								AGIDL_BMPSetClr(bmp,x+i,y,bmp->palette.icp.palette_256[byte]);
 							}
 							
+							x += index - 1;
+
+							if((index % 2) != 0){
+								fseek(file,1,SEEK_CUR);
+							}
 						}
-					}
+						
+					} 
 				}
 			}break;
 			case BMP_IMG_TYPE_ICP_16:{
@@ -976,7 +916,7 @@ void AGIDL_BMPEncodeHeader(AGIDL_BMP* bmp, FILE* file){
 		bmp->header.num_of_colors = 256;
 		bmp->header.important_colors = 256;
 		bmp->header.offset = 54 + (256*4);
-		bmp->header.file_size = 54 + (AGIDL_BMPGetWidth(bmp)*AGIDL_BMPGetHeight(bmp)) + (256*4);
+		bmp->header.file_size = (54 + (AGIDL_BMPGetWidth(bmp)*AGIDL_BMPGetHeight(bmp)) + (256*4));
 		bmp->header.img_size = (AGIDL_BMPGetWidth(bmp)*AGIDL_BMPGetHeight(bmp));
 	}
 	
@@ -986,30 +926,30 @@ void AGIDL_BMPEncodeHeader(AGIDL_BMP* bmp, FILE* file){
 		bmp->header.num_of_colors = 256;
 		bmp->header.important_colors = 256;
 		bmp->header.offset = 54 + (256*4);
-		bmp->header.file_size = 54 + (AGIDL_BMPGetWidth(bmp)*AGIDL_BMPGetHeight(bmp)) + (256*4);
-		bmp->header.img_size = (AGIDL_BMPGetWidth(bmp)*AGIDL_BMPGetHeight(bmp));
+		bmp->header.file_size = (54 + (AGIDL_BMPGetWidth(bmp)*AGIDL_BMPGetHeight(bmp)) + (256*4)) * 0.75f;
+		bmp->header.img_size = (AGIDL_BMPGetWidth(bmp)*AGIDL_BMPGetHeight(bmp)) - bmp->header.offset;
 	}
 	
 	if(bmp->compression != 1 && bmp->compression != 0){
 		bmp->compression = 0;
 	}
 	
-	fwrite(&bmp->header.magic,2,1,file);
-	fwrite(&bmp->header.file_size,4,1,file);
-	fwrite(&bmp->header.reserved1,2,1,file);
-	fwrite(&bmp->header.reserved1,2,1,file);
-	fwrite(&bmp->header.offset,4,1,file);
-	fwrite(&bmp->header.header_size,4,1,file);
-	fwrite(&bmp->header.width,4,1,file);
-	fwrite(&bmp->header.height,4,1,file);
-	fwrite(&bmp->header.num_of_planes,2,1,file);
-	fwrite(&bmp->header.bits,2,1,file);
-	fwrite(&bmp->header.compress,4,1,file);
-	fwrite(&bmp->header.img_size,4,1,file);
-	fwrite(&bmp->header.x_resolution,4,1,file);
-	fwrite(&bmp->header.y_resolution,4,1,file);
-	fwrite(&bmp->header.num_of_colors,4,1,file);
-	fwrite(&bmp->header.important_colors,4,1,file);
+	AGIDL_WriteShort(file,bmp->header.magic);
+	AGIDL_WriteLong(file,bmp->header.file_size);
+	AGIDL_WriteShort(file,bmp->header.reserved1);
+	AGIDL_WriteShort(file,bmp->header.reserved2);
+	AGIDL_WriteLong(file,bmp->header.offset);
+	AGIDL_WriteLong(file,bmp->header.header_size);
+	AGIDL_WriteLong(file,bmp->header.width);
+	AGIDL_WriteLong(file,bmp->header.height);
+	AGIDL_WriteShort(file,bmp->header.num_of_planes);
+	AGIDL_WriteShort(file,bmp->header.bits);
+	AGIDL_WriteLong(file,bmp->header.compress);
+	AGIDL_WriteLong(file,bmp->header.img_size);
+	AGIDL_WriteLong(file,bmp->header.x_resolution);
+	AGIDL_WriteLong(file,bmp->header.y_resolution);
+	AGIDL_WriteLong(file,bmp->header.num_of_colors);
+	AGIDL_WriteLong(file,bmp->header.important_colors);
 }
 
 void AGIDL_ExportBMP(AGIDL_BMP *bmp){
@@ -1017,7 +957,7 @@ void AGIDL_ExportBMP(AGIDL_BMP *bmp){
 	
 	AGIDL_BMPEncodeHeader(bmp,file);
 	
-	if(bmp->icp == YES_ICP){
+	if(bmp->icp == TRUE && bmp->compression != TRUE){
 		switch(bmp->fmt){
 			case AGIDL_RGB_888:{
 				AGIDL_BMPRGB2BGR(bmp);
@@ -1037,7 +977,7 @@ void AGIDL_ExportBMP(AGIDL_BMP *bmp){
 				AGIDL_BMPEncodeICP(bmp,file);
 				AGIDL_BMPEncodeIMG(bmp,file);
 			}break;
-			case AGIDL_RGB_555:{	
+			case AGIDL_RGB_555:{
 				AGIDL_BMPConvert16BPPTO24BPP(bmp);
 				AGIDL_BMPRGB2BGR(bmp);
 				AGIDL_BMPEncodeICP(bmp,file);
@@ -1118,10 +1058,10 @@ void AGIDL_ExportBMP(AGIDL_BMP *bmp){
 	else{
 		switch(bmp->fmt){
 			case AGIDL_RGB_888:{
-				AGIDL_BMPBGR2RGB(bmp);
+				AGIDL_BMPRGB2BGR(bmp);
 				AGIDL_BMPEncodeICP(bmp,file);
 				AGIDL_BMPEncodeRLE(bmp,file);
-				AGIDL_BMPRGB2BGR(bmp);
+				AGIDL_BMPBGR2RGB(bmp);
 			}break;
 			case AGIDL_BGR_888:{
 				AGIDL_BMPEncodeICP(bmp,file);

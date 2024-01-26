@@ -89,7 +89,7 @@ AGIDL_PCX* AGIDL_PCXCpyImg(AGIDL_PCX* pcx);
 void AGIDL_PCXEncodeHeader(AGIDL_PCX* pcx, FILE* file);
 void AGIDL_PCXEncodeICP(AGIDL_PCX* pcx);
 void AGIDL_PCXEncodeImg(AGIDL_PCX* pcx, FILE* file);
-void AGIDL_PCXDecodeHeader(AGIDL_PCX* pcx, FILE* file);
+int AGIDL_PCXDecodeHeader(AGIDL_PCX* pcx, FILE* file);
 void AGIDL_PCXDecodeIMG(AGIDL_PCX* pcx, FILE* file);
 /*HELPER FUNCTIONS THAT ARE FINE-TUNED EXPLICITLY FOR USAGE WITH PCX IMAGES*/
 u16 bin2dec(char *binary);

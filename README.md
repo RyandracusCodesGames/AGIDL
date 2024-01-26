@@ -21,11 +21,12 @@ and the adaptive tile refresh algorithm, the namesake of this library. I have al
 |Image Name                   | EXTENSION | PLATFORM     | READ/WRITE |
 |:---------------------------:|:---------:|:------------:|:----------:|
 | Winodows BMP                | .BMP      | Windows/OS/2 | FULL R/W   |
-| Truevision Graphcis Adapter | .TGA      | ANY          | FULL R/W   |
+| Truevision Graphics Adapter | .TGA      | ANY          | FULL R/W   |
 | TIM                         | .TIM      | Playstation 1| FULL R/W   |
 | PiCture eXchange            | .PCX      | PC Paintbrush| MOST R/W   |
 | LMP image                   | .LMP      | Quake        | FULL R/W   |
 | Dreamcast PowerPVR          | .PVR      | Dreamcast    | MOST R/W   |
+| PowerPVR          		  | .PVR      | PVR SDK/Tools| PARTIAL R/W|
 | Playstation Vita GXT        | .GXT      | PS Vita      | PARTIAL R/W|
 | BTI                         | .BTI      | GameCube/Wii | FULL R/W   |
 

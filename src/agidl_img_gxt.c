@@ -5,6 +5,7 @@
 #include "agidl_img_gxt.h"
 #include "agidl_cc_core.h"
 #include "agidl_math_utils.h"
+#include "agidl_img_error.h"
 
 /********************************************
 *   Adaptive Graphics Image Display Library
@@ -15,7 +16,7 @@
 *   File: agidl_img_gxt.c
 *   Date: 11/19/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 1/22/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -279,6 +280,7 @@ GXT_TEXTURE_TYPE AGIDL_GXTGetTextureType(u8 type){
 		}break;
 		default: return LINEAR; break;
 	}
+	return UNSUPPORTED_PVRT;
 }
 
 GXT_CLR_FMT AGIDL_GetGXTClrFmt(u8 type){
@@ -307,6 +309,7 @@ GXT_CLR_FMT AGIDL_GetGXTClrFmt(u8 type){
 		case 0x81:{
 			return GXT_PVRT4BPP;
 		}break;
+		default: return UNSUPPORTED_PVRT; break;
 	}
 }
 
@@ -416,7 +419,7 @@ u32 morton(u32 x, u32 y, u32 width, u32 height){
 	return morton;
 }
 
-void AGIDL_GXTDecodeHeader(AGIDL_GXT* gxt, FILE* file){
+int AGIDL_GXTDecodeHeader(AGIDL_GXT* gxt, FILE* file){
 	u8 g,x,t,blank;
 	fread(&g,1,1,file);
 	fread(&x,1,1,file);
@@ -432,11 +435,12 @@ void AGIDL_GXTDecodeHeader(AGIDL_GXT* gxt, FILE* file){
 	fread(&gxt->header.blank,4,1,file);
 	
 	if(g != 'G' || x != 'X' || t != 'T'){
-		printf("Current file is not a valid Playstation VITA GXT image - %s!\n",gxt->filename);
+		return INVALID_HEADER_FORMATTING_ERROR;
 	}
+	else return NO_IMG_ERROR;
 }
 
-void AGIDL_GXTDecodeTextureHeader(AGIDL_GXT* gxt, FILE* file){
+int AGIDL_GXTDecodeTextureHeader(AGIDL_GXT* gxt, FILE* file){
 	fread(&gxt->header.header.offset,4,1,file);
 	fread(&gxt->header.header.size,4,1,file);
 	fread(&gxt->header.header.index,4,1,file);
@@ -459,6 +463,11 @@ void AGIDL_GXTDecodeTextureHeader(AGIDL_GXT* gxt, FILE* file){
 	fread(&gxt->header.header.height,2,1,file);
 	fread(&gxt->header.header.mipmaps,2,1,file);
 	fread(&gxt->header.header.blank,2,1,file);
+	
+	if(gxt->header.header.type == UNSUPPORTED_PVRT || gxt->header.header.fmt == UNSUPPORTED_PVRT){
+		return INVALID_HEADER_FORMATTING_ERROR;
+	}
+	else return NO_IMG_ERROR;
 }
 
 void AGIDL_GXTDecodeIMG(AGIDL_GXT* gxt, FILE* file){
@@ -476,6 +485,56 @@ void AGIDL_GXTDecodeIMG(AGIDL_GXT* gxt, FILE* file){
 			}
 		}
 	}
+	else if(gxt->header.header.type == LINEAR && gxt->header.header.fmt == GXT_ARGB_8888){
+		AGIDL_GXTSetClrFmt(gxt,AGIDL_RGBA_8888);
+		
+		gxt->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*AGIDL_GXTGetSize(gxt));
+		
+		int x,y;
+		for(y = 0; y < AGIDL_GXTGetHeight(gxt); y++){
+			for(x = 0; x < AGIDL_GXTGetWidth(gxt); x++){
+				u8 r = 0, g = 0, b = 0, a = 0;
+				
+				fread(&a,1,1,file);
+				fread(&r,1,1,file);
+				fread(&g,1,1,file);
+				fread(&b,1,1,file);
+				
+				COLOR clr = AGIDL_RGBA(r,g,b,a,AGIDL_RGBA_8888);
+				
+				AGIDL_GXTSetClr(gxt,x,y,clr);
+			}
+		}
+	}
+	else if(gxt->header.header.type == LINEAR && gxt->header.header.fmt == GXT_ARGB_4444){
+		AGIDL_GXTSetClrFmt(gxt,AGIDL_RGBA_8888);
+		
+		gxt->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*AGIDL_GXTGetSize(gxt));
+		
+		int x,y;
+		for(y = 0; y < AGIDL_GXTGetHeight(gxt); y++){
+			for(x = 0; x < AGIDL_GXTGetWidth(gxt); x++){
+				u16 byte1 = 0, byte2 = 0;
+				
+				fread(&byte1,1,1,file);
+				fread(&byte2,1,1,file);
+				
+				u8 a = (byte1 & 0xf0) >> 4;
+				u8 r = (byte1 & 0xf0);
+				u8 g = (byte2 & 0xf0) >> 4;
+				u8 b = (byte2 & 0xf0);
+				
+				a <<= 4;
+				r <<= 4;
+				g <<= 4;
+				b <<= 4;
+				
+				COLOR clr = AGIDL_RGBA(r,g,b,a,AGIDL_RGBA_8888);
+				
+				AGIDL_GXTSetClr(gxt,x,y,clr);
+			}
+		}
+	}
 	else if(gxt->header.header.type == LINEAR && (gxt->header.header.fmt == GXT_RGB_555 || gxt->header.header.fmt == GXT_RGB_565)){
 		if(gxt->header.header.fmt == GXT_RGB_555){
 			AGIDL_GXTSetClrFmt(gxt,AGIDL_RGB_555);
@@ -485,15 +544,7 @@ void AGIDL_GXTDecodeIMG(AGIDL_GXT* gxt, FILE* file){
 		}
 		
 		gxt->pixels.pix16 = (COLOR16*)malloc(sizeof(COLOR16)*AGIDL_GXTGetSize(gxt));
-		
-		int x,y;
-		for(y = 0; y < AGIDL_GXTGetHeight(gxt); y++){
-			for(x = 0; x < AGIDL_GXTGetWidth(gxt); x++){
-				COLOR16 clr;
-				fread(&clr,2,1,file);
-				AGIDL_GXTSetClr16(gxt,x,y,clr);
-			}
-		}
+		fread(gxt->pixels.pix16,2,AGIDL_GXTGetSize(gxt),file);
 	}
 	else if(gxt->header.header.type == LINEAR && gxt->header.header.fmt == GXT_ICP_256){
 		AGIDL_GXTSetClrFmt(gxt,AGIDL_BGR_888);
@@ -537,14 +588,30 @@ AGIDL_GXT* AGIDL_LoadGXT(char *filename){
 	FILE* file = fopen(filename,"rb");
 	
 	if(file == NULL){
-		printf("Could not open/locate Playstation VITA GXT image - %s!\n",filename);
+		printf("%s - %s!\n",AGIDL_Error2Str(FILE_NOT_LOCATED_IMG_ERROR),filename);
+		return NULL;
 	}
 	
 	AGIDL_GXT* gxt = (AGIDL_GXT*)malloc(sizeof(AGIDL_GXT));
 	gxt->filename = (char*)malloc(strlen(filename)+1);
 	AGIDL_FilenameCpy(gxt->filename,filename);
-	AGIDL_GXTDecodeHeader(gxt,file);
-	AGIDL_GXTDecodeTextureHeader(gxt,file);
+	
+	if(gxt == NULL || gxt->filename == NULL){
+		printf("%s\n",AGIDL_Error2Str(MEMORY_IMG_ERROR));
+		return NULL;
+	}
+	
+	int error1 = AGIDL_GXTDecodeHeader(gxt,file);
+	int error2 = AGIDL_GXTDecodeTextureHeader(gxt,file);
+	
+	if(error1 != NO_IMG_ERROR){
+		printf("%s\n",AGIDL_Error2Str(error1));
+	}
+	
+	if(error2 != NO_IMG_ERROR){
+		printf("%s\n",AGIDL_Error2Str(error2));
+	}
+	
 	AGIDL_GXTDecodeIMG(gxt,file);
 	
 	fclose(file);
@@ -757,20 +824,21 @@ void AGIDL_GXTEncodeIMG(AGIDL_GXT* gxt, FILE* file){
 				}
 			}break;
 			case 16:{
-				int x,y;
-				for(y = 0; y < AGIDL_GXTGetHeight(gxt); y++){
-					for(x = 0; x < AGIDL_GXTGetWidth(gxt); x++){
-						COLOR16 clr = AGIDL_GXTGetClr16(gxt,x,y);
-						AGIDL_ExtractAndPrintRGB(file,clr,AGIDL_RGB_555);
-					}
-				}
+				fwrite(gxt->pixels.pix16,2,AGIDL_GXTGetSize(gxt),file);
 			}break;
 			case 32:{
 				int x,y;
 				for(y = 0; y < AGIDL_GXTGetHeight(gxt); y++){
 					for(x = 0; x < AGIDL_GXTGetWidth(gxt); x++){
-						COLOR16 clr = AGIDL_GXTGetClr16(gxt,x,y);
-						AGIDL_ExtractAndPrintRGBA(file,clr,AGIDL_ARGB_8888);
+						COLOR clr = AGIDL_GXTGetClr(gxt,x,y);
+						u8 r = AGIDL_GetR(clr,AGIDL_GXTGetClrFmt(gxt));
+						u8 g = AGIDL_GetG(clr,AGIDL_GXTGetClrFmt(gxt));
+						u8 b = AGIDL_GetB(clr,AGIDL_GXTGetClrFmt(gxt));
+						u8 a = AGIDL_GetA(clr,AGIDL_GXTGetClrFmt(gxt));
+						fwrite(&a,1,1,file);
+						fwrite(&r,1,1,file);
+						fwrite(&g,1,1,file);
+						fwrite(&b,1,1,file);
 					}
 				}
 			}break;

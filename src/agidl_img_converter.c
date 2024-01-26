@@ -7,7 +7,7 @@
 *   File: agidl_img_converter.c
 *   Date: 11/3/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 1/21/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -894,6 +894,7 @@ AGIDL_BMP* AGIDL_ConvertPVR2BMP(AGIDL_PVR* pvr){
 	else{
 		AGIDL_BMPSyncPix16(bmp,pvr->pixels.pix16);
 	}
+	
 	return bmp;
 }
 
@@ -902,8 +903,7 @@ AGIDL_TGA* AGIDL_ConvertPVR2TGA(AGIDL_PVR* pvr){
 	char* ext = AGIDL_GetImgExtension(AGIDL_IMG_TGA);
 	char* filename = AGIDL_StrCpy(imgname,ext);
 	
-	AGIDL_TGA* tga = AGIDL_CreateTGA(AGIDL_StrCpy(AGIDL_GetImgName(pvr->filename),
-	AGIDL_GetImgExtension(AGIDL_IMG_TGA)),AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),
+	AGIDL_TGA* tga = AGIDL_CreateTGA(filename,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),
 	AGIDL_PVRGetClrFmt(pvr));
 	AGIDL_TGASetICPMode(tga,pvr->icp);
 	AGIDL_TGASetMaxDiff(tga,AGIDL_PVRGetMaxDiff(pvr));

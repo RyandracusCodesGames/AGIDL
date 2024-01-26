@@ -10,7 +10,7 @@
 *   File: agidl_imgp_core.h
 *   Date: 11/27/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 1/23/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -19,5 +19,6 @@
 #include "agidl_imgp_lightmap.h"
 #include "agidl_imgp_blend.h"
 #include "agidl_imgp_font.h"
+#include "agidl_imgp_mipmap.h"
 
 #endif

@@ -10,7 +10,7 @@
 *   File: agidl_img_gxt.h
 *   Date: 11/19/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 1/22/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -21,6 +21,8 @@
 #include "agidl_img_types.h"
 
 #define GXT_TEXTURE_BASE_FORMAT 0x0010
+
+#define UNSUPPORTED_PVRT 0x78
 
 typedef enum GXT_TEXTURE_TYPE{
 	SWIZZLED = 0x00,
@@ -114,8 +116,8 @@ void AGIDL_ExportGXT(AGIDL_GXT* gxt);
 void AGIDL_FreeGXT(AGIDL_GXT* gxt);
 GXT_CLR_FMT AGIDL_GetGXTClrFmt(u8 type);
 GXT_TEXTURE_TYPE AGIDL_GXTGetTextureType(u8 type);
-void AGIDL_GXTDecodeHeader(AGIDL_GXT* gxt, FILE* file);
-void AGIDL_GXTDecodeTextureHeader(AGIDL_GXT* gxt, FILE* file);
+int AGIDL_GXTDecodeHeader(AGIDL_GXT* gxt, FILE* file);
+int AGIDL_GXTDecodeTextureHeader(AGIDL_GXT* gxt, FILE* file);
 void AGIDL_GXTDecodeIMG(AGIDL_GXT* gxt, FILE* file);
 void AGIDL_GXTDecodeSwizzledIMG(AGIDL_GXT* gxt, FILE* file);
 void AGIDL_GXTEncodeHeader(AGIDL_GXT* gxt, FILE* file);

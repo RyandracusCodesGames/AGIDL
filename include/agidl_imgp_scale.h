@@ -10,7 +10,7 @@
 *   File: agidl_imgp_scale.h
 *   Date: 12/9/2023
 *   Version: 0.2b
-*   Updated: 1/19/2024
+*   Updated: 1/23/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -25,6 +25,7 @@ typedef enum AGIDL_SCALE{
 	AGIDL_SCALE_TRILERP = 0x3,
 }AGIDL_SCALE;
 
+void * AGIDL_HalfImgDataNearest(void* data, u16* width, u16* height, AGIDL_CLR_FMT fmt);
 void * AGIDL_ScaleImgDataNearest(void* data, u16* width, u16* height, float sx, float sy, AGIDL_CLR_FMT fmt);
 void * AGIDL_ScaleImgDataBilerp(void* data, u16* width, u16* height, float sx, float sy, AGIDL_CLR_FMT fmt);
 void * AGIDL_ScaleImgDataTrilerp(void* data, u16* width, u16* height, float sx, float sy, AGIDL_CLR_FMT fmt);

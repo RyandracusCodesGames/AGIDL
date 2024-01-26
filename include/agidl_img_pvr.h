@@ -10,7 +10,7 @@
 *   File: agidl_img_pvr.h
 *   Date: 10/28/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 1/21/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -19,6 +19,12 @@
 #include "agidl_types.h"
 #include "agidl_cc_types.h"
 #include "agidl_img_types.h"
+#include "agidl_imgp_mipmap.h"
+
+typedef enum PVR_TYPE{
+	DREAMCAST_PVR = 0x0,
+	MODERN_PVR = 0x1,
+}PVR_TYPE;
 
 typedef enum PVRClrFmt{
 	PVR_RGB_555 = 0x00,
@@ -28,6 +34,20 @@ typedef enum PVRClrFmt{
 	PVR_ICP_16 = 0x05,
 	PVR_ICP_256 = 0x06,
 }PVRClrFmt;
+
+typedef enum PVRPxlFmt{
+	PVRTC_2BPP_RGB = 0x0,
+	PVRTC_2BPP_RGBA = 0x1,
+	PVRTC_4BPP_RGB = 0x2,
+	PVRTC_4BPP_RGBA = 0x3,
+	PVRTC_II_2BPP_RGB = 0x4,
+	PVRTC_II_4BPP_RGB = 0x5,
+	PVRTC_RGB_555 =  0x6,
+	PVRTC_RGB_565 = 0x7,
+	PVRTC_RGB_888 = 0x8,
+	PVRTC_RGBA_8888 = 0x9,
+	PVRTC_BGRA_8888 = 0x10,
+}PVRPxlFmt;
 
 typedef enum PVRImgType{
 	PVR_IMG_SQUARE_TWIDDLED = 0x01,
@@ -40,7 +60,7 @@ typedef enum PVRImgType{
 	PVR_IMG_RECTANGLE_TWIDDLED = 0x0D,
 }PVRImgType;
 
-typedef struct PVRHEADER{
+typedef struct PVR_DREAMCAST_HEADER{
 	u32 id1;
 	u32 offset;
 	u32 global_index_1;
@@ -51,15 +71,39 @@ typedef struct PVRHEADER{
 	u8 pvr_img_type;
 	u16 width;
 	u16 height;
-}PVRHEADER;
+}PVR_DREAMCAST_HEADER;
+
+typedef struct PVR_MODERN_HEADER{
+	u32 version;
+	u32 flags;
+	u8 ulong2[8];
+	u32 clr_fmt;
+	u32 channel_type;
+	u32 height;
+	u32 width;
+	u32 depth;
+	u32 num_of_surfaces;
+	u32 num_of_faces;
+	u32 num_of_mipmaps;
+	u32 meta_data_size;
+	u8 fourcc[4];
+	u32 key;
+	u32 data_size;
+}PVR_MODERN_HEADER;
 
 typedef struct AGIDL_PVR{
-	PVRHEADER header;
+	PVR_DREAMCAST_HEADER header;
+	PVR_MODERN_HEADER mheader;
 	int icp;
 	int max_diff;
 	AGIDL_ICP palette;
 	AGIDL_CLR_FMT fmt;
 	Pixels pixels;
+	PVR_TYPE pvr_type;
+	PVRPxlFmt pxl_fmt;
+	AGIDL_MIPMAP* mipmap;
+	AGIDL_Bool mipped;
+	u32 mip_lvl;
 	char* filename;
 }AGIDL_PVR;
 
@@ -69,6 +113,9 @@ void AGIDL_PVRSetHeight(AGIDL_PVR* pvr, int height);
 void AGIDL_PVRSetClrFmt(AGIDL_PVR* pvr, AGIDL_CLR_FMT fmt);
 void AGIDL_PVRSetMaxDiff(AGIDL_PVR* pvr, int max_diff);
 void AGIDL_PVRSetICPMode(AGIDL_PVR* pvr, int mode);
+void AGIDL_PVRBuildMipmap(AGIDL_PVR* pvr, AGIDL_Bool mipped);
+void AGIDL_PVRSetMipmapLevel(AGIDL_PVR* pvr, u8 mip_lvl);
+void AGIDL_PVRSetType(AGIDL_PVR* pvr, PVR_TYPE pvr_type);
 void AGIDL_PVRSetClr(AGIDL_PVR* pvr, int x, int y, COLOR clr);
 void AGIDL_PVRSetClr16(AGIDL_PVR* pvr, int x, int y, COLOR16 clr);
 void AGIDL_PVRSetRGB(AGIDL_PVR* pvr, int x, int y, u8 r, u8 g, u8 b);
@@ -80,6 +127,7 @@ int AGIDL_PVRGetWidth(AGIDL_PVR* pvr);
 int AGIDL_PVRGetHeight(AGIDL_PVR* pvr);
 u32 AGIDL_PVRGetSize(AGIDL_PVR* pvr);
 AGIDL_CLR_FMT AGIDL_PVRGetClrFmt(AGIDL_PVR* pvr);
+PVR_TYPE AGIDL_PVRGetType(AGIDL_PVR* pvr);
 int AGIDL_PVRGetMaxDiff(AGIDL_PVR* pvr);
 COLOR AGIDL_PVRGetClr(AGIDL_PVR* pvr, int x, int y);
 COLOR16 AGIDL_PVRGetClr16(AGIDL_PVR* pvr, int, int y);
@@ -101,12 +149,14 @@ AGIDL_PVR* AGIDL_PVRCpyImg(AGIDL_PVR* pvr);
 void AGIDL_ExportPVR(AGIDL_PVR *pvr);
 
 int isImgPVR(u32 gbix, u32 pvrt);
-void AGIDL_PVRDecodeHeader(AGIDL_PVR* pvr, FILE* file);
+int AGIDL_IsModernPVR(PVRPxlFmt fmt);
+int AGIDL_PVRDecodeHeader(AGIDL_PVR* pvr, FILE* file);
 void AGIDL_PVRDecodeImg(AGIDL_PVR* pvr, PVRClrFmt fmt, PVRImgType img, FILE* file);
 void AGIDL_PVRDecodeTwiddledImg(AGIDL_PVR* pvr, PVRClrFmt fmt, PVRImgType img, FILE* file);
 void AGIDL_PVRDecodeICP(AGIDL_PVR* pvr, FILE* file);
 PVRClrFmt AGIDL_GetPVRClrFmt(u8 byte);
 PVRImgType AGIDL_PVRGetImgType(u8 byte);
+PVRPxlFmt AGIDL_GetPVRPxlFmt(u8 long2[8]);
 u32 AGIDL_GetTwiddleValue(u32 i);
 u32 AGIDL_GetDetwiddledIndex(u32 x, u32 y);
 void AGIDL_PVREncodeHeader(AGIDL_PVR* pvr, FILE* file);

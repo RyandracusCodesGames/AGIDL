@@ -312,18 +312,18 @@ TGA_IMG_TYPE AGIDL_TGAGetIMGType(int bits){
 }
 
 int AGIDL_TGADecodeHeader(AGIDL_TGA* tga, FILE* file){
-	fread(&tga->header.id,1,1,file);
-	fread(&tga->header.clrmaptype,1,1,file);
-	fread(&tga->header.imgtype,1,1,file);
-	fread(&tga->header.clrmapstart,2,1,file);
-	fread(&tga->header.clrmaplength,2,1,file);
-	fread(&tga->header.icpbits,1,1,file);
-	fread(&tga->header.xstart,2,1,file);
-	fread(&tga->header.ystart,2,1,file);
-	fread(&tga->header.width,2,1,file);
-	fread(&tga->header.height,2,1,file);
-	fread(&tga->header.bits,1,1,file);
-	fread(&tga->header.flip,1,1,file);
+	tga->header.id = AGIDL_ReadByte(file);
+	tga->header.clrmaptype = AGIDL_ReadByte(file);
+	tga->header.imgtype = AGIDL_ReadByte(file);
+	tga->header.clrmapstart = AGIDL_ReadShort(file);
+	tga->header.clrmaplength = AGIDL_ReadShort(file);
+	tga->header.icpbits = AGIDL_ReadByte(file);
+	tga->header.xstart = AGIDL_ReadShort(file);
+	tga->header.ystart = AGIDL_ReadShort(file);
+	tga->header.width = AGIDL_ReadShort(file);
+	tga->header.height = AGIDL_ReadShort(file);
+	tga->header.bits = AGIDL_ReadByte(file);
+	tga->header.flip = AGIDL_ReadByte(file);
 	
 	if(tga->header.id != 0){
 		fseek(file,tga->header.id,SEEK_CUR);
@@ -338,11 +338,10 @@ int AGIDL_TGADecodeHeader(AGIDL_TGA* tga, FILE* file){
 int AGIDL_IsTGA(AGIDL_TGA* tga){
 	if((tga->header.clrmaptype == 0 || tga->header.clrmaptype == 1) && 
 	(tga->header.imgtype == 1 || tga->header.imgtype == 2 || tga->header.imgtype == 3 || tga->header.imgtype == 9 || 
-	tga->header.imgtype == 10) && (tga->header.bits == 15 || tga->header.bits == 16 ||
+	tga->header.imgtype == 10) && (tga->header.bits == 8 || tga->header.bits == 15 || tga->header.bits == 16 ||
 	tga->header.bits == 24 || tga->header.bits == 32) && tga->header.width > 0 &&
-	tga->header.width < 512 && tga->header.height > 0 && tga->header.height < 482
-	&& (tga->header.flip == 0 || tga->header.flip == 1) && tga->header.xstart == 0
-	&& tga->header.ystart == 0){
+	tga->header.width <= 512 && tga->header.height > 0 && tga->header.height <= 482
+	&& (tga->header.flip == 0 || tga->header.flip == 1)){
 		return 1;
 	}
 	else return 0;
@@ -353,41 +352,18 @@ void AGIDL_TGADecodeIMG(AGIDL_TGA *tga, FILE* file, TGA_ICP_TYPE icp, TGA_IMG_TY
 		if(img_type == TGA_IMG_TYPE_HIGH_CLR){
 			AGIDL_TGASetClrFmt(tga,AGIDL_BGR_555);
 			tga->pixels.pix16 = (COLOR16*)malloc(sizeof(COLOR16)*(AGIDL_TGAGetWidth(tga)*AGIDL_TGAGetHeight(tga)));
-			fread(tga->pixels.pix16,2,AGIDL_TGAGetSize(tga),file);
+			AGIDL_ReadBufRGB16(file,tga->pixels.pix16,AGIDL_TGAGetWidth(tga),AGIDL_TGAGetHeight(tga));
 			return;
 		}
 		else if(img_type == TGA_IMG_TYPE_DEEP_CLR){
 			AGIDL_TGASetClrFmt(tga,AGIDL_RGBA_8888);
 			tga->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*(AGIDL_TGAGetWidth(tga)*AGIDL_TGAGetHeight(tga)));
-			
-			int i;
-			for(i = 0; i < AGIDL_TGAGetSize(tga); i++){
-				COLOR clr = 0;
-				u8 r,g,b,a;
-				fread(&b,1,1,file);
-				fread(&g,1,1,file);
-				fread(&r,1,1,file);
-				fread(&a,1,1,file);
-				clr = AGIDL_RGBA(r,g,b,a,tga->fmt);
-				
-				tga->pixels.pix32[i] = clr;
-			}
+			AGIDL_ReadBufBGRA(file,tga->pixels.pix32,AGIDL_TGAGetWidth(tga),AGIDL_TGAGetHeight(tga));
 		}
 		else{
 			AGIDL_TGASetClrFmt(tga,AGIDL_BGR_888);
 			tga->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*(AGIDL_TGAGetWidth(tga)*AGIDL_TGAGetHeight(tga)));
-			
-			int i;
-			for(i = 0; i < AGIDL_TGAGetSize(tga); i++){
-				COLOR clr = 0;
-				u8 r,g,b;
-				fread(&b,1,1,file);
-				fread(&g,1,1,file);
-				fread(&r,1,1,file);
-				clr = AGIDL_RGB(r,g,b,tga->fmt);
-				
-				tga->pixels.pix32[i] = clr;
-			}
+			AGIDL_ReadBufBGR(file,tga->pixels.pix32,AGIDL_TGAGetWidth(tga),AGIDL_TGAGetHeight(tga));
 		}
 	}
 	else if(icp != TGA_IMG_TYPE_RLE_ICP && icp != TGA_IMG_TYPE_RLE_NO_ICP){
@@ -398,14 +374,11 @@ void AGIDL_TGADecodeIMG(AGIDL_TGA *tga, FILE* file, TGA_ICP_TYPE icp, TGA_IMG_TY
 			
 			int i;
 			for(i = 0; i < tga->header.clrmaplength; i++){
-				COLOR16 clr = 0;
-				fread(&clr,2,1,file);
-				tga->palette.icp.palette_16b_256[i] = clr;
+				tga->palette.icp.palette_16b_256[i] = AGIDL_ReadShort(file);
 			}
 			
 			for(i = 0; i < AGIDL_TGAGetSize(tga); i++){
-				u8 index;
-				fread(&index,1,1,file);
+				u8 index = AGIDL_ReadByte(file);
 				tga->pixels.pix16[i] = tga->palette.icp.palette_16b_256[index];
 			}
 		}
@@ -416,36 +389,26 @@ void AGIDL_TGADecodeIMG(AGIDL_TGA *tga, FILE* file, TGA_ICP_TYPE icp, TGA_IMG_TY
 			
 			int i;
 			for(i = 0; i < tga->header.clrmaplength; i++){
-				COLOR16 clr = 0;
-				fread(&clr,2,1,file);
-				tga->palette.icp.palette_16b_256[i] = clr;
+				tga->palette.icp.palette_16b_256[i] = AGIDL_ReadShort(file);
 			}
 			
 			for(i = 0; i < AGIDL_TGAGetSize(tga); i++){
-				u8 index;
-				fread(&index,1,1,file);
+				u8 index = AGIDL_ReadByte(file);
 				tga->pixels.pix16[i] = tga->palette.icp.palette_16b_256[index];
 			}
 		}
 		else if(img_type == TGA_IMG_TYPE_TRUE_CLR){
 			AGIDL_TGASetClrFmt(tga,AGIDL_BGR_888);
-			
+
 			tga->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*(AGIDL_TGAGetWidth(tga)*AGIDL_TGAGetHeight(tga)));
 
 			int i;
 			for(i = 0; i < tga->header.clrmaplength; i++){
-				COLOR clr = 0;
-				u8 r,g,b;
-				fread(&b,1,1,file);
-				fread(&g,1,1,file);
-				fread(&r,1,1,file);
-				clr = AGIDL_RGB(r,g,b,tga->fmt);
-				tga->palette.icp.palette_256[i] = clr;
+				tga->palette.icp.palette_256[i] = AGIDL_ReadRGB(file,AGIDL_BGR_888);
 			}
 			
 			for(i = 0; i < AGIDL_TGAGetSize(tga); i++){
-				u8 index;
-				fread(&index,1,1,file);
+				u8 index = AGIDL_ReadByte(file);
 				tga->pixels.pix32[i] = tga->palette.icp.palette_256[index];
 			}
 		}
@@ -456,18 +419,11 @@ void AGIDL_TGADecodeIMG(AGIDL_TGA *tga, FILE* file, TGA_ICP_TYPE icp, TGA_IMG_TY
 			
 			int i;
 			for(i = 0; i < tga->header.clrmaplength; i++){
-				COLOR clr = 0;
-				u8 r,g,b;
-				fread(&b,1,1,file);
-				fread(&g,1,1,file);
-				fread(&r,1,1,file);
-				clr = AGIDL_RGB(r,g,b,tga->fmt);
-				tga->palette.icp.palette_256[i] = clr;
+				tga->palette.icp.palette_256[i] = AGIDL_ReadRGB(file,AGIDL_BGR_888);
 			}
 			
 			for(i = 0; i < AGIDL_TGAGetSize(tga); i++){
-				u8 index;
-				fread(&index,1,1,file);
+				u8 index = AGIDL_ReadByte(file);
 				tga->pixels.pix32[i] = tga->palette.icp.palette_256[index];
 			}
 		}

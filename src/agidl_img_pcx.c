@@ -4,6 +4,7 @@
 #include "agidl_img_pcx.h"
 #include "agidl_cc_core.h"
 #include "agidl_img_compression.h"
+#include "agidl_img_error.h"
 
 /********************************************
 *   Adaptive Graphics Image Display Library
@@ -349,12 +350,8 @@ int contains_icp(FILE *file, u32 *pal_coord){
 	else return 0;
 }
 
-void AGIDL_PCXDecodeHeader(AGIDL_PCX* pcx, FILE* file){
+int AGIDL_PCXDecodeHeader(AGIDL_PCX* pcx, FILE* file){
 	fread(&pcx->header.id,1,1,file);
-	
-	if(pcx->header.id != 10){
-		printf("Current file is not a PCX image file - %s\n",pcx->filename);
-	}
 	
 	fread(&pcx->header.version,1,1,file);
 	fread(&pcx->header.encoding,1,1,file);
@@ -365,9 +362,6 @@ void AGIDL_PCXDecodeHeader(AGIDL_PCX* pcx, FILE* file){
 	fread(&pcx->header.y_end,2,1,file);
 	fread(&pcx->header.width,2,1,file);
 	fread(&pcx->header.height,2,1,file);
-	
-	//printf("%d\n",AGIDL_PCXGetWidth(pcx));
-	//printf("%d\n",AGIDL_PCXGetHeight(pcx));
 	
 	int i;
 	for(i = 0; i < 48; i++){
@@ -404,10 +398,24 @@ void AGIDL_PCXDecodeHeader(AGIDL_PCX* pcx, FILE* file){
 		AGIDL_PCXSetWidth(pcx,(pcx->header.x_end - pcx->header.x_start) + 1);
 		AGIDL_PCXSetHeight(pcx,(pcx->header.y_end - pcx->header.y_start) + 1);
 	}
+	
+	if(pcx->header.id != 10 || !(pcx->header.version == 0 || pcx->header.version == 2 || pcx->header.version == 3 || pcx->header.version == 4 
+	   || pcx->header.version == 5) || !(pcx->header.pal_type == 1 || pcx->header.pal_type == 2)){
+		return INVALID_HEADER_FORMATTING_ERROR;
+	}
+	else if(pcx->header.x_end > 4096 || pcx->header.y_end > 4096){
+		return CORRUPED_IMG_ERROR;
+	}
+	else return NO_IMG_ERROR;
 }
 
 void AGIDL_PCXDecodeIMG(AGIDL_PCX* pcx, FILE* file){
-	AGIDL_PCXSetClrFmt(pcx,AGIDL_RGB_888);
+	if(pcx->header.bits == 24 || pcx->header.bits == 8 || pcx->header.bits == 1){	
+		AGIDL_PCXSetClrFmt(pcx,AGIDL_RGB_888);
+	}
+	if(pcx->header.bits == 16){
+		AGIDL_PCXSetClrFmt(pcx,AGIDL_RGB_555);
+	}
 	
 	int scanlinelength = (pcx->header.bytesperline * pcx->header.numbitplanes);
 	
@@ -425,7 +433,7 @@ void AGIDL_PCXDecodeIMG(AGIDL_PCX* pcx, FILE* file){
 	u32 pal_coord = 0;
 	
 	if(!contains_icp(file,&pal_coord)){
-	
+		
 		fseek(file,128,SEEK_SET);
 		
 		int scanline;
@@ -486,11 +494,19 @@ void AGIDL_PCXDecodeIMG(AGIDL_PCX* pcx, FILE* file){
 			}
 			
 			//printf("Pixel Processing Beginning...\n");
-			
-			int x;
-			for(x = 0; x < AGIDL_PCXGetWidth(pcx); x++){
-				COLOR clr = AGIDL_RGB(buf[roffset+x],buf[goffset+x],buf[boffset+x],AGIDL_RGB_888);
-				AGIDL_PCXSetClr(pcx,x,scanline,clr);
+			if(pcx->header.bits == 24 || pcx->header.bits == 8){
+				int x;
+				for(x = 0; x < AGIDL_PCXGetWidth(pcx); x++){
+					COLOR clr = AGIDL_RGB(buf[roffset+x],buf[goffset+x],buf[boffset+x],AGIDL_RGB_888);
+					AGIDL_PCXSetClr(pcx,x,scanline,clr);
+				}
+			}
+			else{
+				int x;
+				for(x = 0; x < AGIDL_PCXGetWidth(pcx); x++){
+					COLOR16 clr = AGIDL_RGB(buf[roffset+x],buf[goffset+x],buf[boffset+x],AGIDL_RGB_555);
+					AGIDL_PCXSetClr16(pcx,x,scanline,clr);
+				}
 			}
 			
 			free(buf);
@@ -916,12 +932,24 @@ AGIDL_PCX * AGIDL_LoadPCX(char *filename){
 	FILE* file = fopen(filename,"rb");
 	
 	if(file == NULL){
-		printf("Could not open or locate PCX file - %s\n",filename);
+		printf("%s - %s\n",AGIDL_Error2Str(FILE_NOT_LOCATED_IMG_ERROR),filename);
+		return NULL;
 	}
 	
 	AGIDL_PCX *pcx = (AGIDL_PCX*)malloc(sizeof(AGIDL_PCX));
-	AGIDL_SetPCXFilename(pcx,filename);
-	AGIDL_PCXDecodeHeader(pcx,file);
+	pcx->filename = (char*)malloc(strlen(filename)+1);
+	AGIDL_FilenameCpy(pcx->filename,filename);
+	
+	if(pcx == NULL || pcx->filename == NULL){
+		printf("%s\n",AGIDL_Error2Str(MEMORY_IMG_ERROR));
+	}
+	
+	int error = AGIDL_PCXDecodeHeader(pcx,file);
+	
+	if(error != NO_IMG_ERROR){
+		printf("%s\n",AGIDL_Error2Str(error));
+		return NULL;
+	}
 	
 	pcx->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*(AGIDL_PCXGetWidth(pcx)*AGIDL_PCXGetHeight(pcx)));
 	
