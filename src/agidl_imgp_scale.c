@@ -7,7 +7,7 @@
 *   File: agidl_imgp_scale.c
 *   Date: 12/9/2023
 *   Version: 0.2b
-*   Updated: 1/23/2024
+*   Updated: 1/26/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -63,6 +63,129 @@ void * AGIDL_HalfImgDataNearest(void* data, u16* width, u16* height, AGIDL_CLR_F
 				
 				COLOR clr = AGIDL_GetClr(org_data,x2,y2,worg,horg);
 				AGIDL_SetClr(clr_data,clr,x,y,w,h);
+			}
+		}
+		
+		free(data);
+		
+		*width = w;
+		*height = h;
+		
+		return clr_data;
+	}
+}
+
+void * AGIDL_HalfImgDataBilerp(void* data, u16* width, u16* height, AGIDL_CLR_FMT fmt){
+		if(AGIDL_GetBitCount(fmt) == 16){
+		u16 worg = *width;
+		u16 horg = *height;
+		
+		u16 w = worg >> 1;
+		u16 h = horg >> 1;
+		
+		COLOR16* org_data = (COLOR16*)data;
+		COLOR16* clr_data = (COLOR16*)malloc(sizeof(COLOR16)*w*h);
+		
+		u16 x,y;
+		for(y = 0; y < h; y++){
+			for(x = 0; x < w; x++){
+				u16 x2 = (x << 1);
+				u16 y2 = (y << 1);
+				
+				COLOR16 clr1 = AGIDL_GetClr16(org_data,x2,y2,worg,horg);
+				COLOR16 clr2 = AGIDL_GetClr16(org_data,x2+1,y2,worg,horg);
+				COLOR16 clr3 = AGIDL_GetClr16(org_data,x2,y2+1,worg,horg);
+				COLOR16 clr4 = AGIDL_GetClr16(org_data,x2+1,y2+1,worg,horg);
+				
+				u8 r1 = AGIDL_GetR(clr1,fmt);
+				u8 g1 = AGIDL_GetG(clr1,fmt);
+				u8 b1 = AGIDL_GetB(clr1,fmt);
+				
+				u8 r2 = AGIDL_GetR(clr2,fmt);
+				u8 g2 = AGIDL_GetG(clr2,fmt);
+				u8 b2 = AGIDL_GetB(clr2,fmt);
+				
+				u8 r3 = AGIDL_GetR(clr3,fmt);
+				u8 g3 = AGIDL_GetG(clr3,fmt);
+				u8 b3 = AGIDL_GetB(clr3,fmt);
+				
+				u8 r4 = AGIDL_GetR(clr4,fmt);
+				u8 g4 = AGIDL_GetG(clr4,fmt);
+				u8 b4 = AGIDL_GetB(clr4,fmt);
+				
+				u8 rtop = r1 + ((r2 - r1) >> 1);
+				u8 gtop = g1 + ((g2 - g1) >> 1);
+				u8 btop = b1 + ((b2 - b1) >> 1);
+				
+				u8 rbottom = r3 + ((r4 - r3) >> 1);
+				u8 gbottom = g3 + ((g4 - g3) >> 1);
+				u8 bbottom = b3 + ((b4 - b3) >> 1);
+				
+				u8 rfinal = rtop + ((rbottom - rtop) >> 1);
+				u8 gfinal = gtop + ((gbottom - gtop) >> 1);
+				u8 bfinal = btop + ((bbottom - btop) >> 1);
+				
+				AGIDL_SetClr16(clr_data,AGIDL_RGB16(rfinal,gfinal,bfinal,fmt),x,y,w,h);
+			}
+		}
+		
+		free(data);
+		
+		*width = w;
+		*height = h;
+		
+		return clr_data;
+	}
+	else{
+		u16 worg = *width;
+		u16 horg = *height;
+		
+		u16 w = worg >> 1;
+		u16 h = horg >> 1;
+		
+		COLOR* org_data = (COLOR*)data;
+		COLOR* clr_data = (COLOR*)malloc(sizeof(COLOR)*w*h);
+		
+		u16 x,y;
+		for(y = 0; y < h; y++){
+			for(x = 0; x < w; x++){
+				u16 x2 = (x << 1);
+				u16 y2 = (y << 1);
+				
+				COLOR clr1 = AGIDL_GetClr(org_data,x2,y2,worg,horg);
+				COLOR clr2 = AGIDL_GetClr(org_data,x2+1,y2,worg,horg);
+				COLOR clr3 = AGIDL_GetClr(org_data,x2,y2+1,worg,horg);
+				COLOR clr4 = AGIDL_GetClr(org_data,x2+1,y2+1,worg,horg);
+				
+				u8 r1 = AGIDL_GetR(clr1,fmt);
+				u8 g1 = AGIDL_GetG(clr1,fmt);
+				u8 b1 = AGIDL_GetB(clr1,fmt);
+				
+				u8 r2 = AGIDL_GetR(clr2,fmt);
+				u8 g2 = AGIDL_GetG(clr2,fmt);
+				u8 b2 = AGIDL_GetB(clr2,fmt);
+				
+				u8 r3 = AGIDL_GetR(clr3,fmt);
+				u8 g3 = AGIDL_GetG(clr3,fmt);
+				u8 b3 = AGIDL_GetB(clr3,fmt);
+				
+				u8 r4 = AGIDL_GetR(clr4,fmt);
+				u8 g4 = AGIDL_GetG(clr4,fmt);
+				u8 b4 = AGIDL_GetB(clr4,fmt);
+				
+				u8 rtop = r1 + ((r2 - r1) >> 1);
+				u8 gtop = g1 + ((g2 - g1) >> 1);
+				u8 btop = b1 + ((b2 - b1) >> 1);
+				
+				u8 rbottom = r3 + ((r4 - r3) >> 1);
+				u8 gbottom = g3 + ((g4 - g3) >> 1);
+				u8 bbottom = b3 + ((b4 - b3) >> 1);
+				
+				u8 rfinal = rtop + ((rbottom - rtop) >> 1);
+				u8 gfinal = gtop + ((gbottom - gtop) >> 1);
+				u8 bfinal = btop + ((bbottom - btop) >> 1);
+				
+				AGIDL_SetClr(clr_data,AGIDL_RGB(rfinal,gfinal,bfinal,fmt),x,y,w,h);
 			}
 		}
 		

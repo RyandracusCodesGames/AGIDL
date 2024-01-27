@@ -16,7 +16,7 @@
 *   File: agidl_img_bmp.c
 *   Date: 9/12/2023
 *   Version: 0.1b
-*   Updated: 1/25/2023
+*   Updated: 1/26/2023
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -298,7 +298,7 @@ void AGIDL_BMPEncodeICP(AGIDL_BMP* bmp, FILE* file){
 	int i;
 	for(i = 0; i < 256; i++){
 		COLOR clr = bmp->palette.icp.palette_256[i];
-		AGIDL_WriteRGB(file,clr,AGIDL_RGB_888,AGIDL_RGB_888);
+		AGIDL_WriteRGB(file,clr,AGIDL_BGR_888,AGIDL_BGR_888);
 		AGIDL_WriteByte(file,0);
 	}
 }
@@ -391,8 +391,8 @@ void AGIDL_BMPEncodeRLE(AGIDL_BMP* bmp, FILE* file){
 				index = AGIDL_FindNearestColor(bmp->palette,clr,AGIDL_BMPGetClrFmt(bmp));
 			}
 			
-			fwrite(&count,1,1,file);
-			fwrite(&index,1,1,file);
+			AGIDL_WriteByte(file,count);
+			AGIDL_WriteByte(file,index);
 			
 			if(x == AGIDL_BMPGetWidth(bmp)-1){
 				AGIDL_WriteShort(file,0);
@@ -460,7 +460,7 @@ void AGIDL_BMPEncodeIMG0(AGIDL_BMP* bmp, FILE* file){
 			}
 		}break;
 		case AGIDL_RGB_555:{
-			fwrite(bmp->pixels.pix16,2,AGIDL_BMPGetWidth(bmp)*AGIDL_BMPGetHeight(bmp),file);
+			AGIDL_WriteBufClr16(file,bmp->pixels.pix16,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp));
 		}break;
 		case AGIDL_RGBA_8888:{
 			AGIDL_WriteBufBGRA(file,bmp->pixels.pix32,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp),AGIDL_BMPGetClrFmt(bmp));
@@ -737,12 +737,8 @@ void AGIDL_BMPDecodeRLE(AGIDL_BMP* bmp, FILE* file, BMP_IMG_TYPE img_type){
 				
 				int i;
 				for(i = 0; i < bmp->header.num_of_colors; i++){
-					u8 r,g,b,blank;
-					fread(&r,1,1,file);
-					fread(&g,1,1,file);
-					fread(&b,1,1,file);
-					fread(&blank,1,1,file);
-					bmp->palette.icp.palette_16[i] = AGIDL_RGB(r,g,b,AGIDL_BGR_888);
+					bmp->palette.icp.palette_16[i] = AGIDL_ReadRGB(file,AGIDL_RGB_888);
+					fseek(file,1,SEEK_CUR);
 				}
 				
 				if(img_type == BMP_IMG_TYPE_ICP_16){
@@ -751,15 +747,13 @@ void AGIDL_BMPDecodeRLE(AGIDL_BMP* bmp, FILE* file, BMP_IMG_TYPE img_type){
 					int x,y;
 					for(y = 0; y < AGIDL_BMPGetHeight(bmp); y++){
 						for(x = 0; x < AGIDL_BMPGetWidth(bmp); x++){
-							u8 rle, index;
-							fread(&rle,1,1,file);
-							fread(&index,1,1,file);
+							u8 rle = AGIDL_ReadByte(file);
+							u8 index = AGIDL_ReadByte(file);
 				
 							if(rle == 0 && index != 0){
 								int i;
 								for(i = 0; i < index / 2; i++){
-									u8 ind;
-									fread(&ind,1,1,file);
+									u8 ind = AGIDL_ReadByte(file);
 									
 									u8 backind = (ind & 0xf) , frontind = ((ind & 0xff) >> 4);
 									AGIDL_BMPSetClr(bmp,x+(i*2),y,bmp->palette.icp.palette_16[frontind]);

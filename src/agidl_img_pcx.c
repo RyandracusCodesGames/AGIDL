@@ -5,6 +5,7 @@
 #include "agidl_cc_core.h"
 #include "agidl_img_compression.h"
 #include "agidl_img_error.h"
+#include "agidl_file_utils.h"
 
 /********************************************
 *   Adaptive Graphics Image Display Library
@@ -15,7 +16,7 @@
 *   File: agidl_img_pcx.c
 *   Date: 9/25/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 1/26/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -351,35 +352,32 @@ int contains_icp(FILE *file, u32 *pal_coord){
 }
 
 int AGIDL_PCXDecodeHeader(AGIDL_PCX* pcx, FILE* file){
-	fread(&pcx->header.id,1,1,file);
-	
-	fread(&pcx->header.version,1,1,file);
-	fread(&pcx->header.encoding,1,1,file);
-	fread(&pcx->header.bits,1,1,file);
-	fread(&pcx->header.x_start,2,1,file);
-	fread(&pcx->header.y_start,2,1,file);
-	fread(&pcx->header.x_end,2,1,file);
-	fread(&pcx->header.y_end,2,1,file);
-	fread(&pcx->header.width,2,1,file);
-	fread(&pcx->header.height,2,1,file);
+	pcx->header.id = AGIDL_ReadByte(file);
+	pcx->header.version = AGIDL_ReadByte(file);
+	pcx->header.encoding = AGIDL_ReadByte(file);
+	pcx->header.bits = AGIDL_ReadByte(file);
+	pcx->header.x_start = AGIDL_ReadShort(file);
+	pcx->header.y_start = AGIDL_ReadShort(file);
+	pcx->header.x_end = AGIDL_ReadShort(file);
+	pcx->header.y_end = AGIDL_ReadShort(file);
+	pcx->header.width = AGIDL_ReadShort(file);
+	pcx->header.height = AGIDL_ReadShort(file);
 	
 	int i;
 	for(i = 0; i < 48; i++){
-		char clr = 0;
-		fread(&clr,1,1,file);
+		char clr = AGIDL_ReadByte(file);
 		pcx->header.ega[i] = clr;
 	}
 	
-	fread(&pcx->header.reserved,1,1,file);
-	fread(&pcx->header.numbitplanes,1,1,file);
-	fread(&pcx->header.bytesperline,2,1,file);
-	fread(&pcx->header.pal_type,2,1,file);
-	fread(&pcx->header.screen_horz,2,1,file);
-	fread(&pcx->header.screen_vert,2,1,file);
+	pcx->header.reserved = AGIDL_ReadByte(file);
+	pcx->header.numbitplanes = AGIDL_ReadByte(file);
+	pcx->header.bytesperline = AGIDL_ReadShort(file);
+	pcx->header.pal_type = AGIDL_ReadShort(file);
+	pcx->header.screen_horz = AGIDL_ReadShort(file);
+	pcx->header.screen_vert = AGIDL_ReadShort(file);
 	
 	for(i = 0; i < 54; i++){
-		char blank = 0;
-		fread(&blank,1,1,file);
+		char blank = AGIDL_ReadByte(file);
 		pcx->header.blanks[i] = blank;
 	}
 	
@@ -442,8 +440,7 @@ void AGIDL_PCXDecodeIMG(AGIDL_PCX* pcx, FILE* file){
 			
 			int count = 0;
 			while(count < scanlinelength){
-				u8 byte = 0;
-				fread(&byte,1,1,file);
+				u8 byte = AGIDL_ReadByte(file);
 				
 				if(count < 1){
 				//	printf("first incoming byte 0x%x\n",byte);
@@ -460,8 +457,7 @@ void AGIDL_PCXDecodeIMG(AGIDL_PCX* pcx, FILE* file){
 					free(bin);
 					free(byte);
 				//	printf("rle - %d\n",rle);
-					u8 read = 0;
-					fread(&read,1,1,file);
+					u8 read = AGIDL_ReadByte(file);
 					int i;
 					for(i = 0; i < rle; i++){
 						buf[count] = read;
@@ -519,13 +515,8 @@ void AGIDL_PCXDecodeIMG(AGIDL_PCX* pcx, FILE* file){
 		AGIDL_InitICP(&pcx->palette,AGIDL_ICP_256);
 		
 		int i;
-		for(i = 0; i < 256; i++){
-			u8 r,g,b;
-			fread(&r,1,1,file);
-			fread(&g,1,1,file);
-			fread(&b,1,1,file);
-			
-			pcx->palette.icp.palette_256[i] = AGIDL_RGB(r,g,b,AGIDL_RGB_888);
+		for(i = 0; i < 256; i++){	
+			pcx->palette.icp.palette_256[i] = AGIDL_ReadRGB(file,AGIDL_RGB_888);
 		}
 		
 		fseek(file,128,SEEK_SET);
@@ -536,8 +527,7 @@ void AGIDL_PCXDecodeIMG(AGIDL_PCX* pcx, FILE* file){
 			
 			int count = 0;
 			while(count < scanlinelength){
-				u8 byte = 0;
-				fread(&byte,1,1,file);
+				u8 byte = AGIDL_ReadByte(file);
 				
 				if(count < 1){
 					//printf("first incoming byte 0x%x\n",byte);
@@ -554,8 +544,7 @@ void AGIDL_PCXDecodeIMG(AGIDL_PCX* pcx, FILE* file){
 					free(bin);
 					free(byte);
 				//	printf("rle - %d\n",rle);
-					u8 read = 0;
-					fread(&read,1,1,file);
+					u8 read = AGIDL_ReadByte(file);
 					int i;
 					for(i = 0; i < rle; i++){
 						buf[count] = read;
@@ -628,31 +617,31 @@ void AGIDL_PCXEncodeHeader(AGIDL_PCX* pcx, FILE* file){
 		pcx->header.numbitplanes = 1;
 	}
 	
-	fwrite(&pcx->header.id,1,1,file);
-	fwrite(&pcx->header.version,1,1,file);
-	fwrite(&pcx->header.encoding,1,1,file);
-	fwrite(&pcx->header.bits,1,1,file);
-	fwrite(&pcx->header.x_start,2,1,file);
-	fwrite(&pcx->header.y_start,2,1,file);
-	fwrite(&pcx->header.x_end,2,1,file);
-	fwrite(&pcx->header.y_end,2,1,file);
-	fwrite(&horz,2,1,file);
-	fwrite(&vert,2,1,file);
+	AGIDL_WriteByte(file,pcx->header.id);
+	AGIDL_WriteByte(file,pcx->header.version);
+	AGIDL_WriteByte(file,pcx->header.encoding);
+	AGIDL_WriteByte(file,pcx->header.bits);
+	AGIDL_WriteShort(file,pcx->header.x_start);
+	AGIDL_WriteShort(file,pcx->header.y_start);
+	AGIDL_WriteShort(file,pcx->header.x_end);
+	AGIDL_WriteShort(file,pcx->header.y_end);
+	AGIDL_WriteShort(file,horz);
+	AGIDL_WriteShort(file,vert);
 	
 	int i;
 	for(i = 0; i < 48; i++){
-		fwrite(&icp,1,1,file);
+		AGIDL_WriteByte(file,icp);
 	}
 	
-	fwrite(&pcx->header.reserved,1,1,file);
-	fwrite(&pcx->header.numbitplanes,1,1,file);
-	fwrite(&pcx->header.bytesperline,2,1,file);
-	fwrite(&pcx->header.pal_type,2,1,file);
-	fwrite(&pcx->header.screen_horz,2,1,file);
-	fwrite(&pcx->header.screen_vert,2,1,file);
+	AGIDL_WriteByte(file,pcx->header.reserved);
+	AGIDL_WriteByte(file,pcx->header.numbitplanes);
+	AGIDL_WriteShort(file,pcx->header.bytesperline);
+	AGIDL_WriteShort(file,pcx->header.pal_type);
+	AGIDL_WriteShort(file,pcx->header.screen_horz);
+	AGIDL_WriteShort(file,pcx->header.screen_vert);
 	
 	for(i = 0; i < 54; i++){
-		fwrite(&blank,1,1,file);
+		AGIDL_WriteByte(file,blank);
 	}
 }
 
@@ -746,8 +735,8 @@ void AGIDL_PCXEncodeImg(AGIDL_PCX* pcx, FILE* file){
 					u8 byte = bin2dec(bin);
 					u8 data = buf[x];
 					
-					fwrite(&byte,1,1,file);
-					fwrite(&data,1,1,file);
+					AGIDL_WriteByte(file,byte);
+					AGIDL_WriteByte(file,data);
 					
 					x += count - 1;
 					
@@ -764,8 +753,8 @@ void AGIDL_PCXEncodeImg(AGIDL_PCX* pcx, FILE* file){
 					u8 byte = bin2dec(bin);
 					u8 data = buf[x];
 					
-					fwrite(&byte,1,1,file);
-					fwrite(&data,1,1,file);
+					AGIDL_WriteByte(file,byte);
+					AGIDL_WriteByte(file,data);
 					
 					x += count - 1;
 					
@@ -796,8 +785,8 @@ void AGIDL_PCXEncodeImg(AGIDL_PCX* pcx, FILE* file){
 					u8 byte = bin2dec(bin);
 					u8 data = buf[x];
 					
-					fwrite(&byte,1,1,file);
-					fwrite(&data,1,1,file);
+					AGIDL_WriteByte(file,byte);
+					AGIDL_WriteByte(file,data);
 					
 					x += count - 1;
 					
@@ -811,8 +800,8 @@ void AGIDL_PCXEncodeImg(AGIDL_PCX* pcx, FILE* file){
 					u8 byte = bin2dec(bin);
 					u8 data = buf[x];
 					
-					fwrite(&byte,1,1,file);
-					fwrite(&data,1,1,file);
+					AGIDL_WriteByte(file,byte);
+					AGIDL_WriteByte(file,data);
 					
 					x += count - 1;
 					
@@ -835,8 +824,8 @@ void AGIDL_PCXEncodeImg(AGIDL_PCX* pcx, FILE* file){
 				u8 byte = bin2dec(bin);
 				u8 data = buf[x];
 				
-				fwrite(&byte,1,1,file);
-				fwrite(&data,1,1,file);
+				AGIDL_WriteByte(file,byte);
+				AGIDL_WriteByte(file,data);
 				
 				x += count - 1;
 				
@@ -875,8 +864,8 @@ void AGIDL_PCXEncodeImg(AGIDL_PCX* pcx, FILE* file){
 				u8 byte = bin2dec(rle);
 				u8 data = buf[x];
 				
-				fwrite(&byte,1,1,file);
-				fwrite(&data,1,1,file);
+				AGIDL_WriteByte(file,byte);
+				AGIDL_WriteByte(file,data);
 				
 				free(rle);
 				
@@ -888,7 +877,7 @@ void AGIDL_PCXEncodeImg(AGIDL_PCX* pcx, FILE* file){
 		
 		u8 hexid = 0x0C;
 			
-		fwrite(&hexid,1,1,file);
+		AGIDL_WriteByte(file,hexid);
 			
 		int i;
 		for(i = 0; i < 256; i++){
@@ -898,9 +887,9 @@ void AGIDL_PCXEncodeImg(AGIDL_PCX* pcx, FILE* file){
 			u8 g = AGIDL_GetG(clr,AGIDL_RGB_888);
 			u8 b = AGIDL_GetB(clr,AGIDL_RGB_888);
 			
-			fwrite(&r,1,1,file);
-			fwrite(&g,1,1,file);
-			fwrite(&b,1,1,file);
+			AGIDL_WriteByte(file,r);
+			AGIDL_WriteByte(file,g);
+			AGIDL_WriteByte(file,b);
 		}	
 	}
 	

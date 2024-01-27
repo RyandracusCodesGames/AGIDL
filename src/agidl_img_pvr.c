@@ -5,6 +5,7 @@
 #include "agidl_cc_core.h"
 #include "agidl_math_utils.h"
 #include "agidl_img_error.h"
+#include "agidl_file_utils.h"
 
 /********************************************
 *   Adaptive Graphics Image Display Library
@@ -15,7 +16,7 @@
 *   File: agidl_img_pvr.c
 *   Date: 10/28/2023
 *   Version: 0.1b
-*   Updated: 1/21/2024
+*   Updated: 1/26/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -199,13 +200,13 @@ void AGIDL_FreePVR(AGIDL_PVR* pvr){
 		free(pvr->pixels.pix32);
 	}
 	
-	if(pvr->mip_lvl > 1 || pvr->mheader.num_of_mipmaps > 1 || pvr->header.pvr_img_type == PVR_IMG_SQUARE_TWIDDLED_AND_MIPMAPPED){
+	if(pvr->mipmap != NULL && (pvr->mip_lvl > 1 || pvr->mheader.num_of_mipmaps > 1) || pvr->header.pvr_img_type == PVR_IMG_SQUARE_TWIDDLED_AND_MIPMAPPED){
 		AGIDL_DestroyMipmap(pvr->mipmap);
 	}
 	else{
 		free(pvr);
 	}
-	
+
 	if(pvr != NULL){
 		pvr = NULL;
 	}
@@ -443,24 +444,24 @@ int AGIDL_IsModernPVR(PVRPxlFmt fmt){
 
 int AGIDL_PVRDecodeHeader(AGIDL_PVR* pvr, FILE* file){
 	u8 ulong[4];
-	fread(&ulong[0],1,1,file);
-	fread(&ulong[1],1,1,file);
-	fread(&ulong[2],1,1,file);
-	fread(&ulong[3],1,1,file);
+	ulong[0] = AGIDL_ReadByte(file);
+	ulong[1] = AGIDL_ReadByte(file);
+	ulong[2] = AGIDL_ReadByte(file);
+	ulong[3] = AGIDL_ReadByte(file);
 	
 	if(ulong[0] == 'G' && ulong[1] == 'B' && ulong[2] == 'I' && ulong[3] == 'X'){
 		pvr->header.id1 = ulong[0] << 24 | ulong[1] << 16 | ulong[2] << 8 | ulong[3];
 	
-		fread(&pvr->header.offset,4,1,file);
-		fread(&pvr->header.global_index_1,4,1,file);
-		fread(&pvr->header.global_index_2,4,1,file);
-		fread(&pvr->header.id2,4,1,file);
-		fread(&pvr->header.file_size,4,1,file);
-		fread(&pvr->header.pvr_clr_fmt,1,1,file);
-		fread(&pvr->header.pvr_img_type,1,1,file);
+		pvr->header.offset = AGIDL_ReadLong(file);
+		pvr->header.global_index_1 = AGIDL_ReadLong(file);
+		pvr->header.global_index_2 = AGIDL_ReadLong(file);
+		pvr->header.id2 = AGIDL_ReadLong(file);
+		pvr->header.file_size = AGIDL_ReadLong(file);
+		pvr->header.pvr_clr_fmt = AGIDL_ReadByte(file);
+		pvr->header.pvr_img_type = AGIDL_ReadByte(file);
 		fseek(file,2,SEEK_CUR);
-		fread(&pvr->header.width,2,1,file);
-		fread(&pvr->header.height,2,1,file);
+		pvr->header.width = AGIDL_ReadShort(file);
+		pvr->header.height = AGIDL_ReadShort(file);
 		
 		pvr->pvr_type = DREAMCAST_PVR;
 		
@@ -472,22 +473,25 @@ int AGIDL_PVRDecodeHeader(AGIDL_PVR* pvr, FILE* file){
 	else if(ulong[0] == 'P' && ulong[1] == 'V' && ulong[2] == 'R'){
 		pvr->mheader.version = ulong[0] << 24 | ulong[1] << 16 | ulong[2] << 8 | ulong[3];
 		
-		fread(&pvr->mheader.flags,4,1,file);
+		pvr->mheader.flags = AGIDL_ReadLong(file);
 		fread(&pvr->mheader.ulong2,1,8,file);
-		fread(&pvr->mheader.clr_fmt,4,1,file);
-		fread(&pvr->mheader.channel_type,4,1,file);
-		fread(&pvr->mheader.height,4,1,file);
-		fread(&pvr->mheader.width,4,1,file);
-		fread(&pvr->mheader.depth,4,1,file);
-		fread(&pvr->mheader.num_of_surfaces,4,1,file);
-		fread(&pvr->mheader.num_of_faces,4,1,file);
-		fread(&pvr->mheader.num_of_mipmaps,4,1,file);
-		fread(&pvr->mheader.meta_data_size,4,1,file);
+		pvr->mheader.clr_fmt = AGIDL_ReadLong(file);
+		pvr->mheader.channel_type = AGIDL_ReadLong(file);
+		pvr->mheader.height = AGIDL_ReadLong(file);
+		pvr->mheader.width = AGIDL_ReadLong(file);
+		pvr->mheader.depth = AGIDL_ReadLong(file);
+		pvr->mheader.num_of_surfaces = AGIDL_ReadLong(file);
+		pvr->mheader.num_of_faces = AGIDL_ReadLong(file);
+		pvr->mheader.num_of_mipmaps = AGIDL_ReadLong(file);
+		pvr->mheader.meta_data_size = AGIDL_ReadLong(file);
 		
 		if(pvr->mheader.meta_data_size != 0){
-			fread(&pvr->mheader.fourcc,4,1,file);
-			fread(&pvr->mheader.key,4,1,file);
-			fread(&pvr->mheader.data_size,4,1,file);
+			pvr->mheader.fourcc[0] = AGIDL_ReadByte(file);
+			pvr->mheader.fourcc[1] = AGIDL_ReadByte(file);
+			pvr->mheader.fourcc[2] = AGIDL_ReadByte(file);
+			pvr->mheader.fourcc[3] = AGIDL_ReadByte(file);
+			pvr->mheader.key = AGIDL_ReadLong(file);
+			pvr->mheader.data_size = AGIDL_ReadLong(file);
 			fseek(file,pvr->mheader.data_size,SEEK_CUR);
 		}
 		
@@ -525,18 +529,17 @@ void AGIDL_PVREncodeHeader(AGIDL_PVR* pvr, FILE* file){
 	
 		pvr->header.pvr_img_type = PVR_IMG_RECTANGLE;
 		
-		fwrite(&pvr->header.id1,4,1,file);
-		fwrite(&pvr->header.offset,4,1,file);
-		fwrite(&pvr->header.global_index_1,4,1,file);
-		fwrite(&pvr->header.global_index_2,4,1,file);
-		fwrite(&pvr->header.id2,4,1,file);
-		fwrite(&pvr->header.file_size,4,1,file);
-		fwrite(&pvr->header.pvr_clr_fmt,1,1,file);
-		fwrite(&pvr->header.pvr_img_type,1,1,file);
-		u16 zero = 0;
-		fwrite(&zero,2,1,file);
-		fwrite(&pvr->header.width,2,1,file);
-		fwrite(&pvr->header.height,2,1,file);
+		AGIDL_WriteLong(file,pvr->header.id1);
+		AGIDL_WriteLong(file,pvr->header.offset);
+		AGIDL_WriteLong(file,pvr->header.global_index_1);
+		AGIDL_WriteLong(file,pvr->header.global_index_2);
+		AGIDL_WriteLong(file,pvr->header.id2);
+		AGIDL_WriteLong(file,pvr->header.file_size);
+		AGIDL_WriteByte(file,pvr->header.pvr_clr_fmt);
+		AGIDL_WriteByte(file,pvr->header.pvr_img_type);
+		AGIDL_WriteShort(file,0);
+		AGIDL_WriteShort(file,pvr->header.width);
+		AGIDL_WriteShort(file,pvr->header.height);
 	}
 	else{
 		AGIDL_CLR_FMT fmt = AGIDL_PVRGetClrFmt(pvr);
@@ -572,19 +575,28 @@ void AGIDL_PVREncodeHeader(AGIDL_PVR* pvr, FILE* file){
 		
 		u32 one = 1, zero = 0;
 		
-		fwrite(pvrc,1,4,file);
-		fwrite(&flags,4,1,file);
-		fwrite(rgb,1,4,file);
-		fwrite(bits,1,4,file);
-		fwrite(&clr_fmt,4,1,file);
-		fwrite(&channel_type,4,1,file);
-		fwrite(&pvr->mheader.height,4,1,file);
-		fwrite(&pvr->mheader.width,4,1,file);
-		fwrite(&one,4,1,file);
-		fwrite(&one,4,1,file);
-		fwrite(&one,4,1,file);
-		fwrite(&pvr->mip_lvl,4,1,file);
-		fwrite(&zero,4,1,file);
+		AGIDL_WriteByte(file,pvrc[0]);
+		AGIDL_WriteByte(file,pvrc[1]);
+		AGIDL_WriteByte(file,pvrc[2]);
+		AGIDL_WriteByte(file,pvrc[3]);
+		AGIDL_WriteLong(file,flags);
+		AGIDL_WriteByte(file,rgb[0]);
+		AGIDL_WriteByte(file,rgb[1]);
+		AGIDL_WriteByte(file,rgb[2]);
+		AGIDL_WriteByte(file,rgb[3]);
+		AGIDL_WriteByte(file,bits[0]);
+		AGIDL_WriteByte(file,bits[1]);
+		AGIDL_WriteByte(file,bits[2]);
+		AGIDL_WriteByte(file,bits[3]);
+		AGIDL_WriteLong(file,clr_fmt);
+		AGIDL_WriteLong(file,channel_type);
+		AGIDL_WriteLong(file,pvr->mheader.height);
+		AGIDL_WriteLong(file,pvr->mheader.width);
+		AGIDL_WriteLong(file,1);
+		AGIDL_WriteLong(file,1);
+		AGIDL_WriteLong(file,1);
+		AGIDL_WriteLong(file,pvr->mip_lvl);
+		AGIDL_WriteLong(file,0);
 	}
 }
 
@@ -593,12 +605,12 @@ void AGIDL_PVRDecodeImg(AGIDL_PVR* pvr, PVRClrFmt fmt, PVRImgType img, FILE* fil
 		if(fmt == PVR_RGB_555 && img == PVR_IMG_RECTANGLE){
 			AGIDL_PVRSetClrFmt(pvr,AGIDL_RGB_555);
 			pvr->pixels.pix16 = (COLOR16*)malloc(sizeof(COLOR16)*(AGIDL_PVRGetWidth(pvr)*AGIDL_PVRGetHeight(pvr)));
-			fread(pvr->pixels.pix16,2,AGIDL_PVRGetSize(pvr),file);
+			AGIDL_ReadBufRGB16(file,pvr->pixels.pix16,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr));
 		}
 		if(fmt == PVR_RGB_565 && img == PVR_IMG_RECTANGLE){
 			AGIDL_PVRSetClrFmt(pvr,AGIDL_RGB_565);
 			pvr->pixels.pix16 = (COLOR16*)malloc(sizeof(COLOR16)*(AGIDL_PVRGetWidth(pvr)*AGIDL_PVRGetHeight(pvr)));
-			fread(pvr->pixels.pix16,2,AGIDL_PVRGetSize(pvr),file);
+			AGIDL_ReadBufRGB16(file,pvr->pixels.pix16,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr));
 		}	
 		if(fmt == PVR_ARGB_4444 && img == PVR_IMG_RECTANGLE){
 			AGIDL_PVRSetClrFmt(pvr,AGIDL_RGB_555);
@@ -607,8 +619,7 @@ void AGIDL_PVRDecodeImg(AGIDL_PVR* pvr, PVRClrFmt fmt, PVRImgType img, FILE* fil
 			int x,y;
 			for(y = 0; y < AGIDL_PVRGetHeight(pvr); y++){
 				for(x = 0; x < AGIDL_PVRGetWidth(pvr); x++){
-					COLOR16 clr;
-					fread(&clr,2,1,file);
+					COLOR16 clr = AGIDL_ReadShort(file);
 					
 					u8 r = ((clr & 0xf00) >> 8);
 					u8 g = ((clr & 0xf0) >> 4);
@@ -636,10 +647,9 @@ void AGIDL_PVRDecodeImg(AGIDL_PVR* pvr, PVRClrFmt fmt, PVRImgType img, FILE* fil
 				int x,y;
 				for(y = 0; y < AGIDL_PVRGetHeight(pvr); y++){
 					for(x = 0; x < AGIDL_PVRGetWidth(pvr); x++){
-						u8 r = 0, g = 0, b = 0;
-						fread(&r,1,1,file);
-						fread(&g,1,1,file);
-						fread(&b,1,1,file);
+						u8 r = AGIDL_ReadByte(file);
+						u8 g = AGIDL_ReadByte(file);
+						u8 b = AGIDL_ReadByte(file);
 						
 						COLOR clr = AGIDL_GammaCorrectColor(AGIDL_RGB(r,g,b,AGIDL_RGB_888),2.2f,AGIDL_RGB_888);
 						
@@ -673,8 +683,7 @@ void AGIDL_PVRDecodeImg(AGIDL_PVR* pvr, PVRClrFmt fmt, PVRImgType img, FILE* fil
 					int x,y;
 					for(y = 0; y < AGIDL_PVRGetHeight(pvr); y++){
 						for(x = 0; x < AGIDL_PVRGetWidth(pvr); x++){
-							COLOR16 clr16 = 0;
-							fread(&clr16,2,1,file);
+							COLOR16 clr16 = AGIDL_ReadShort(file);
 							
 							COLOR16 clr = AGIDL_GammaCorrectColor(clr16,2.2f,AGIDL_RGB_565);
 
@@ -705,8 +714,7 @@ void AGIDL_PVRDecodeImg(AGIDL_PVR* pvr, PVRClrFmt fmt, PVRImgType img, FILE* fil
 				int x,y;
 				for(y = 0; y < AGIDL_PVRGetHeight(pvr); y++){
 					for(x = 0; x < AGIDL_PVRGetWidth(pvr); x++){
-						COLOR16 clr16 = 0;
-						fread(&clr16,2,1,file);
+						COLOR16 clr16 = AGIDL_ReadShort(file);
 						
 						u8 r = (clr16 & 0xf800) >> 11;
 						u8 g = (clr16 & 0x7c0) >> 6;
@@ -745,11 +753,10 @@ void AGIDL_PVRDecodeImg(AGIDL_PVR* pvr, PVRClrFmt fmt, PVRImgType img, FILE* fil
 				int x,y;
 				for(y = 0; y < AGIDL_PVRGetHeight(pvr); y++){
 					for(x = 0; x < AGIDL_PVRGetWidth(pvr); x++){
-						u8 r = 0, g = 0, b = 0, a = 0;
-						fread(&r,1,1,file);
-						fread(&g,1,1,file);
-						fread(&b,1,1,file);
-						fread(&a,1,1,file);
+						u8 r = AGIDL_ReadByte(file);
+						u8 g = AGIDL_ReadByte(file);
+						u8 b = AGIDL_ReadByte(file);
+						u8 a = AGIDL_ReadByte(file);
 						
 						COLOR clr = AGIDL_GammaCorrectColor(AGIDL_RGBA(r,g,b,a,AGIDL_RGBA_8888),2.2f,AGIDL_RGBA_8888);
 						
@@ -782,11 +789,10 @@ void AGIDL_PVRDecodeImg(AGIDL_PVR* pvr, PVRClrFmt fmt, PVRImgType img, FILE* fil
 				int x,y;
 				for(y = 0; y < AGIDL_PVRGetHeight(pvr); y++){
 					for(x = 0; x < AGIDL_PVRGetWidth(pvr); x++){
-						u8 r = 0, g = 0, b = 0, a = 0;
-						fread(&b,1,1,file);
-						fread(&g,1,1,file);
-						fread(&r,1,1,file);
-						fread(&a,1,1,file);
+						u8 b = AGIDL_ReadByte(file);
+						u8 g = AGIDL_ReadByte(file);
+						u8 r = AGIDL_ReadByte(file);
+						u8 a = AGIDL_ReadByte(file);
 						
 						COLOR clr = AGIDL_GammaCorrectColor(AGIDL_RGBA(r,g,b,a,AGIDL_RGBA_8888),2.2f,AGIDL_RGBA_8888);
 						
@@ -805,7 +811,7 @@ void AGIDL_PVRDecodeImg(AGIDL_PVR* pvr, PVRClrFmt fmt, PVRImgType img, FILE* fil
 
 void AGIDL_PVREncodeIMG(AGIDL_PVR* pvr, FILE* file){
 	if(AGIDL_PVRGetType(pvr) == DREAMCAST_PVR){
-		fwrite(pvr->pixels.pix16,2,AGIDL_PVRGetSize(pvr),file);
+		AGIDL_WriteBufClr16(file,pvr->pixels.pix16,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr));
 	}
 	else{
 		switch(AGIDL_PVRGetClrFmt(pvr)){
@@ -879,7 +885,7 @@ void AGIDL_PVREncodeIMG(AGIDL_PVR* pvr, FILE* file){
 						u8 b = AGIDL_GetB(clr,AGIDL_RGB_555);
 						u8 a = 1;
 						clr = r << 11 | g << 6 | b << 1 | a;
-						fwrite(&clr,2,1,file);
+						AGIDL_WriteShort(file,clr);
 					}
 				}
 			}break;
@@ -1139,6 +1145,7 @@ AGIDL_PVR * AGIDL_LoadPVR(char* filename){
 	pvr->filename = (char*)malloc(strlen(filename)+1);
 	AGIDL_FilenameCpy(pvr->filename,filename);
 	AGIDL_PVRBuildMipmap(pvr,FALSE);
+	pvr->mipmap = NULL;
 	
 	if(pvr == NULL || pvr->filename == NULL){
 		printf("%s\n",AGIDL_Error2Str(MEMORY_IMG_ERROR));

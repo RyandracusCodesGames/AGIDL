@@ -4,6 +4,7 @@
 #include "agidl_cc_core.h"
 #include "agidl_img_tim.h"
 #include "agidl_img_error.h"
+#include "agidl_file_utils.h"
 
 /********************************************
 *   Adaptive Graphics Image Display Library
@@ -14,7 +15,7 @@
 *   File: agidl_img_tim.c
 *   Date: 9/19/2023
 *   Version: 0.1b
-*   Updated: 1/20/2024
+*   Updated: 1/26/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -285,8 +286,8 @@ AGIDL_TIM* AGIDL_TIMCpyImg(AGIDL_TIM* tim){
 }
 
 int AGIDL_TIMDecodeHeader(AGIDL_TIM* tim, FILE* file){
-	fread(&tim->header.magic,4,1,file);
-	fread(&tim->header.version,4,1,file);
+	tim->header.magic = AGIDL_ReadLong(file);
+	tim->header.version = AGIDL_ReadLong(file);
 	
 	if(!AGIDL_IsTIMHeader(tim)){
 		return INVALID_HEADER_FORMATTING_ERROR;
@@ -298,25 +299,24 @@ int AGIDL_TIMDecodeIMG(AGIDL_TIM* tim, FILE* file){
 	if(tim->header.version == TIM_4BPP){
 		AGIDL_TIMSetClrFmt(tim,AGIDL_BGR_555);
 		
-		fread(&tim->clut_header.clut_size,4,1,file);
-		fread(&tim->clut_header.pal_mem_add_x,2,1,file);
-		fread(&tim->clut_header.pal_mem_add_y,2,1,file);
-		fread(&tim->clut_header.num_clrs,2,1,file);
-		fread(&tim->clut_header.num_icps,2,1,file);
+		tim->clut_header.clut_size = AGIDL_ReadLong(file);
+		tim->clut_header.pal_mem_add_x = AGIDL_ReadShort(file);
+		tim->clut_header.pal_mem_add_y = AGIDL_ReadShort(file);
+		tim->clut_header.num_clrs = AGIDL_ReadShort(file);
+		tim->clut_header.num_icps = AGIDL_ReadShort(file);
 		
 		if(tim->clut_header.num_clrs == 16 || tim->clut_header.num_icps == 16){
 			int i;
 			for(i = 0; i < 16; i++){
-				COLOR16 clr = 0;
-				fread(&clr,2,1,file);
+				COLOR16 clr = AGIDL_ReadShort(file);
 				tim->palette.icp.palette_16b_16[i] = clr;
 			}
 			
-			fread(&tim->img_header.img_size,4,1,file);
-			fread(&tim->img_header.img_mem_add_x,2,1,file);
-			fread(&tim->img_header.img_mem_add_y,2,1,file);
-			fread(&tim->img_header.width,2,1,file);
-			fread(&tim->img_header.height,2,1,file);
+			tim->img_header.img_size = AGIDL_ReadLong(file);
+			tim->img_header.img_mem_add_x = AGIDL_ReadShort(file);
+			tim->img_header.img_mem_add_y = AGIDL_ReadShort(file);
+			tim->img_header.width = AGIDL_ReadShort(file);
+			tim->img_header.height = AGIDL_ReadShort(file);
 			
 			tim->img_header.width *= 4;
 			
@@ -330,8 +330,7 @@ int AGIDL_TIMDecodeIMG(AGIDL_TIM* tim, FILE* file){
 			int x,y;
 			for(y = 0; y < AGIDL_TIMGetHeight(tim); y++){
 				for(x = 0; x < AGIDL_TIMGetWidth(tim); x+=4){
-					u16 index = 0;
-					fread(&index,2,1,file);
+					u16 index = AGIDL_ReadShort(file);
 					
 					u16 index1 = (index & 0xF);
 					u16 index2 = (index & 0xF0) >> 4;
@@ -355,11 +354,11 @@ int AGIDL_TIMDecodeIMG(AGIDL_TIM* tim, FILE* file){
 
 		AGIDL_TIMSetClrFmt(tim,AGIDL_BGR_555);
 		
-		fread(&tim->clut_header.clut_size,4,1,file);
-		fread(&tim->clut_header.pal_mem_add_x,2,1,file);
-		fread(&tim->clut_header.pal_mem_add_y,2,1,file);
-		fread(&tim->clut_header.num_clrs,2,1,file);
-		fread(&tim->clut_header.num_icps,2,1,file);
+		tim->clut_header.clut_size = AGIDL_ReadLong(file);
+		tim->clut_header.pal_mem_add_x = AGIDL_ReadShort(file);
+		tim->clut_header.pal_mem_add_y = AGIDL_ReadShort(file);
+		tim->clut_header.num_clrs = AGIDL_ReadShort(file);
+		tim->clut_header.num_icps = AGIDL_ReadShort(file);
 	
 		if(tim->clut_header.num_clrs == 256 || tim->clut_header.num_icps == 256){
 	
@@ -370,11 +369,11 @@ int AGIDL_TIMDecodeIMG(AGIDL_TIM* tim, FILE* file){
 				tim->palette.icp.palette_16b_256[i] = clr;
 			}
 			
-			fread(&tim->img_header.img_size,4,1,file);
-			fread(&tim->img_header.img_mem_add_x,2,1,file);
-			fread(&tim->img_header.img_mem_add_y,2,1,file);
-			fread(&tim->img_header.width,2,1,file);
-			fread(&tim->img_header.height,2,1,file);
+			tim->img_header.img_size = AGIDL_ReadLong(file);
+			tim->img_header.img_mem_add_x = AGIDL_ReadShort(file);
+			tim->img_header.img_mem_add_y = AGIDL_ReadShort(file);
+			tim->img_header.width = AGIDL_ReadShort(file);
+			tim->img_header.height = AGIDL_ReadShort(file);
 			
 			tim->img_header.width *= 2;
 			
@@ -385,8 +384,7 @@ int AGIDL_TIMDecodeIMG(AGIDL_TIM* tim, FILE* file){
 			tim->pixels.pix16 = (COLOR16*)malloc(sizeof(COLOR16)*(AGIDL_TIMGetWidth(tim)*AGIDL_TIMGetHeight(tim)));
 			
 			for(i = 0; i < AGIDL_TIMGetSize(tim); i++){
-				u8 index = 0;
-				fread(&index,1,1,file);
+				u8 index = AGIDL_ReadByte(file);
 				
 				COLOR16 clr = tim->palette.icp.palette_16b_256[index];
 				
@@ -398,28 +396,28 @@ int AGIDL_TIMDecodeIMG(AGIDL_TIM* tim, FILE* file){
 	
 		AGIDL_TIMSetClrFmt(tim,AGIDL_BGR_555);
 		
-		fread(&tim->img_header.img_size,4,1,file);
-		fread(&tim->img_header.img_mem_add_x,2,1,file);
-		fread(&tim->img_header.img_mem_add_y,2,1,file);
-		fread(&tim->img_header.width,2,1,file);
-		fread(&tim->img_header.height,2,1,file);
+		tim->img_header.img_size = AGIDL_ReadLong(file);
+		tim->img_header.img_mem_add_x = AGIDL_ReadShort(file);
+		tim->img_header.img_mem_add_y = AGIDL_ReadShort(file);
+		tim->img_header.width = AGIDL_ReadShort(file);
+		tim->img_header.height = AGIDL_ReadShort(file);
 		
 		if(!AGIDL_IsTIM(tim)){
 			return INVALID_IMG_FORMATTING_ERROR;
 		}
 		
 		tim->pixels.pix16 = (COLOR16*)malloc(sizeof(COLOR16)*(AGIDL_TIMGetWidth(tim)*AGIDL_TIMGetHeight(tim)));
-		fread(tim->pixels.pix16,2,AGIDL_TIMGetSize(tim),file);
+		AGIDL_ReadBufRGB16(file,tim->pixels.pix16,AGIDL_TIMGetWidth(tim),AGIDL_TIMGetHeight(tim));
 	}
 	else{
 		
 		AGIDL_TIMSetClrFmt(tim,AGIDL_RGB_888);
 	
-		fread(&tim->img_header.img_size,4,1,file);
-		fread(&tim->img_header.img_mem_add_x,2,1,file);
-		fread(&tim->img_header.img_mem_add_y,2,1,file);
-		fread(&tim->img_header.width,2,1,file);
-		fread(&tim->img_header.height,2,1,file);
+		tim->img_header.img_size = AGIDL_ReadLong(file);
+		tim->img_header.img_mem_add_x = AGIDL_ReadShort(file);
+		tim->img_header.img_mem_add_y = AGIDL_ReadShort(file);
+		tim->img_header.width = AGIDL_ReadShort(file);
+		tim->img_header.height = AGIDL_ReadShort(file);
 		
 		if(!AGIDL_IsTIM(tim)){
 			return INVALID_IMG_FORMATTING_ERROR;
@@ -430,10 +428,9 @@ int AGIDL_TIMDecodeIMG(AGIDL_TIM* tim, FILE* file){
 		int x,y;
 		for(y = 0; y < AGIDL_TIMGetHeight(tim); y++){
 			for(x = 0; x < AGIDL_TIMGetWidth(tim); x += 2){
-				u16 pix1,pix2,pix3;
-				fread(&pix1,2,1,file);
-				fread(&pix2,2,1,file);
-				fread(&pix3,2,1,file);
+				u16 pix1 = AGIDL_ReadShort(file);
+				u16 pix2 = AGIDL_ReadShort(file);
+				u16 pix3 = AGIDL_ReadShort(file);
 				
 				u8 r0 = (pix1 & 0xff);
 				u8 g0 = (pix1 & 0xff00) >> 8;
@@ -493,7 +490,7 @@ void AGIDL_TIMEncodeNearestICP(AGIDL_TIM* tim, AGIDL_ICP palette, FILE* file){
 			int i;
 			for(i = 0; i < 256; i++){
 				COLOR16 clr = palette.icp.palette_16b_256[i];
-				fwrite(&clr,2,1,file);
+				AGIDL_WriteShort(file,clr);
 			}
 		}
 		if(palette.mode == AGIDL_ICP_16b_16){
@@ -501,11 +498,10 @@ void AGIDL_TIMEncodeNearestICP(AGIDL_TIM* tim, AGIDL_ICP palette, FILE* file){
 			for(i = 0; i < 256; i++){
 				if(i < 16){
 					COLOR16 clr = palette.icp.palette_16b_16[i];
-					fwrite(&clr,2,1,file);
+					AGIDL_WriteShort(file,clr);
 				}
 				else{
-					u16 zero = 0;
-					fwrite(&zero,2,1,file);
+					AGIDL_WriteShort(file,0);
 				}
 			}
 		}
@@ -515,7 +511,7 @@ void AGIDL_TIMEncodeNearestICP(AGIDL_TIM* tim, AGIDL_ICP palette, FILE* file){
 		for(i = 0; i < AGIDL_TIMGetSize(tim); i++){
 			COLOR16 clr = tim->pixels.pix16[i];
 			u8 index = AGIDL_FindNearestColor(palette,clr,AGIDL_TIMGetClrFmt(tim));
-			fwrite(&index,1,1,file);
+			AGIDL_WriteByte(file,index);
 		}
 	}
 }
@@ -530,17 +526,17 @@ void AGIDL_TIMEncodeHeader(AGIDL_TIM* tim, FILE* file){
 		tim->clut_header.num_clrs = 256;
 		tim->clut_header.num_icps = 1;
 		
-		fwrite(&tim->header.magic,4,1,file);
-		fwrite(&tim->header.version,4,1,file);
-		fwrite(&tim->clut_header.clut_size,4,1,file);
-		fwrite(&tim->clut_header.pal_mem_add_x,2,1,file);
-		fwrite(&tim->clut_header.pal_mem_add_y,2,1,file);
-		fwrite(&tim->clut_header.num_clrs,2,1,file);
-		fwrite(&tim->clut_header.num_icps,2,1,file);
+		AGIDL_WriteLong(file,tim->header.magic);
+		AGIDL_WriteLong(file,tim->header.version);
+		AGIDL_WriteLong(file,tim->clut_header.clut_size);
+		AGIDL_WriteShort(file,tim->clut_header.pal_mem_add_x);
+		AGIDL_WriteShort(file,tim->clut_header.pal_mem_add_y);
+		AGIDL_WriteShort(file,tim->clut_header.num_clrs);
+		AGIDL_WriteShort(file,tim->clut_header.num_icps);
 		
 		int i;
 		for(i = 0; i < 256; i++){
-			fwrite(&tim->palette.icp.palette_16b_256[i],2,1,file);
+			AGIDL_WriteShort(file,tim->palette.icp.palette_16b_256[i]);
 		}
 		
 		tim->img_header.img_size = (AGIDL_TIMGetWidth(tim)*2)*(AGIDL_TIMGetHeight(tim))+12;
@@ -549,11 +545,11 @@ void AGIDL_TIMEncodeHeader(AGIDL_TIM* tim, FILE* file){
 		
 		u16 width = tim->img_header.width / 2;
 		
-		fwrite(&tim->img_header.img_size,4,1,file);
-		fwrite(&tim->img_header.img_mem_add_x,2,1,file);
-		fwrite(&tim->img_header.img_mem_add_y,2,1,file);
-		fwrite(&width,2,1,file);
-		fwrite(&tim->img_header.height,2,1,file);
+		AGIDL_WriteLong(file,tim->img_header.img_size);
+		AGIDL_WriteShort(file,tim->img_header.img_mem_add_x);
+		AGIDL_WriteShort(file,tim->img_header.img_mem_add_y);
+		AGIDL_WriteShort(file,width);
+		AGIDL_WriteShort(file,tim->img_header.height);
 	}
 	else{
 		tim->header.magic = TIM_MAGIC;
@@ -562,13 +558,13 @@ void AGIDL_TIMEncodeHeader(AGIDL_TIM* tim, FILE* file){
 		tim->img_header.img_mem_add_x = 0;
 		tim->img_header.img_mem_add_y = 0;
 		
-		fwrite(&tim->header.magic,4,1,file);
-		fwrite(&tim->header.version,4,1,file);
-		fwrite(&tim->img_header.img_size,4,1,file);
-		fwrite(&tim->img_header.img_mem_add_x,2,1,file);
-		fwrite(&tim->img_header.img_mem_add_y,2,1,file);
-		fwrite(&tim->img_header.width,2,1,file);
-		fwrite(&tim->img_header.height,2,1,file);
+		AGIDL_WriteLong(file,tim->header.magic);
+		AGIDL_WriteLong(file,tim->header.version);
+		AGIDL_WriteLong(file,tim->img_header.img_size);
+		AGIDL_WriteShort(file,tim->img_header.img_mem_add_x);
+		AGIDL_WriteShort(file,tim->img_header.img_mem_add_y);
+		AGIDL_WriteShort(file,tim->img_header.width);
+		AGIDL_WriteShort(file,tim->img_header.height);
 	}
 }
 
@@ -580,12 +576,12 @@ void AGIDL_TIMEncodeIMG(AGIDL_TIM* tim, FILE* file){
 				COLOR16 clr = AGIDL_TIMGetClr16(tim,x,y);
 				
 				u8 index = AGIDL_FindClosestColor(tim->palette,clr,tim->fmt,AGIDL_TIMGetMaxDiff(tim));
-				fwrite(&index,1,1,file);
+				AGIDL_WriteByte(file,index);
 			}
 		}
 	}
 	else{
-		fwrite(tim->pixels.pix16,2,AGIDL_TIMGetSize(tim),file);
+		AGIDL_WriteBufClr16(file,tim->pixels.pix16,AGIDL_TIMGetWidth(tim),AGIDL_TIMGetHeight(tim));
 	}
 }
 
@@ -645,7 +641,7 @@ void AGIDL_ExportTIM(AGIDL_TIM *tim){
 					u8 b = AGIDL_GetB(clr,AGIDL_TIMGetClrFmt(tim));
 					COLOR16 clr16 = AGIDL_CLR_TO_CLR16(clr,AGIDL_TIMGetClrFmt(tim),AGIDL_BGR_555);
 					u8 index = AGIDL_FindClosestColor(tim->palette,clr16,AGIDL_RGB_555,AGIDL_TIMGetMaxDiff(tim));
-					fwrite(&index,1,1,file);
+					AGIDL_WriteByte(file,index);
 				}
 			}	
 		}
@@ -711,7 +707,7 @@ void AGIDL_ExportTIM(AGIDL_TIM *tim){
 					u8 g = AGIDL_GetG(clr,AGIDL_TIMGetClrFmt(tim));
 					u8 b = AGIDL_GetB(clr,AGIDL_TIMGetClrFmt(tim));
 					COLOR16 clr16 = AGIDL_CLR_TO_CLR16(clr,AGIDL_TIMGetClrFmt(tim),AGIDL_BGR_555);
-					fwrite(&clr16,2,1,file);
+					AGIDL_WriteShort(file,clr16);
 				}
 			}
 		}

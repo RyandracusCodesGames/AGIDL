@@ -7,12 +7,22 @@
 *   File: agidl_file_utils.c
 *   Date: 1/25/2024
 *   Version: 0.2b
-*   Updated: 1/25/2024
+*   Updated: 1/26/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
 #include "agidl_file_utils.h"
 #include "agidl_cc_manager.h"
+
+AGIDL_Bool useBigEndArch = FALSE;
+
+void AGIDL_InitBigEndArch(){
+	useBigEndArch = TRUE;
+}
+
+void AGIDL_DisableBigEndArch(){
+	useBigEndArch = FALSE;
+}
 
 u8 AGIDL_ReadByte(FILE* file){
 	u8 byte = getc(file);
@@ -23,7 +33,13 @@ u16 AGIDL_ReadShort(FILE* file){
 	u8 msb = AGIDL_ReadByte(file);
 	u8 lsb = AGIDL_ReadByte(file);
 	
-	return lsb << 8 | msb;
+	if(useBigEndArch == TRUE){
+		return msb << 8 | lsb;
+	}
+	else{
+		return lsb << 8 | msb;
+	}
+	
 }
 
 u32 AGIDL_ReadLong(FILE* file){
@@ -32,7 +48,13 @@ u32 AGIDL_ReadLong(FILE* file){
 	if(fread(dword,1,4,file) != 4){
 		return 0;
 	}
-	else return dword[3] << 24 | dword[2] << 16 | dword[1] << 8 | dword[0];
+	
+	if(useBigEndArch == TRUE){
+		return dword[0] << 24 | dword[1] << 16 | dword[2] << 8 | dword[3];
+	}
+	else{
+		return dword[3] << 24 | dword[2] << 16 | dword[1] << 8 | dword[0];
+	}
 }
 
 void AGIDL_WriteByte(FILE* file, u8 byte){
@@ -43,8 +65,14 @@ void AGIDL_WriteShort(FILE* file, u16 word){
 	u8 msb = (word & 0xff00) >> 8;
 	u8 lsb = (word & 0xff);
 	
-	AGIDL_WriteByte(file,lsb);
-	AGIDL_WriteByte(file,msb);
+	if(useBigEndArch == TRUE){
+		AGIDL_WriteByte(file,msb);
+		AGIDL_WriteByte(file,lsb);
+	}
+	else{
+		AGIDL_WriteByte(file,lsb);
+		AGIDL_WriteByte(file,msb);
+	}
 }
 
 void AGIDL_WriteLong(FILE* file, u32 dword){
@@ -53,10 +81,18 @@ void AGIDL_WriteLong(FILE* file, u32 dword){
 	u8 lsb2 = (dword & 0xff00) >> 8;
 	u8 lsb = (dword & 0xff);
 	
-	AGIDL_WriteByte(file,lsb);
-	AGIDL_WriteByte(file,lsb2);
-	AGIDL_WriteByte(file,msb2);
-	AGIDL_WriteByte(file,msb);
+	if(useBigEndArch == TRUE){
+		AGIDL_WriteByte(file,msb);
+		AGIDL_WriteByte(file,msb2);
+		AGIDL_WriteByte(file,lsb2);
+		AGIDL_WriteByte(file,lsb);
+	}
+	else{
+		AGIDL_WriteByte(file,lsb);
+		AGIDL_WriteByte(file,lsb2);
+		AGIDL_WriteByte(file,msb2);
+		AGIDL_WriteByte(file,msb);
+	}
 }
 
 u32 AGIDL_ReadRGB(FILE* file, AGIDL_CLR_FMT fmt){
@@ -168,8 +204,8 @@ void AGIDL_WriteBufBGRA(FILE* file, COLOR* clr, u32 width, u32 height, AGIDL_CLR
 		u8 a = AGIDL_GetA(color,fmt);
 		
 		AGIDL_WriteByte(file,b);
-		AGIDL_WriteByte(file,r);
 		AGIDL_WriteByte(file,g);
+		AGIDL_WriteByte(file,r);
 		AGIDL_WriteByte(file,a);
 	}
 }

@@ -7,7 +7,7 @@
 *   File: agidl_imgp_mipmap.c
 *   Date: 1/23/2024
 *   Version: 0.2b
-*   Updated: 1/23/2024
+*   Updated: 1/26/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -159,15 +159,13 @@ AGIDL_MIPMAP* AGIDL_CreateMipmap(void* img_data, u16 width, u16 height, AGIDL_CL
 	
 	if(AGIDL_GetBitCount(fmt) == 16){
 		COLOR16* clr_data = (COLOR16*)img_data;
-		COLOR16* cpy = (COLOR16*)malloc(sizeof(COLOR16)*width*height);
-		AGIDL_ClrMemcpy16(cpy,clr_data,width*height);
-		mipmap->img_data = cpy;
+		mipmap->img_data = (COLOR16*)malloc(sizeof(COLOR16)*width*height);
+		AGIDL_ClrMemcpy16(mipmap->img_data,clr_data,width*height);
 	}
 	else{
 		COLOR* clr_data = (COLOR*)img_data;
-		COLOR* cpy = (COLOR*)malloc(sizeof(COLOR)*width*height);
-		AGIDL_ClrMemcpy(cpy,clr_data,width*height);
-		mipmap->img_data = cpy;
+		mipmap->img_data = (COLOR*)malloc(sizeof(COLOR)*width*height);
+		AGIDL_ClrMemcpy(mipmap->img_data,clr_data,width*height);
 	}
 	
 	mipmap->list = AGIDL_CreateMipmapLinkedList();
@@ -177,12 +175,10 @@ AGIDL_MIPMAP* AGIDL_CreateMipmap(void* img_data, u16 width, u16 height, AGIDL_CL
 }
 
 void AGIDL_DestroyMipmap(AGIDL_MIPMAP* mipmap){
-	if(mipmap != NULL){
-		AGIDL_DestroyMipmapList(mipmap->list);
-		free(mipmap->img_data);
-		//free(mipmap);
-		mipmap = NULL;
-	}
+	AGIDL_DestroyMipmapList(mipmap->list);
+	free(mipmap->img_data);
+	free(mipmap);
+	mipmap = NULL;
 }
 
 void AGIDL_LoadMipmapImgData(AGIDL_MIPMAP* mipmap, u8 mipmap_count, FILE* file){
@@ -639,7 +635,12 @@ void AGIDL_GenerateMipmapFromImgData(AGIDL_MIPMAP* mipmap, void* img_data, u16 w
 		
 		int i;
 		for(i = 0; i < mip_lvl; i++){
-			cpy = (COLOR16*)AGIDL_HalfImgDataNearest(cpy,&w,&h,fmt);
+			if(scale == AGIDL_SCALE_NEAREST){
+				cpy = (COLOR16*)AGIDL_HalfImgDataNearest(cpy,&w,&h,fmt);
+			}
+			else{
+				cpy = (COLOR16*)AGIDL_HalfImgDataBilerp(cpy,&w,&h,fmt);
+			}
 
 			AGIDL_AddMipmapNode(mipmap->list,cpy,w,h,fmt);
 		}
@@ -654,7 +655,12 @@ void AGIDL_GenerateMipmapFromImgData(AGIDL_MIPMAP* mipmap, void* img_data, u16 w
 		int i;
 		for(i = 0; i < mip_lvl; i++){
 			
-			cpy = (COLOR*)AGIDL_HalfImgDataNearest(cpy,&w,&h,fmt);
+			if(scale == AGIDL_SCALE_NEAREST){
+				cpy = (COLOR*)AGIDL_HalfImgDataNearest(cpy,&w,&h,fmt);
+			}
+			else{
+				cpy = (COLOR*)AGIDL_HalfImgDataBilerp(cpy,&w,&h,fmt);
+			}
 
 			AGIDL_AddMipmapNode(mipmap->list,cpy,w,h,fmt);
 		}

@@ -15,7 +15,7 @@
 *   File: agidl_img_tga.c
 *   Date: 9/13/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 1/26/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -483,16 +483,14 @@ void AGIDL_TGADecodeRLE(AGIDL_TGA* tga, FILE* file, TGA_ICP_TYPE icp, TGA_IMG_TY
 				int x,y;
 				for(y = 0; y < AGIDL_TGAGetHeight(tga); y++){
 					for(x = 0; x < AGIDL_TGAGetWidth(tga); x++){
-						u8 byte;
-						fread(&byte,1,1,file);
+						u8 byte = AGIDL_ReadByte(file);
 						
 						char* binbyte = dec2bin2(byte);
 
 						if(binbyte[0] == '1' && bin2dec2(tgarlebits(binbyte)) > 0){
 							char* packrle = tgarlebits(binbyte);
 							u16 rle = bin2dec2(packrle) + 1;
-							COLOR16 col;
-							fread(&col,2,1,file);
+							COLOR16 col = AGIDL_ReadShort(file);
 							u8 r = AGIDL_GetR(col,tga->fmt);
 							u8 g = AGIDL_GetG(col,tga->fmt);
 							u8 b = AGIDL_GetB(col,tga->fmt);
@@ -505,8 +503,7 @@ void AGIDL_TGADecodeRLE(AGIDL_TGA* tga, FILE* file, TGA_ICP_TYPE icp, TGA_IMG_TY
 							free(packrle);
 						}
 						else{
-							COLOR16 col;
-							fread(&col,2,1,file);
+							COLOR16 col = AGIDL_ReadShort(file);
 							u8 r = AGIDL_GetR(col,tga->fmt);
 							u8 g = AGIDL_GetG(col,tga->fmt);
 							u8 b = AGIDL_GetB(col,tga->fmt);
@@ -525,20 +522,14 @@ void AGIDL_TGADecodeRLE(AGIDL_TGA* tga, FILE* file, TGA_ICP_TYPE icp, TGA_IMG_TY
 				int x,y;
 				for(y = 0; y < AGIDL_TGAGetHeight(tga); y++){
 					for(x = 0; x < AGIDL_TGAGetWidth(tga); x++){
-						u8 byte;
-						fread(&byte,1,1,file);
+						u8 byte = AGIDL_ReadByte(file);
 						
 						char* binbyte = dec2bin2(byte);
 						
 						if(binbyte[0] == '1'  && bin2dec2(tgarlebits(binbyte)) > 0){
 							char* packrle = tgarlebits(binbyte);
 							u16 rle = bin2dec2(packrle) + 1;
-							COLOR clr = 0;
-							u8 r,g,b;
-							fread(&b,1,1,file);
-							fread(&g,1,1,file);
-							fread(&r,1,1,file);
-							clr = AGIDL_RGB(r,g,b,tga->fmt);
+							COLOR clr = AGIDL_ReadRGB(file,AGIDL_BGR_888);
 							int i;
 							for(i = 0; i < rle; i++){
 								AGIDL_TGASetClr(tga,x+i,y,clr);
@@ -547,12 +538,7 @@ void AGIDL_TGADecodeRLE(AGIDL_TGA* tga, FILE* file, TGA_ICP_TYPE icp, TGA_IMG_TY
 							free(packrle);
 						}
 						else{
-							COLOR clr = 0;
-							u8 r,g,b;
-							fread(&b,1,1,file);
-							fread(&g,1,1,file);
-							fread(&r,1,1,file);
-							clr = AGIDL_RGB(r,g,b,tga->fmt);
+							COLOR clr = AGIDL_ReadRGB(file,AGIDL_BGR_888);
 							AGIDL_TGASetClr(tga,x,y,clr);
 						}
 						
@@ -566,8 +552,7 @@ void AGIDL_TGADecodeRLE(AGIDL_TGA* tga, FILE* file, TGA_ICP_TYPE icp, TGA_IMG_TY
 				int x,y;
 				for(y = 0; y < AGIDL_TGAGetHeight(tga); y++){
 					for(x = 0; x < AGIDL_TGAGetWidth(tga); x++){
-						u8 byte;
-						fread(&byte,1,1,file);
+						u8 byte = AGIDL_ReadByte(file);
 						
 						char* binbyte = dec2bin2(byte);
 						
@@ -575,12 +560,11 @@ void AGIDL_TGADecodeRLE(AGIDL_TGA* tga, FILE* file, TGA_ICP_TYPE icp, TGA_IMG_TY
 							char* packrle = tgarlebits(binbyte);
 							u16 rle = bin2dec2(packrle) + 1;
 							COLOR col;
-							u8 r = AGIDL_GetR(col,AGIDL_RGBA_8888);
-							u8 g = AGIDL_GetG(col,AGIDL_RGBA_8888);
-							u8 b = AGIDL_GetB(col,AGIDL_RGBA_8888);
-							u8 a = AGIDL_GetA(col,AGIDL_RGBA_8888);
+							u8 r = AGIDL_ReadByte(file);
+							u8 g = AGIDL_ReadByte(file);
+							u8 b = AGIDL_ReadByte(file);
+							u8 a = AGIDL_ReadByte(file);
 							col = AGIDL_RGBA(b,g,r,a,AGIDL_RGBA_8888);
-							fread(&col,4,1,file);
 							int i;
 							for(i = 0; i < rle; i++){
 								AGIDL_TGASetClr(tga,x+i,y,col);
@@ -590,12 +574,11 @@ void AGIDL_TGADecodeRLE(AGIDL_TGA* tga, FILE* file, TGA_ICP_TYPE icp, TGA_IMG_TY
 						}
 						else{
 							COLOR col;
-							u8 r = AGIDL_GetR(col,AGIDL_RGBA_8888);
-							u8 g = AGIDL_GetG(col,AGIDL_RGBA_8888);
-							u8 b = AGIDL_GetB(col,AGIDL_RGBA_8888);
-							u8 a = AGIDL_GetA(col,AGIDL_RGBA_8888);
+							u8 r = AGIDL_ReadByte(file);
+							u8 g = AGIDL_ReadByte(file);
+							u8 b = AGIDL_ReadByte(file);
+							u8 a = AGIDL_ReadByte(file);
 							col = AGIDL_RGBA(b,g,r,a,AGIDL_RGBA_8888);
-							fread(&col,4,1,file);
 							AGIDL_TGASetClr(tga,x,y,col);
 						}
 						
@@ -614,36 +597,27 @@ void AGIDL_TGADecodeRLE(AGIDL_TGA* tga, FILE* file, TGA_ICP_TYPE icp, TGA_IMG_TY
 				
 				int i;
 				for(i = 0; i < tga->header.clrmaplength; i++){
-					COLOR clr = 0;
-					u8 r,g,b;
-					fread(&b,1,1,file);
-					fread(&g,1,1,file);
-					fread(&r,1,1,file);
-					clr = AGIDL_RGB(r,g,b,tga->fmt);
-					tga->palette.icp.palette_256[i] = clr;
+					tga->palette.icp.palette_256[i] = AGIDL_ReadRGB(file,AGIDL_BGR_888);
 				}
 				
 				int x,y;
 				for(y = 0; y < AGIDL_TGAGetHeight(tga); y++){
 					for(x = 0; x < AGIDL_TGAGetWidth(tga); x++){
-						u8 index;
-						fread(&index,1,1,file);
+						u8 index = AGIDL_ReadByte(file);
 						AGIDL_TGASetClr(tga,x,y,tga->palette.icp.palette_256[index]);
 					}
 				}
 				
 				for(y = 0; y < AGIDL_TGAGetHeight(tga); y++){
 					for(x = 0; x < AGIDL_TGAGetWidth(tga); x++){
-						u8 byte;
-						fread(&byte,1,1,file);
+						u8 byte = AGIDL_ReadByte(file);
 						
 						char* binbyte = dec2bin2(byte);
 						
 						if(binbyte[0] == '1' && bin2dec2(tgarlebits(binbyte)) > 0){
 							char* packrle = tgarlebits(binbyte);
 							u16 rle = bin2dec2(packrle) + 1;
-							u8 index;
-							fread(&index,1,1,file);
+							u8 index = AGIDL_ReadByte(file);
 							int i;
 							for(i = 0; i < rle; i++){
 								AGIDL_TGASetClr(tga,x+i,y,tga->palette.icp.palette_256[index]);
@@ -652,8 +626,7 @@ void AGIDL_TGADecodeRLE(AGIDL_TGA* tga, FILE* file, TGA_ICP_TYPE icp, TGA_IMG_TY
 							free(packrle);
 						}
 						else{
-							u8 index;
-							fread(&index,1,1,file);
+							u8 index = AGIDL_ReadByte(file);
 							AGIDL_TGASetClr(tga,x,y,tga->palette.icp.palette_256[index]);
 						}
 						
@@ -668,24 +641,21 @@ void AGIDL_TGADecodeRLE(AGIDL_TGA* tga, FILE* file, TGA_ICP_TYPE icp, TGA_IMG_TY
 				
 				int i;
 				for(i = 0; i < tga->header.clrmaplength; i++){
-					COLOR16 clr = 0;
-					fread(&clr,2,1,file);
+					COLOR16 clr = AGIDL_ReadShort(file);
 					tga->palette.icp.palette_16b_256[i] = clr;
 				}
 				
 				int x,y;
 				for(y = 0; y < AGIDL_TGAGetHeight(tga); y++){
 					for(x = 0; x < AGIDL_TGAGetWidth(tga); x++){
-						u8 byte;
-						fread(&byte,1,1,file);
+						u8 byte = AGIDL_ReadByte(file);
 						
 						char* binbyte = dec2bin2(byte);
 						
 						if(binbyte[0] == '1' && bin2dec2(tgarlebits(binbyte)) > 0){
 							char* packrle = tgarlebits(binbyte);
 							u16 rle = bin2dec2(packrle) + 1;
-							u8 index;
-							fread(&index,1,1,file);
+							u8 index = AGIDL_ReadByte(file);
 							int i;
 							for(i = 0; i < rle; i++){
 								AGIDL_TGASetClr16(tga,x+i,y,tga->palette.icp.palette_16b_256[index]);
@@ -694,8 +664,7 @@ void AGIDL_TGADecodeRLE(AGIDL_TGA* tga, FILE* file, TGA_ICP_TYPE icp, TGA_IMG_TY
 							free(packrle);
 						}
 						else{
-							u8 index;
-							fread(&index,1,1,file);
+							u8 index = AGIDL_ReadByte(file);
 							AGIDL_TGASetClr16(tga,x,y,tga->palette.icp.palette_16b_256[index]);
 						}
 						
@@ -777,18 +746,18 @@ void AGIDL_TGAEncodeHeader(AGIDL_TGA* tga, FILE* file){
 		tga->header.flip = 0;
 	}
 	
-	fwrite(&tga->header.id,1,1,file);
-	fwrite(&tga->header.clrmaptype,1,1,file);
-	fwrite(&tga->header.imgtype,1,1,file);
-	fwrite(&tga->header.clrmapstart,2,1,file);
-	fwrite(&tga->header.clrmaplength,2,1,file);
-	fwrite(&tga->header.icpbits,1,1,file);
-	fwrite(&tga->header.xstart,2,1,file);
-	fwrite(&tga->header.ystart,2,1,file);
-	fwrite(&tga->header.width,2,1,file);
-	fwrite(&tga->header.height,2,1,file);
-	fwrite(&tga->header.bits,1,1,file);
-	fwrite(&tga->header.flip,1,1,file);
+	AGIDL_WriteByte(file,tga->header.id);
+	AGIDL_WriteByte(file,tga->header.clrmaptype);
+	AGIDL_WriteByte(file,tga->header.imgtype);
+	AGIDL_WriteShort(file,tga->header.clrmapstart);
+	AGIDL_WriteShort(file,tga->header.clrmaplength);
+	AGIDL_WriteByte(file,tga->header.icpbits);
+	AGIDL_WriteShort(file,tga->header.xstart);
+	AGIDL_WriteShort(file,tga->header.ystart);
+	AGIDL_WriteShort(file,tga->header.width);
+	AGIDL_WriteShort(file,tga->header.height);
+	AGIDL_WriteByte(file,tga->header.bits);
+	AGIDL_WriteByte(file,tga->header.flip);
 }
 
 void AGIDL_TGAEncodeIMG(AGIDL_TGA* tga, FILE* file){
@@ -796,29 +765,13 @@ void AGIDL_TGAEncodeIMG(AGIDL_TGA* tga, FILE* file){
 	
 	if(tga->header.bits != 8){
 		if(AGIDL_GetBitCount(fmt) == 24){
-			int i;
-			for(i = 0; i < AGIDL_TGAGetSize(tga); i++){
-				COLOR clr = tga->pixels.pix32[i];
-				AGIDL_ExtractAndPrintBGR(file,clr,fmt);
-			}
+			AGIDL_WriteBufBGR(file,tga->pixels.pix32,AGIDL_TGAGetWidth(tga),AGIDL_TGAGetHeight(tga));
 		}	
 		else if(AGIDL_GetBitCount(fmt) == 32){
-			int i;
-			for(i = 0; i < AGIDL_TGAGetSize(tga); i++){
-				COLOR clr = tga->pixels.pix32[i];
-				u8 r = AGIDL_GetR(clr,AGIDL_TGAGetClrFmt(tga));
-				u8 g = AGIDL_GetG(clr,AGIDL_TGAGetClrFmt(tga));
-				u8 b = AGIDL_GetB(clr,AGIDL_TGAGetClrFmt(tga));
-				u8 a = AGIDL_GetA(clr,AGIDL_TGAGetClrFmt(tga));
-
-				fwrite(&b,1,1,file);
-				fwrite(&g,1,1,file);
-				fwrite(&r,1,1,file);
-				fwrite(&a,1,1,file);
-			}	
+			AGIDL_WriteBufBGRA(file,tga->pixels.pix32,AGIDL_TGAGetWidth(tga),AGIDL_TGAGetHeight(tga),AGIDL_TGAGetClrFmt(tga));	
 		}
 		else{
-			fwrite(tga->pixels.pix16,2,AGIDL_TGAGetSize(tga),file);
+			AGIDL_WriteBufClr16(file,tga->pixels.pix16,AGIDL_TGAGetWidth(tga),AGIDL_TGAGetHeight(tga));
 		}
 	}
 	else{
@@ -833,11 +786,11 @@ void AGIDL_TGAEncodeIMG(AGIDL_TGA* tga, FILE* file){
 					u8 b = AGIDL_GetB(clr,AGIDL_TGAGetClrFmt(tga));
 					clr = AGIDL_RGB(r,g,b,AGIDL_BGR_888);
 					u8 index = AGIDL_FindClosestColor(tga->palette,clr,AGIDL_BGR_888,AGIDL_TGAGetMaxDiff(tga));
-					fwrite(&index,1,1,file);
+					AGIDL_WriteByte(file,index);
 				}
 				else{
 					u8 index = AGIDL_FindClosestColor(tga->palette,clr,tga->fmt,AGIDL_TGAGetMaxDiff(tga));
-					fwrite(&index,1,1,file);
+					AGIDL_WriteByte(file,index);
 				}
 			}
 		}
@@ -869,7 +822,7 @@ void AGIDL_TGAEncodeICP(AGIDL_TGA* tga, FILE* file){
 		
 		int i;
 		for(i = 0; i < 256; i++){
-			fwrite(&tga->palette.icp.palette_16b_256[i],2,1,file);
+			AGIDL_WriteShort(file,tga->palette.icp.palette_16b_256[i]);
 		}
 	}
 	else{
@@ -908,7 +861,7 @@ void AGIDL_TGAEncodeICP(AGIDL_TGA* tga, FILE* file){
 		int i;
 		for(i = 0; i < 256; i++){
 			COLOR clr = tga->palette.icp.palette_256[i];
-			AGIDL_ExtractAndPrintBGR(file,clr,AGIDL_BGR_888);
+			AGIDL_WriteRGB(file,clr,AGIDL_BGR_888,AGIDL_BGR_888);
 		}
 	}
 }
@@ -919,21 +872,14 @@ void AGIDL_TGAEncodeNearestICP(AGIDL_TGA* tga, AGIDL_ICP palette, FILE* file){
 			int i;
 			for(i = 0; i < 256; i++){
 				COLOR clr = palette.icp.palette_256[i];
-				
-				u8 r = AGIDL_GetR(clr,palette.fmt);
-				u8 g = AGIDL_GetG(clr,palette.fmt);
-				u8 b = AGIDL_GetB(clr,palette.fmt);
-				
-				fwrite(&r,1,1,file);
-				fwrite(&g,1,1,file);
-				fwrite(&b,1,1,file);
+				AGIDL_WriteRGB(file,clr,palette.fmt,AGIDL_BGR_888);
 			}
 		}break;
 		case AGIDL_ICP_16b_256:{
 			int i;
 			for(i = 0; i < 256; i++){
 				COLOR16 clr = palette.icp.palette_256[i];
-				fwrite(&clr,2,1,file);
+				AGIDL_WriteShort(file,clr);
 			}
 		}break;
 	}
@@ -943,7 +889,7 @@ void AGIDL_TGAEncodeNearestICP(AGIDL_TGA* tga, AGIDL_ICP palette, FILE* file){
 		for(i = 0; i < AGIDL_TGAGetSize(tga); i++){
 			COLOR clr = tga->pixels.pix32[i];
 			u8 index = AGIDL_FindNearestColor(palette,clr,AGIDL_TGAGetClrFmt(tga));
-			fwrite(&index,1,1,file);
+			AGIDL_WriteByte(file,index);
 		}
 	}
 	else{
@@ -951,7 +897,7 @@ void AGIDL_TGAEncodeNearestICP(AGIDL_TGA* tga, AGIDL_ICP palette, FILE* file){
 		for(i = 0; i < AGIDL_TGAGetSize(tga); i++){
 			COLOR16 clr = tga->pixels.pix16[i];
 			u8 index = AGIDL_FindNearestColor(palette,clr,AGIDL_TGAGetClrFmt(tga));
-			fwrite(&index,1,1,file);
+			AGIDL_WriteByte(file,index);
 		}
 	}
 }
@@ -974,14 +920,13 @@ void AGIDL_TGAEncodeRLE(AGIDL_TGA* tga, FILE* file){
 							char* rle = dec2bin2(count-1);
 							rle[0] = '1';
 							u16 rleshort = bin2dec2(rle);
-							fwrite(&rleshort,1,1,file);
-							AGIDL_ExtractAndPrintBGR(file,clr,AGIDL_BGR_888);
+							AGIDL_WriteByte(file,rleshort);
+							AGIDL_WriteRGB(file,clr,AGIDL_BGR_888,AGIDL_BGR_888);
 							free(rle);
 						}
 						else{
-							u8 zero = 0;
-							fwrite(&zero,1,1,file);
-							AGIDL_ExtractAndPrintBGR(file,clr,AGIDL_BGR_888);
+							AGIDL_WriteByte(file,0);
+							AGIDL_WriteRGB(file,clr,AGIDL_BGR_888,AGIDL_BGR_888);
 						}
 					}
 				}
@@ -1000,14 +945,13 @@ void AGIDL_TGAEncodeRLE(AGIDL_TGA* tga, FILE* file){
 							char* rle = dec2bin2(count-1);
 							rle[0] = '1';
 							u16 rleshort = bin2dec2(rle);
-							fwrite(&rleshort,1,1,file);
-							fwrite(&clr,2,1,file);
+							AGIDL_WriteByte(file,rleshort);
+							AGIDL_WriteShort(file,clr);
 							free(rle);
 						}
 						else{
-							u8 zero = 0;
-							fwrite(&zero,1,1,file);
-							fwrite(&clr,2,1,file);
+							AGIDL_WriteByte(file,0);
+							AGIDL_WriteShort(file,clr);
 						}
 					}
 				}
@@ -1031,14 +975,14 @@ void AGIDL_TGAEncodeRLE(AGIDL_TGA* tga, FILE* file){
 							char* rle = dec2bin2(count-1);
 							rle[0] = '1';
 							u16 rleshort = bin2dec2(rle);
-							fwrite(&rleshort,1,1,file);
-							fwrite(&clr,3,1,file);
+							AGIDL_WriteByte(file,rleshort);
+							AGIDL_WriteRGB(file,AGIDL_BGR_888,AGIDL_BGR_888);
 							free(rle);
 						}
 						else{
 							u8 zero = 0;
-							fwrite(&zero,1,1,file);
-							fwrite(&clr,3,1,file);
+							AGIDL_WriteByte(file,0);
+							AGIDL_WriteRGB(file,AGIDL_BGR_888,AGIDL_BGR_888);
 						}
 					}
 				}
@@ -1062,14 +1006,13 @@ void AGIDL_TGAEncodeRLE(AGIDL_TGA* tga, FILE* file){
 							char* rle = dec2bin2(count-1);
 							rle[0] = '1';
 							u16 rleshort = bin2dec2(rle);
-							fwrite(&rleshort,1,1,file);
-							fwrite(&clr,3,1,file);
+							AGIDL_WriteByte(file,rleshort);
+							AGIDL_WriteRGB(file,AGIDL_BGR_888,AGIDL_BGR_888);
 							free(rle);
 						}
 						else{
-							u8 zero = 0;
-							fwrite(&zero,1,1,file);
-							fwrite(&clr,3,1,file);
+							AGIDL_WriteByte(file,0);
+							AGIDL_WriteRGB(file,AGIDL_BGR_888,AGIDL_BGR_888);
 						}
 					}
 				}
