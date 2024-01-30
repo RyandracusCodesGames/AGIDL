@@ -7,7 +7,7 @@
 *   File: agidl_imgp_scale.c
 *   Date: 12/9/2023
 *   Version: 0.2b
-*   Updated: 1/29/2024
+*   Updated: 1/30/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -295,35 +295,73 @@ void * AGIDL_ScaleImgDataBilerp(void* data, u16* width, u16* height, float sx, f
 				COLOR clr3 = AGIDL_GetClr(clrs,x_floor,y_ceil,worg,horg);
 				COLOR clr4 = AGIDL_GetClr(clrs,x_ceil,y_ceil,worg,horg);
 				
-				u8 r1 = AGIDL_GetR(clr1,fmt);
-				u8 g1 = AGIDL_GetG(clr1,fmt);
-				u8 b1 = AGIDL_GetB(clr1,fmt);
-				
-				u8 r2 = AGIDL_GetR(clr2,fmt);
-				u8 g2 = AGIDL_GetG(clr2,fmt);
-				u8 b2 = AGIDL_GetB(clr2,fmt);
-				
-				u8 r3 = AGIDL_GetR(clr3,fmt);
-				u8 g3 = AGIDL_GetG(clr3,fmt);
-				u8 b3 = AGIDL_GetB(clr3,fmt);
-				
-				u8 r4 = AGIDL_GetR(clr4,fmt);
-				u8 g4 = AGIDL_GetG(clr4,fmt);
-				u8 b4 = AGIDL_GetB(clr4,fmt);
-				
-				u8 rtop = r1 * (x_ceil - x2) + r2 * (x2 - x_floor);
-				u8 gtop = g1 * (x_ceil - x2) + g2 * (x2 - x_floor);
-				u8 btop = b1 * (x_ceil - x2) + b2 * (x2 - x_floor);
-				
-				u8 rbot = r3 * (x_ceil - x2) + r4 * (x2 - x_floor);
-				u8 gbot = g3 * (x_ceil - x2) + g4 * (x2 - x_floor);
-				u8 bbot = b3 * (x_ceil - x2) + b4 * (x2 - x_floor);
-				
-				u8 rfinal = rtop * (y_ceil - y2) + rbot * (y2 - y_floor);
-				u8 gfinal = gtop * (y_ceil - y2) + gbot * (y2 - y_floor);
-				u8 bfinal = btop * (y_ceil - y2) + bbot * (y2 - y_floor);
-				
-				AGIDL_SetClr(scale,AGIDL_RGB(rfinal,gfinal,bfinal,fmt),x,y,newwidth,newheight);
+				if(x2 == 0 || y2 == 0){
+					clr1 = AGIDL_GetClr(clrs,x2,y2,worg,horg);
+					clr2 = AGIDL_GetClr(clrs,x2+1,y2,worg,horg);
+					clr3 = AGIDL_GetClr(clrs,x2,y2+1,worg,horg);
+					clr4 = AGIDL_GetClr(clrs,x2+1,y2+1,worg,horg);
+					
+					u8 r1 = AGIDL_GetR(clr1,fmt);
+					u8 g1 = AGIDL_GetG(clr1,fmt);
+					u8 b1 = AGIDL_GetB(clr1,fmt);
+					
+					u8 r2 = AGIDL_GetR(clr2,fmt);
+					u8 g2 = AGIDL_GetG(clr2,fmt);
+					u8 b2 = AGIDL_GetB(clr2,fmt);
+					
+					u8 r3 = AGIDL_GetR(clr3,fmt);
+					u8 g3 = AGIDL_GetG(clr3,fmt);
+					u8 b3 = AGIDL_GetB(clr3,fmt);
+					
+					u8 r4 = AGIDL_GetR(clr4,fmt);
+					u8 g4 = AGIDL_GetG(clr4,fmt);
+					u8 b4 = AGIDL_GetB(clr4,fmt);
+					
+					u8 rtop = r1 + ((r2-r1) >> 1);
+					u8 gtop = g1 + ((g2-g1) >> 1);
+					u8 btop = b1 + ((b2-b1) >> 1);
+					
+					u8 rbot = r3 + ((r4-r3) >> 1);
+					u8 gbot = g3 + ((g4-g3) >> 1);
+					u8 bbot = b3 + ((b4-b3) >> 1);
+					
+					u8 rfinal = rtop + ((rbot-rtop) >> 1);
+					u8 gfinal = gtop + ((gbot-gtop) >> 1);
+					u8 bfinal = btop + ((bbot-btop) >> 1);
+					
+					AGIDL_SetClr16(scale,AGIDL_RGB(rfinal,gfinal,bfinal,fmt),x,y,newwidth,newheight);
+				}
+				else{
+					u8 r1 = AGIDL_GetR(clr1,fmt);
+					u8 g1 = AGIDL_GetG(clr1,fmt);
+					u8 b1 = AGIDL_GetB(clr1,fmt);
+					
+					u8 r2 = AGIDL_GetR(clr2,fmt);
+					u8 g2 = AGIDL_GetG(clr2,fmt);
+					u8 b2 = AGIDL_GetB(clr2,fmt);
+					
+					u8 r3 = AGIDL_GetR(clr3,fmt);
+					u8 g3 = AGIDL_GetG(clr3,fmt);
+					u8 b3 = AGIDL_GetB(clr3,fmt);
+					
+					u8 r4 = AGIDL_GetR(clr4,fmt);
+					u8 g4 = AGIDL_GetG(clr4,fmt);
+					u8 b4 = AGIDL_GetB(clr4,fmt);
+					
+					u8 rtop = r1 * (x_ceil - x2) + r2 * (x2 - x_floor);
+					u8 gtop = g1 * (x_ceil - x2) + g2 * (x2 - x_floor);
+					u8 btop = b1 * (x_ceil - x2) + b2 * (x2 - x_floor);
+					
+					u8 rbot = r3 * (x_ceil - x2) + r4 * (x2 - x_floor);
+					u8 gbot = g3 * (x_ceil - x2) + g4 * (x2 - x_floor);
+					u8 bbot = b3 * (x_ceil - x2) + b4 * (x2 - x_floor);
+					
+					u8 rfinal = rtop * (y_ceil - y2) + rbot * (y2 - y_floor);
+					u8 gfinal = gtop * (y_ceil - y2) + gbot * (y2 - y_floor);
+					u8 bfinal = btop * (y_ceil - y2) + bbot * (y2 - y_floor);
+					
+					AGIDL_SetClr(scale,AGIDL_RGB(rfinal,gfinal,bfinal,fmt),x,y,newwidth,newheight);
+				}
 			}
 		}
 		
@@ -365,35 +403,75 @@ void * AGIDL_ScaleImgDataBilerp(void* data, u16* width, u16* height, float sx, f
 				COLOR16 clr3 = AGIDL_GetClr16(clrs,x_floor,y_ceil,worg,horg);
 				COLOR16 clr4 = AGIDL_GetClr16(clrs,x_ceil,y_ceil,worg,horg);
 				
-				u8 r1 = AGIDL_GetR(clr1,fmt);
-				u8 g1 = AGIDL_GetG(clr1,fmt);
-				u8 b1 = AGIDL_GetB(clr1,fmt);
+				if(x2 == 0 || y2 == 0){
+					clr1 = AGIDL_GetClr16(clrs,x2,y2,worg,horg);
+					clr2 = AGIDL_GetClr16(clrs,x2+1,y2,worg,horg);
+					clr3 = AGIDL_GetClr16(clrs,x2,y2+1,worg,horg);
+					clr4 = AGIDL_GetClr16(clrs,x2+1,y2+1,worg,horg);
+					
+					u8 r1 = AGIDL_GetR(clr1,fmt);
+					u8 g1 = AGIDL_GetG(clr1,fmt);
+					u8 b1 = AGIDL_GetB(clr1,fmt);
+					
+					u8 r2 = AGIDL_GetR(clr2,fmt);
+					u8 g2 = AGIDL_GetG(clr2,fmt);
+					u8 b2 = AGIDL_GetB(clr2,fmt);
+					
+					u8 r3 = AGIDL_GetR(clr3,fmt);
+					u8 g3 = AGIDL_GetG(clr3,fmt);
+					u8 b3 = AGIDL_GetB(clr3,fmt);
+					
+					u8 r4 = AGIDL_GetR(clr4,fmt);
+					u8 g4 = AGIDL_GetG(clr4,fmt);
+					u8 b4 = AGIDL_GetB(clr4,fmt);
+					
+					u8 rtop = r1 + ((r2-r1) >> 1);
+					u8 gtop = g1 + ((g2-g1) >> 1);
+					u8 btop = b1 + ((b2-b1) >> 1);
+					
+					u8 rbot = r3 + ((r4-r3) >> 1);
+					u8 gbot = g3 + ((g4-g3) >> 1);
+					u8 bbot = b3 + ((b4-b3) >> 1);
+					
+					u8 rfinal = rtop + ((rbot-rtop) >> 1);
+					u8 gfinal = gtop + ((gbot-gtop) >> 1);
+					u8 bfinal = btop + ((bbot-btop) >> 1);
+					
+					AGIDL_SetClr16(scale,AGIDL_RGB16(rfinal,gfinal,bfinal,fmt),x,y,newwidth,newheight);
+				}
+				else{
+					
+					u8 r1 = AGIDL_GetR(clr1,fmt);
+					u8 g1 = AGIDL_GetG(clr1,fmt);
+					u8 b1 = AGIDL_GetB(clr1,fmt);
+					
+					u8 r2 = AGIDL_GetR(clr2,fmt);
+					u8 g2 = AGIDL_GetG(clr2,fmt);
+					u8 b2 = AGIDL_GetB(clr2,fmt);
+					
+					u8 r3 = AGIDL_GetR(clr3,fmt);
+					u8 g3 = AGIDL_GetG(clr3,fmt);
+					u8 b3 = AGIDL_GetB(clr3,fmt);
+					
+					u8 r4 = AGIDL_GetR(clr4,fmt);
+					u8 g4 = AGIDL_GetG(clr4,fmt);
+					u8 b4 = AGIDL_GetB(clr4,fmt);
+					
+					u8 rtop = r1 * (x_ceil - x2) + r2 * (x2 - x_floor);
+					u8 gtop = g1 * (x_ceil - x2) + g2 * (x2 - x_floor);
+					u8 btop = b1 * (x_ceil - x2) + b2 * (x2 - x_floor);
+					
+					u8 rbot = r3 * (x_ceil - x2) + r4 * (x2 - x_floor);
+					u8 gbot = g3 * (x_ceil - x2) + g4 * (x2 - x_floor);
+					u8 bbot = b3 * (x_ceil - x2) + b4 * (x2 - x_floor);
+					
+					u8 rfinal = rtop * (y_ceil - y2) + rbot * (y2 - y_floor);
+					u8 gfinal = gtop * (y_ceil - y2) + gbot * (y2 - y_floor);
+					u8 bfinal = btop * (y_ceil - y2) + bbot * (y2 - y_floor);
+					
+					AGIDL_SetClr16(scale,AGIDL_RGB16(rfinal,gfinal,bfinal,fmt),x,y,newwidth,newheight);
+				}
 				
-				u8 r2 = AGIDL_GetR(clr2,fmt);
-				u8 g2 = AGIDL_GetG(clr2,fmt);
-				u8 b2 = AGIDL_GetB(clr2,fmt);
-				
-				u8 r3 = AGIDL_GetR(clr3,fmt);
-				u8 g3 = AGIDL_GetG(clr3,fmt);
-				u8 b3 = AGIDL_GetB(clr3,fmt);
-				
-				u8 r4 = AGIDL_GetR(clr4,fmt);
-				u8 g4 = AGIDL_GetG(clr4,fmt);
-				u8 b4 = AGIDL_GetB(clr4,fmt);
-				
-				u8 rtop = r1 * (x_ceil - x2) + r2 * (x2 - x_floor);
-				u8 gtop = g1 * (x_ceil - x2) + g2 * (x2 - x_floor);
-				u8 btop = b1 * (x_ceil - x2) + b2 * (x2 - x_floor);
-				
-				u8 rbot = r3 * (x_ceil - x2) + r4 * (x2 - x_floor);
-				u8 gbot = g3 * (x_ceil - x2) + g4 * (x2 - x_floor);
-				u8 bbot = b3 * (x_ceil - x2) + b4 * (x2 - x_floor);
-				
-				u8 rfinal = rtop * (y_ceil - y2) + rbot * (y2 - y_floor);
-				u8 gfinal = gtop * (y_ceil - y2) + gbot * (y2 - y_floor);
-				u8 bfinal = btop * (y_ceil - y2) + bbot * (y2 - y_floor);
-				
-				AGIDL_SetClr16(scale,AGIDL_RGB16(rfinal,gfinal,bfinal,fmt),x,y,newwidth,newheight);
 			}
 		}
 		
@@ -597,67 +675,144 @@ void * AGIDL_ScaleImgDataTrilerp(void* data, u16* width, u16* height, float sx, 
 				COLOR clr32 = AGIDL_GetClr(scalehalf,x_floor2,y_ceil2,whalf,hhalf);
 				COLOR clr42 = AGIDL_GetClr(scalehalf,x_ceil2,y_ceil2,whalf,hhalf);
 				
-				u8 r1 = AGIDL_GetR(clr1,fmt);
-				u8 g1 = AGIDL_GetG(clr1,fmt);
-				u8 b1 = AGIDL_GetB(clr1,fmt);
-				
-				u8 r2 = AGIDL_GetR(clr2,fmt);
-				u8 g2 = AGIDL_GetG(clr2,fmt);
-				u8 b2 = AGIDL_GetB(clr2,fmt);
-				
-				u8 r3 = AGIDL_GetR(clr3,fmt);
-				u8 g3 = AGIDL_GetG(clr3,fmt);
-				u8 b3 = AGIDL_GetB(clr3,fmt);
-				
-				u8 r4 = AGIDL_GetR(clr4,fmt);
-				u8 g4 = AGIDL_GetG(clr4,fmt);
-				u8 b4 = AGIDL_GetB(clr4,fmt);
-				
-				u8 rtop = r1 * (x_ceil - x2) + r2 * (x2 - x_floor);
-				u8 gtop = g1 * (x_ceil - x2) + g2 * (x2 - x_floor);
-				u8 btop = b1 * (x_ceil - x2) + b2 * (x2 - x_floor);
-				
-				u8 rbot = r3 * (x_ceil - x2) + r4 * (x2 - x_floor);
-				u8 gbot = g3 * (x_ceil - x2) + g4 * (x2 - x_floor);
-				u8 bbot = b3 * (x_ceil - x2) + b4 * (x2 - x_floor);
-				
-				u8 rbilerp1 = rtop * (y_ceil - y2) + rbot * (y2 - y_floor);
-				u8 gbilerp1 = gtop * (y_ceil - y2) + gbot * (y2 - y_floor);
-				u8 bbilerp1 = btop * (y_ceil - y2) + bbot * (y2 - y_floor);
-				
-				r1 = AGIDL_GetR(clr12,fmt);
-				g1 = AGIDL_GetG(clr12,fmt);
-				b1 = AGIDL_GetB(clr12,fmt);
-				
-				r2 = AGIDL_GetR(clr22,fmt);
-				g2 = AGIDL_GetG(clr22,fmt);
-				b2 = AGIDL_GetB(clr22,fmt);
-				
-				r3 = AGIDL_GetR(clr32,fmt);
-				g3 = AGIDL_GetG(clr32,fmt);
-				b3 = AGIDL_GetB(clr32,fmt);
-				
-				r4 = AGIDL_GetR(clr42,fmt);
-				g4 = AGIDL_GetG(clr42,fmt);
-				b4 = AGIDL_GetB(clr42,fmt);
-				
-				rtop = r1 * (x_ceil2 - x2half) + r2 * (x2half - x_floor2);
-				gtop = g1 * (x_ceil2 - x2half) + g2 * (x2half - x_floor2);
-				btop = b1 * (x_ceil2 - x2half) + b2 * (x2half - x_floor2);
-				
-				rbot = r3 * (x_ceil2 - x2half) + r4 * (x2half - x_floor2);
-				gbot = g3 * (x_ceil2 - x2half) + g4 * (x2half - x_floor2);
-				bbot = b3 * (x_ceil2 - x2half) + b4 * (x2half - x_floor2);
-				
-				u8 rbilerp2 = rtop * (y_ceil2 - y2half) + rbot * (y2half - y_floor2);
-				u8 gbilerp2 = gtop * (y_ceil2 - y2half) + gbot * (y2half - y_floor2);
-				u8 bbilerp2 = btop * (y_ceil2 - y2half) + bbot * (y2half - y_floor2);
-				
-				u8 rfinal = rbilerp1 + ((rbilerp2 - rbilerp1) >> 1);
-				u8 gfinal = gbilerp1 + ((gbilerp2 - gbilerp1) >> 1);
-				u8 bfinal = bbilerp1 + ((bbilerp2 - bbilerp1) >> 1);
-				
-				AGIDL_SetClr(scale,AGIDL_RGB(rfinal,gfinal,bfinal,fmt),x,y,newwidth,newheight);
+				if(x2 == 0 || y2 == 0 || x2half == 0 || y2half == 0){
+					clr1 = AGIDL_GetClr(clrs,x2,y2,worg,horg);
+					clr2 = AGIDL_GetClr(clrs,x2+1,y2,worg,horg);
+					clr3 = AGIDL_GetClr(clrs,x2,y2+1,worg,horg);
+					clr4 = AGIDL_GetClr(clrs,x2+1,y2+1,worg,horg);
+					
+					clr12 = AGIDL_GetClr(scalehalf,x2half,y2half,whalf,hhalf);
+					clr22 = AGIDL_GetClr(scalehalf,x2half+1,y2half,whalf,hhalf);
+					clr32 = AGIDL_GetClr(scalehalf,x2half,y2half+1,whalf,hhalf);
+					clr42 = AGIDL_GetClr(scalehalf,x2half+1,y2half+1,whalf,hhalf);
+					
+					u8 r1 = AGIDL_GetR(clr1,fmt);
+					u8 g1 = AGIDL_GetG(clr1,fmt);
+					u8 b1 = AGIDL_GetB(clr1,fmt);
+					
+					u8 r2 = AGIDL_GetR(clr2,fmt);
+					u8 g2 = AGIDL_GetG(clr2,fmt);
+					u8 b2 = AGIDL_GetB(clr2,fmt);
+					
+					u8 r3 = AGIDL_GetR(clr3,fmt);
+					u8 g3 = AGIDL_GetG(clr3,fmt);
+					u8 b3 = AGIDL_GetB(clr3,fmt);
+					
+					u8 r4 = AGIDL_GetR(clr4,fmt);
+					u8 g4 = AGIDL_GetG(clr4,fmt);
+					u8 b4 = AGIDL_GetB(clr4,fmt);
+					
+					u8 rtop = r1 + ((r2-r1) >> 1);
+					u8 gtop = g1 + ((g2-g1) >> 1);
+					u8 btop = b1 + ((b2-b1) >> 1);
+					
+					u8 rbot = r3 + ((r4-r3) >> 1);
+					u8 gbot = g3 + ((g4-g3) >> 1);
+					u8 bbot = b3 + ((b4-b3) >> 1);
+					
+					u8 rbilerp1 = rtop + ((rbot-rtop) >> 1);
+					u8 gbilerp1 = gtop + ((gbot-gtop) >> 1);
+					u8 bbilerp1 = btop + ((bbot-btop) >> 1);
+					
+					r1 = AGIDL_GetR(clr12,fmt);
+					g1 = AGIDL_GetG(clr12,fmt);
+					b1 = AGIDL_GetB(clr12,fmt);
+					
+					r2 = AGIDL_GetR(clr22,fmt);
+					g2 = AGIDL_GetG(clr22,fmt);
+					b2 = AGIDL_GetB(clr22,fmt);
+					
+					r3 = AGIDL_GetR(clr32,fmt);
+					g3 = AGIDL_GetG(clr32,fmt);
+					b3 = AGIDL_GetB(clr32,fmt);
+					
+					r4 = AGIDL_GetR(clr42,fmt);
+					g4 = AGIDL_GetG(clr42,fmt);
+					b4 = AGIDL_GetB(clr42,fmt);
+					
+					rtop = r1 + ((r2-r1) >> 1);
+					gtop = g1 + ((g2-g1) >> 1);
+					btop = b1 + ((b2-b1) >> 1);
+					
+					rbot = r3 + ((r4-r3) >> 1);
+					gbot = g3 + ((g4-g3) >> 1);
+					bbot = b3 + ((b4-b3) >> 1);
+					
+					u8 rbilerp2 = rtop + ((rbot-rtop) >> 1);
+					u8 gbilerp2 = gtop + ((gbot-gtop) >> 1);
+					u8 bbilerp2 = btop + ((bbot-btop) >> 1);
+					
+					u8 rfinal = rbilerp1 + ((rbilerp2-rbilerp1) >> 1);
+					u8 gfinal = gbilerp1 + ((gbilerp2-gbilerp1) >> 1);
+					u8 bfinal = bbilerp1 + ((bbilerp2-bbilerp1) >> 1);
+					
+					AGIDL_SetClr(scale,AGIDL_RGB(rfinal,gfinal,bfinal,fmt),x,y,newwidth,newheight);
+				}
+				else{
+					u8 r1 = AGIDL_GetR(clr1,fmt);
+					u8 g1 = AGIDL_GetG(clr1,fmt);
+					u8 b1 = AGIDL_GetB(clr1,fmt);
+					
+					u8 r2 = AGIDL_GetR(clr2,fmt);
+					u8 g2 = AGIDL_GetG(clr2,fmt);
+					u8 b2 = AGIDL_GetB(clr2,fmt);
+					
+					u8 r3 = AGIDL_GetR(clr3,fmt);
+					u8 g3 = AGIDL_GetG(clr3,fmt);
+					u8 b3 = AGIDL_GetB(clr3,fmt);
+					
+					u8 r4 = AGIDL_GetR(clr4,fmt);
+					u8 g4 = AGIDL_GetG(clr4,fmt);
+					u8 b4 = AGIDL_GetB(clr4,fmt);
+					
+					u8 rtop = r1 * (x_ceil - x2) + r2 * (x2 - x_floor);
+					u8 gtop = g1 * (x_ceil - x2) + g2 * (x2 - x_floor);
+					u8 btop = b1 * (x_ceil - x2) + b2 * (x2 - x_floor);
+					
+					u8 rbot = r3 * (x_ceil - x2) + r4 * (x2 - x_floor);
+					u8 gbot = g3 * (x_ceil - x2) + g4 * (x2 - x_floor);
+					u8 bbot = b3 * (x_ceil - x2) + b4 * (x2 - x_floor);
+					
+					u8 rbilerp1 = rtop * (y_ceil - y2) + rbot * (y2 - y_floor);
+					u8 gbilerp1 = gtop * (y_ceil - y2) + gbot * (y2 - y_floor);
+					u8 bbilerp1 = btop * (y_ceil - y2) + bbot * (y2 - y_floor);
+					
+					r1 = AGIDL_GetR(clr12,fmt);
+					g1 = AGIDL_GetG(clr12,fmt);
+					b1 = AGIDL_GetB(clr12,fmt);
+					
+					r2 = AGIDL_GetR(clr22,fmt);
+					g2 = AGIDL_GetG(clr22,fmt);
+					b2 = AGIDL_GetB(clr22,fmt);
+					
+					r3 = AGIDL_GetR(clr32,fmt);
+					g3 = AGIDL_GetG(clr32,fmt);
+					b3 = AGIDL_GetB(clr32,fmt);
+					
+					r4 = AGIDL_GetR(clr42,fmt);
+					g4 = AGIDL_GetG(clr42,fmt);
+					b4 = AGIDL_GetB(clr42,fmt);
+					
+					rtop = r1 * (x_ceil2 - x2half) + r2 * (x2half - x_floor2);
+					gtop = g1 * (x_ceil2 - x2half) + g2 * (x2half - x_floor2);
+					btop = b1 * (x_ceil2 - x2half) + b2 * (x2half - x_floor2);
+					
+					rbot = r3 * (x_ceil2 - x2half) + r4 * (x2half - x_floor2);
+					gbot = g3 * (x_ceil2 - x2half) + g4 * (x2half - x_floor2);
+					bbot = b3 * (x_ceil2 - x2half) + b4 * (x2half - x_floor2);
+					
+					u8 rbilerp2 = rtop * (y_ceil2 - y2half) + rbot * (y2half - y_floor2);
+					u8 gbilerp2 = gtop * (y_ceil2 - y2half) + gbot * (y2half - y_floor2);
+					u8 bbilerp2 = btop * (y_ceil2 - y2half) + bbot * (y2half - y_floor2);
+					
+					float diff = AGIDL_Abs(rbilerp2 - rbilerp1) / 255.0f;
+					
+					u8 rfinal = rbilerp1 + diff * (rbilerp2 - rbilerp1);
+					u8 gfinal = gbilerp1 + diff * (gbilerp2 - gbilerp1);
+					u8 bfinal = bbilerp1 + diff * (bbilerp2 - bbilerp1);
+					
+					AGIDL_SetClr(scale,AGIDL_RGB(rfinal,gfinal,bfinal,fmt),x,y,newwidth,newheight);
+				}
 			}
 		}
 		
@@ -725,67 +880,144 @@ void * AGIDL_ScaleImgDataTrilerp(void* data, u16* width, u16* height, float sx, 
 				COLOR16 clr32 = AGIDL_GetClr16(scalehalf,x2half,y2half+1,whalf,hhalf);
 				COLOR16 clr42 = AGIDL_GetClr16(scalehalf,x2half+1,y2half+1,whalf,hhalf);
 				
-				u8 r1 = AGIDL_GetR(clr1,fmt);
-				u8 g1 = AGIDL_GetG(clr1,fmt);
-				u8 b1 = AGIDL_GetB(clr1,fmt);
-				
-				u8 r2 = AGIDL_GetR(clr2,fmt);
-				u8 g2 = AGIDL_GetG(clr2,fmt);
-				u8 b2 = AGIDL_GetB(clr2,fmt);
-				
-				u8 r3 = AGIDL_GetR(clr3,fmt);
-				u8 g3 = AGIDL_GetG(clr3,fmt);
-				u8 b3 = AGIDL_GetB(clr3,fmt);
-				
-				u8 r4 = AGIDL_GetR(clr4,fmt);
-				u8 g4 = AGIDL_GetG(clr4,fmt);
-				u8 b4 = AGIDL_GetB(clr4,fmt);
-				
-				u8 rtop = r1 * (x_ceil - x2) + r2 * (x2 - x_floor);
-				u8 gtop = g1 * (x_ceil - x2) + g2 * (x2 - x_floor);
-				u8 btop = b1 * (x_ceil - x2) + b2 * (x2 - x_floor);
-				
-				u8 rbot = r3 * (x_ceil - x2) + r4 * (x2 - x_floor);
-				u8 gbot = g3 * (x_ceil - x2) + g4 * (x2 - x_floor);
-				u8 bbot = b3 * (x_ceil - x2) + b4 * (x2 - x_floor);
-				
-				u8 rbilerp1 = rtop * (y_ceil - y2) + rbot * (y2 - y_floor);
-				u8 gbilerp1 = gtop * (y_ceil - y2) + gbot * (y2 - y_floor);
-				u8 bbilerp1 = btop * (y_ceil - y2) + bbot * (y2 - y_floor);
-				
-				r1 = AGIDL_GetR(clr12,fmt);
-				g1 = AGIDL_GetG(clr12,fmt);
-				b1 = AGIDL_GetB(clr12,fmt);
-				
-				r2 = AGIDL_GetR(clr22,fmt);
-				g2 = AGIDL_GetG(clr22,fmt);
-				b2 = AGIDL_GetB(clr22,fmt);
-				
-				r3 = AGIDL_GetR(clr32,fmt);
-				g3 = AGIDL_GetG(clr32,fmt);
-				b3 = AGIDL_GetB(clr32,fmt);
-				
-				r4 = AGIDL_GetR(clr42,fmt);
-				g4 = AGIDL_GetG(clr42,fmt);
-				b4 = AGIDL_GetB(clr42,fmt);
-				
-				rtop = r1 * (x_ceil2 - x2half) + r2 * (x2half - x_floor2);
-				gtop = g1 * (x_ceil2 - x2half) + g2 * (x2half - x_floor2);
-				btop = b1 * (x_ceil2 - x2half) + b2 * (x2half - x_floor2);
-				
-				rbot = r3 * (x_ceil2 - x2half) + r4 * (x2half - x_floor2);
-				gbot = g3 * (x_ceil2 - x2half) + g4 * (x2half - x_floor2);
-				bbot = b3 * (x_ceil2 - x2half) + b4 * (x2half - x_floor2);
-				
-				u8 rbilerp2 = rtop * (y_ceil2 - y2half) + rbot * (y2half - y_floor2);
-				u8 gbilerp2 = gtop * (y_ceil2 - y2half) + gbot * (y2half - y_floor2);
-				u8 bbilerp2 = btop * (y_ceil2 - y2half) + bbot * (y2half - y_floor2);
-				
-				u8 rfinal = rbilerp1 + ((rbilerp2 - rbilerp1) >> 1);
-				u8 gfinal = gbilerp1 + ((gbilerp2 - gbilerp1) >> 1);
-				u8 bfinal = bbilerp1 + ((bbilerp2 - bbilerp1) >> 1);
-				
-				AGIDL_SetClr16(scale,AGIDL_RGB16(rfinal,gfinal,bfinal,fmt),x,y,newwidth,newheight);
+				if(x2 == 0 || y2 == 0 || x2half == 0 || y2half == 0){
+					clr1 = AGIDL_GetClr16(clrs,x2,y2,worg,horg);
+					clr2 = AGIDL_GetClr16(clrs,x2+1,y2,worg,horg);
+					clr3 = AGIDL_GetClr16(clrs,x2,y2+1,worg,horg);
+					clr4 = AGIDL_GetClr16(clrs,x2+1,y2+1,worg,horg);
+					
+					clr12 = AGIDL_GetClr16(scalehalf,x2half,y2half,whalf,hhalf);
+					clr22 = AGIDL_GetClr16(scalehalf,x2half+1,y2half,whalf,hhalf);
+					clr32 = AGIDL_GetClr16(scalehalf,x2half,y2half+1,whalf,hhalf);
+					clr42 = AGIDL_GetClr16(scalehalf,x2half+1,y2half+1,whalf,hhalf);
+					
+					u8 r1 = AGIDL_GetR(clr1,fmt);
+					u8 g1 = AGIDL_GetG(clr1,fmt);
+					u8 b1 = AGIDL_GetB(clr1,fmt);
+					
+					u8 r2 = AGIDL_GetR(clr2,fmt);
+					u8 g2 = AGIDL_GetG(clr2,fmt);
+					u8 b2 = AGIDL_GetB(clr2,fmt);
+					
+					u8 r3 = AGIDL_GetR(clr3,fmt);
+					u8 g3 = AGIDL_GetG(clr3,fmt);
+					u8 b3 = AGIDL_GetB(clr3,fmt);
+					
+					u8 r4 = AGIDL_GetR(clr4,fmt);
+					u8 g4 = AGIDL_GetG(clr4,fmt);
+					u8 b4 = AGIDL_GetB(clr4,fmt);
+					
+					u8 rtop = r1 + ((r2-r1) >> 1);
+					u8 gtop = g1 + ((g2-g1) >> 1);
+					u8 btop = b1 + ((b2-b1) >> 1);
+					
+					u8 rbot = r3 + ((r4-r3) >> 1);
+					u8 gbot = g3 + ((g4-g3) >> 1);
+					u8 bbot = b3 + ((b4-b3) >> 1);
+					
+					u8 rbilerp1 = rtop + ((rbot-rtop) >> 1);
+					u8 gbilerp1 = gtop + ((gbot-gtop) >> 1);
+					u8 bbilerp1 = btop + ((bbot-btop) >> 1);
+					
+					r1 = AGIDL_GetR(clr12,fmt);
+					g1 = AGIDL_GetG(clr12,fmt);
+					b1 = AGIDL_GetB(clr12,fmt);
+					
+					r2 = AGIDL_GetR(clr22,fmt);
+					g2 = AGIDL_GetG(clr22,fmt);
+					b2 = AGIDL_GetB(clr22,fmt);
+					
+					r3 = AGIDL_GetR(clr32,fmt);
+					g3 = AGIDL_GetG(clr32,fmt);
+					b3 = AGIDL_GetB(clr32,fmt);
+					
+					r4 = AGIDL_GetR(clr42,fmt);
+					g4 = AGIDL_GetG(clr42,fmt);
+					b4 = AGIDL_GetB(clr42,fmt);
+					
+					rtop = r1 + ((r2-r1) >> 1);
+					gtop = g1 + ((g2-g1) >> 1);
+					btop = b1 + ((b2-b1) >> 1);
+					
+					rbot = r3 + ((r4-r3) >> 1);
+					gbot = g3 + ((g4-g3) >> 1);
+					bbot = b3 + ((b4-b3) >> 1);
+					
+					u8 rbilerp2 = rtop + ((rbot-rtop) >> 1);
+					u8 gbilerp2 = gtop + ((gbot-gtop) >> 1);
+					u8 bbilerp2 = btop + ((bbot-btop) >> 1);
+					
+					u8 rfinal = rbilerp1 + ((rbilerp2-rbilerp1) >> 1);
+					u8 gfinal = gbilerp1 + ((gbilerp2-gbilerp1) >> 1);
+					u8 bfinal = bbilerp1 + ((bbilerp2-bbilerp1) >> 1);
+					
+					AGIDL_SetClr16(scale,AGIDL_RGB16(rfinal,gfinal,bfinal,fmt),x,y,newwidth,newheight);
+				}
+				else{
+					u8 r1 = AGIDL_GetR(clr1,fmt);
+					u8 g1 = AGIDL_GetG(clr1,fmt);
+					u8 b1 = AGIDL_GetB(clr1,fmt);
+					
+					u8 r2 = AGIDL_GetR(clr2,fmt);
+					u8 g2 = AGIDL_GetG(clr2,fmt);
+					u8 b2 = AGIDL_GetB(clr2,fmt);
+					
+					u8 r3 = AGIDL_GetR(clr3,fmt);
+					u8 g3 = AGIDL_GetG(clr3,fmt);
+					u8 b3 = AGIDL_GetB(clr3,fmt);
+					
+					u8 r4 = AGIDL_GetR(clr4,fmt);
+					u8 g4 = AGIDL_GetG(clr4,fmt);
+					u8 b4 = AGIDL_GetB(clr4,fmt);
+					
+					u8 rtop = r1 * (x_ceil - x2) + r2 * (x2 - x_floor);
+					u8 gtop = g1 * (x_ceil - x2) + g2 * (x2 - x_floor);
+					u8 btop = b1 * (x_ceil - x2) + b2 * (x2 - x_floor);
+					
+					u8 rbot = r3 * (x_ceil - x2) + r4 * (x2 - x_floor);
+					u8 gbot = g3 * (x_ceil - x2) + g4 * (x2 - x_floor);
+					u8 bbot = b3 * (x_ceil - x2) + b4 * (x2 - x_floor);
+					
+					u8 rbilerp1 = rtop * (y_ceil - y2) + rbot * (y2 - y_floor);
+					u8 gbilerp1 = gtop * (y_ceil - y2) + gbot * (y2 - y_floor);
+					u8 bbilerp1 = btop * (y_ceil - y2) + bbot * (y2 - y_floor);
+					
+					r1 = AGIDL_GetR(clr12,fmt);
+					g1 = AGIDL_GetG(clr12,fmt);
+					b1 = AGIDL_GetB(clr12,fmt);
+					
+					r2 = AGIDL_GetR(clr22,fmt);
+					g2 = AGIDL_GetG(clr22,fmt);
+					b2 = AGIDL_GetB(clr22,fmt);
+					
+					r3 = AGIDL_GetR(clr32,fmt);
+					g3 = AGIDL_GetG(clr32,fmt);
+					b3 = AGIDL_GetB(clr32,fmt);
+					
+					r4 = AGIDL_GetR(clr42,fmt);
+					g4 = AGIDL_GetG(clr42,fmt);
+					b4 = AGIDL_GetB(clr42,fmt);
+					
+					rtop = r1 * (x_ceil2 - x2half) + r2 * (x2half - x_floor2);
+					gtop = g1 * (x_ceil2 - x2half) + g2 * (x2half - x_floor2);
+					btop = b1 * (x_ceil2 - x2half) + b2 * (x2half - x_floor2);
+					
+					rbot = r3 * (x_ceil2 - x2half) + r4 * (x2half - x_floor2);
+					gbot = g3 * (x_ceil2 - x2half) + g4 * (x2half - x_floor2);
+					bbot = b3 * (x_ceil2 - x2half) + b4 * (x2half - x_floor2);
+					
+					u8 rbilerp2 = rtop * (y_ceil2 - y2half) + rbot * (y2half - y_floor2);
+					u8 gbilerp2 = gtop * (y_ceil2 - y2half) + gbot * (y2half - y_floor2);
+					u8 bbilerp2 = btop * (y_ceil2 - y2half) + bbot * (y2half - y_floor2);
+					
+					float diff = AGIDL_Abs(rbilerp2 - rbilerp1) / 31.0f;
+					
+					u8 rfinal = rbilerp1 + diff * (rbilerp2 - rbilerp1);
+					u8 gfinal = gbilerp1 + diff * (gbilerp2 - gbilerp1);
+					u8 bfinal = bbilerp1 + diff * (bbilerp2 - bbilerp1);
+					
+					AGIDL_SetClr16(scale,AGIDL_RGB16(rfinal,gfinal,bfinal,fmt),x,y,newwidth,newheight);
+				}	
 			}
 		}
 		
@@ -1048,6 +1280,21 @@ void * AGIDL_ScaleImgData(void* data, u16* width, u16* height, float sx, float s
 		}break;
 		case AGIDL_SCALE_TRILERP:{
 			return AGIDL_ScaleImgDataTrilerp(data,width,height,sx,sy,fmt);
+		}break;
+	}
+	return AGIDL_ScaleImgDataNearest(data,width,height,sx,sy,fmt);
+}
+
+void * AGIDL_FastScaleImgData(void* data, u16* width, u16* height, float sx, float sy, AGIDL_SCALE scale, AGIDL_CLR_FMT fmt){
+	switch(scale){
+		case AGIDL_SCALE_NEAREST:{
+			return AGIDL_ScaleImgDataNearest(data,width,height,sx,sy,fmt);
+		}break;
+		case AGIDL_SCALE_BILERP:{
+			return AGIDL_FastScaleImgDataBilerp(data,width,height,sx,sy,fmt);
+		}break;
+		case AGIDL_SCALE_TRILERP:{
+			return AGIDL_FastScaleImgDataTrilerp(data,width,height,sx,sy,fmt);
 		}break;
 	}
 	return AGIDL_ScaleImgDataNearest(data,width,height,sx,sy,fmt);

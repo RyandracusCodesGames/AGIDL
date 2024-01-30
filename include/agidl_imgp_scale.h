@@ -33,5 +33,6 @@ void * AGIDL_FastScaleImgDataBilerp(void* data, u16* width, u16* height, float s
 void * AGIDL_FastScaleImgDataTrilerp(void* data, u16* width, u16* height, float sx, float sy, AGIDL_CLR_FMT fmt);
 void * AGIDL_ScaleImgDataTrilerp(void* data, u16* width, u16* height, float sx, float sy, AGIDL_CLR_FMT fmt);
 void * AGIDL_ScaleImgData(void* data, u16* width, u16* height, float sx, float sy, AGIDL_SCALE scale, AGIDL_CLR_FMT fmt);
+void * AGIDL_FastScaleImgData(void* data, u16* width, u16* height, float sx, float sy, AGIDL_SCALE scale, AGIDL_CLR_FMT fmt);
 
 #endif

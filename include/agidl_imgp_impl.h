@@ -10,7 +10,7 @@
 *   File: agidl_imgp_impl.h
 *   Date: 12/17/2023
 *   Version: 0.2b
-*   Updated: 1/27/2024
+*   Updated: 1/29/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -79,6 +79,15 @@ void AGIDL_ScaleLMP(AGIDL_LMP* lmp, float sx, float sy, AGIDL_SCALE scale);
 void AGIDL_ScalePVR(AGIDL_PVR* pvr, float sx, float sy, AGIDL_SCALE scale);
 void AGIDL_ScaleGXT(AGIDL_GXT* gxt, float sx, float sy, AGIDL_SCALE scale);
 void AGIDL_ScaleBTI(AGIDL_BTI* bti, float sx, float sy, AGIDL_SCALE scale);
+
+void AGIDL_FastScaleBMP(AGIDL_BMP* bmp, float sx, float sy, AGIDL_SCALE scale);
+void AGIDL_FastScaleTGA(AGIDL_TGA* tga, float sx, float sy, AGIDL_SCALE scale);
+void AGIDL_FastScaleTIM(AGIDL_TIM* tim, float sx, float sy, AGIDL_SCALE scale);
+void AGIDL_FastScalePCX(AGIDL_PCX* pcx, float sx, float sy, AGIDL_SCALE scale);
+void AGIDL_FastScaleLMP(AGIDL_LMP* lmp, float sx, float sy, AGIDL_SCALE scale);
+void AGIDL_FastScalePVR(AGIDL_PVR* pvr, float sx, float sy, AGIDL_SCALE scale);
+void AGIDL_FastScaleGXT(AGIDL_GXT* gxt, float sx, float sy, AGIDL_SCALE scale);
+void AGIDL_FastScaleBTI(AGIDL_BTI* bti, float sx, float sy, AGIDL_SCALE scale);
 
 void AGIDL_FilterBilerpBMP(AGIDL_BMP* bmp);
 void AGIDL_FilterBilerpTGA(AGIDL_TGA* tga);

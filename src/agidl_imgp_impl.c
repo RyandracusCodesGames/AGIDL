@@ -7,7 +7,7 @@
 *   File: agidl_imgp_impl.c
 *   Date: 12/17/2023
 *   Version: 0.2b
-*   Updated: 1/27/2024
+*   Updated: 1/29/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -538,6 +538,94 @@ void AGIDL_ScaleBTI(AGIDL_BTI* bti, float sx, float sy, AGIDL_SCALE scale){
 	}
 	else{
 		bti->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(bti->pixels.pix32,&bti->header.width,&bti->header.height,
+		sx,sy,scale,AGIDL_BTIGetClrFmt(bti));
+	}
+}
+
+void AGIDL_FastScaleBMP(AGIDL_BMP* bmp, float sx, float sy, AGIDL_SCALE scale){
+	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
+		bmp->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(bmp->pixels.pix16,&bmp->header.width,&bmp->header.height,
+		sx,sy,scale,AGIDL_BMPGetClrFmt(bmp));
+	}
+	else{
+		bmp->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(bmp->pixels.pix32,&bmp->header.width,&bmp->header.height,
+		sx,sy,scale,AGIDL_BMPGetClrFmt(bmp));
+	}
+}
+
+void AGIDL_FastScaleTGA(AGIDL_TGA* tga, float sx, float sy, AGIDL_SCALE scale){
+	if(AGIDL_GetBitCount(AGIDL_TGAGetClrFmt(tga)) == 16){
+		tga->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(tga->pixels.pix16,&tga->header.width,&tga->header.height,
+		sx,sy,scale,AGIDL_TGAGetClrFmt(tga));
+	}
+	else{
+		tga->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(tga->pixels.pix32,&tga->header.width,&tga->header.height,
+		sx,sy,scale,AGIDL_TGAGetClrFmt(tga));
+	}
+}
+
+void AGIDL_FastScaleTIM(AGIDL_TIM* tim, float sx, float sy, AGIDL_SCALE scale){
+	if(AGIDL_GetBitCount(AGIDL_TIMGetClrFmt(tim)) == 16){
+		tim->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(tim->pixels.pix16,&tim->img_header.width,&tim->img_header.height,
+		sx,sy,scale,AGIDL_TIMGetClrFmt(tim));
+	}
+	else{
+		tim->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(tim->pixels.pix32,&tim->img_header.width,&tim->img_header.height,
+		sx,sy,scale,AGIDL_TIMGetClrFmt(tim));
+	}
+}
+
+void AGIDL_FastScalePCX(AGIDL_PCX* pcx, float sx, float sy, AGIDL_SCALE scale){
+	if(AGIDL_GetBitCount(AGIDL_PCXGetClrFmt(pcx)) == 16){
+		pcx->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(pcx->pixels.pix16,&pcx->header.width,&pcx->header.height,
+		sx,sy,scale,AGIDL_PCXGetClrFmt(pcx));
+	}
+	else{
+		pcx->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(pcx->pixels.pix32,&pcx->header.width,&pcx->header.height,
+		sx,sy,scale,AGIDL_PCXGetClrFmt(pcx));
+	}
+}
+
+void AGIDL_FastScaleLMP(AGIDL_LMP* lmp, float sx, float sy, AGIDL_SCALE scale){
+	if(AGIDL_GetBitCount(AGIDL_LMPGetClrFmt(lmp)) == 16){
+		lmp->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(lmp->pixels.pix16,&lmp->width,&lmp->height,
+		sx,sy,scale,AGIDL_LMPGetClrFmt(lmp));
+	}
+	else{
+		lmp->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(lmp->pixels.pix32,&lmp->width,&lmp->height,
+		sx,sy,scale,AGIDL_LMPGetClrFmt(lmp));
+	}
+}
+
+void AGIDL_FastScalePVR(AGIDL_PVR* pvr, float sx, float sy, AGIDL_SCALE scale){
+	if(AGIDL_GetBitCount(AGIDL_PVRGetClrFmt(pvr)) == 16){
+		pvr->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(pvr->pixels.pix16,&pvr->header.width,&pvr->header.height,
+		sx,sy,scale,AGIDL_PVRGetClrFmt(pvr));
+	}
+	else{
+		pvr->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(pvr->pixels.pix32,&pvr->header.width,&pvr->header.height,
+		sx,sy,scale,AGIDL_PVRGetClrFmt(pvr));
+	}
+}
+
+void AGIDL_FastScaleGXT(AGIDL_GXT* gxt, float sx, float sy, AGIDL_SCALE scale){
+	if(AGIDL_GetBitCount(AGIDL_GXTGetClrFmt(gxt)) == 16){
+		gxt->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(gxt->pixels.pix16,&gxt->header.header.width,&gxt->header.header.height,
+		sx,sy,scale,AGIDL_GXTGetClrFmt(gxt));
+	}
+	else{
+		gxt->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(gxt->pixels.pix32,&gxt->header.header.width,&gxt->header.header.height,
+		sx,sy,scale,AGIDL_GXTGetClrFmt(gxt));
+	}
+}
+
+void AGIDL_FastScaleBTI(AGIDL_BTI* bti, float sx, float sy, AGIDL_SCALE scale){
+	if(AGIDL_GetBitCount(AGIDL_BTIGetClrFmt(bti)) == 16){
+		bti->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(bti->pixels.pix16,&bti->header.width,&bti->header.height,
+		sx,sy,scale,AGIDL_BTIGetClrFmt(bti));
+	}
+	else{
+		bti->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(bti->pixels.pix32,&bti->header.width,&bti->header.height,
 		sx,sy,scale,AGIDL_BTIGetClrFmt(bti));
 	}
 }

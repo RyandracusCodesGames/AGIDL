@@ -22,11 +22,11 @@ COLOR AGIDL_SamplePointNearest(void* data, float u, float v, u32 width, u32 heig
 	u = AGIDL_Clampf(0.0f,u,1.0f);
 	v = AGIDL_Clampf(0.0f,v,1.0f);
 	
-	int x = u * width - 0.5f;
-	int y = v * height - 0.5f;
+	float x = u * width - 0.5f;
+	float y = v * height - 0.5f;
 	
-	x = AGIDL_Clamp(0,x,width);
-	y = AGIDL_Clamp(0,y,height);
+	x = AGIDL_Clampf(0,x,width);
+	y = AGIDL_Clampf(0,y,height);
 	
 	if(AGIDL_GetBitCount(fmt) == 16){
 		COLOR16* clrdata = (COLOR16*)data;
@@ -42,31 +42,97 @@ COLOR AGIDL_SamplePointBilerp(void* data, float u, float v, u32 width, u32 heigh
 	u = AGIDL_Clampf(0.0f,u,1.0f);
 	v = AGIDL_Clampf(0.0f,v,1.0f);
 	
-	int x = u * width - 0.5f;
-	int y = v * height - 0.5f;
+	float x = u * width - 0.5f;
+	float y = v * height - 0.5f;
 	
-	x = AGIDL_Clamp(0,x,width);
-	y = AGIDL_Clamp(0,y,height);
+	x = AGIDL_Clampf(0,x,width);
+	y = AGIDL_Clampf(0,y,height);
 	
 	if(AGIDL_GetBitCount(fmt) == 16){
 		COLOR16* clrdata = (COLOR16*)data;
 		
-		COLOR16 clr1 = AGIDL_GetClr16(clrdata,x,y,width,height);
-		COLOR16 clr2 = AGIDL_GetClr16(clrdata,x+1,y,width,height);
-		COLOR16 clr3 = AGIDL_GetClr16(clrdata,x,y+1,width,height);
-		COLOR16 clr4 = AGIDL_GetClr16(clrdata,x+1,y+1,width,height);
+		float x_floor = floor(x);
+		float y_floor = floor(y);
+		float x_ceil  = ceil(x);
+		float y_ceil  = ceil(y);
 		
-		return AGIDL_BilerpColor(clr1,clr2,clr3,clr4,0.5f,0.5f,fmt);
+		COLOR16 clr1 = AGIDL_GetClr16(clrdata,x_floor,y_floor,width,height);
+		COLOR16 clr2 = AGIDL_GetClr16(clrdata,x_ceil,y_floor,width,height);
+		COLOR16 clr3 = AGIDL_GetClr16(clrdata,x_floor,y_ceil,width,height);
+		COLOR16 clr4 = AGIDL_GetClr16(clrdata,x_ceil,y_ceil,width,height);
+		
+		u8 r1 = AGIDL_GetR(clr1,fmt);
+		u8 g1 = AGIDL_GetG(clr1,fmt);
+		u8 b1 = AGIDL_GetB(clr1,fmt);
+		
+		u8 r2 = AGIDL_GetR(clr2,fmt);
+		u8 g2 = AGIDL_GetG(clr2,fmt);
+		u8 b2 = AGIDL_GetB(clr2,fmt);
+		
+		u8 r3 = AGIDL_GetR(clr3,fmt);
+		u8 g3 = AGIDL_GetG(clr3,fmt);
+		u8 b3 = AGIDL_GetB(clr3,fmt);
+		
+		u8 r4 = AGIDL_GetR(clr4,fmt);
+		u8 g4 = AGIDL_GetG(clr4,fmt);
+		u8 b4 = AGIDL_GetB(clr4,fmt);
+		
+		u8 rtop = r1 * (x_ceil - x) + r2 * (x - x_floor);
+		u8 gtop = g1 * (x_ceil - x) + g2 * (x - x_floor);
+		u8 btop = b1 * (x_ceil - x) + b2 * (x - x_floor);
+		
+		u8 rbot = r3 * (x_ceil - x) + r4 * (x - x_floor);
+		u8 gbot = g3 * (x_ceil - x) + g4 * (x - x_floor);
+		u8 bbot = b3 * (x_ceil - x) + b4 * (x - x_floor);
+		
+		u8 rfinal = rtop * (y_ceil - y) + rbot * (y - y_floor);
+		u8 gfinal = gtop * (y_ceil - y) + gbot * (y - y_floor);
+		u8 bfinal = btop * (y_ceil - y) + bbot * (y - y_floor);
+		
+		return AGIDL_RGB16(rfinal,gfinal,bfinal,fmt);
 	}
 	else{
 		COLOR* clrdata = (COLOR*)data;
 		
-		COLOR clr1 = AGIDL_GetClr(clrdata,x,y,width,height);
-		COLOR clr2 = AGIDL_GetClr(clrdata,x+1,y,width,height);
-		COLOR clr3 = AGIDL_GetClr(clrdata,x,y+1,width,height);
-		COLOR clr4 = AGIDL_GetClr(clrdata,x+1,y+1,width,height);
+		float x_floor = floor(x);
+		float y_floor = floor(y);
+		float x_ceil  = ceil(x);
+		float y_ceil  = ceil(y);
 		
-		return AGIDL_BilerpColor(clr1,clr2,clr3,clr4,0.5f,0.5f,fmt);
+		COLOR clr1 = AGIDL_GetClr(clrdata,x_floor,y_floor,width,height);
+		COLOR clr2 = AGIDL_GetClr(clrdata,x_ceil,y_floor,width,height);
+		COLOR clr3 = AGIDL_GetClr(clrdata,x_floor,y_ceil,width,height);
+		COLOR clr4 = AGIDL_GetClr(clrdata,x_ceil,y_ceil,width,height);
+		
+		u8 r1 = AGIDL_GetR(clr1,fmt);
+		u8 g1 = AGIDL_GetG(clr1,fmt);
+		u8 b1 = AGIDL_GetB(clr1,fmt);
+		
+		u8 r2 = AGIDL_GetR(clr2,fmt);
+		u8 g2 = AGIDL_GetG(clr2,fmt);
+		u8 b2 = AGIDL_GetB(clr2,fmt);
+		
+		u8 r3 = AGIDL_GetR(clr3,fmt);
+		u8 g3 = AGIDL_GetG(clr3,fmt);
+		u8 b3 = AGIDL_GetB(clr3,fmt);
+		
+		u8 r4 = AGIDL_GetR(clr4,fmt);
+		u8 g4 = AGIDL_GetG(clr4,fmt);
+		u8 b4 = AGIDL_GetB(clr4,fmt);
+		
+		u8 rtop = r1 * (x_ceil - x) + r2 * (x - x_floor);
+		u8 gtop = g1 * (x_ceil - x) + g2 * (x - x_floor);
+		u8 btop = b1 * (x_ceil - x) + b2 * (x - x_floor);
+		
+		u8 rbot = r3 * (x_ceil - x) + r4 * (x - x_floor);
+		u8 gbot = g3 * (x_ceil - x) + g4 * (x - x_floor);
+		u8 bbot = b3 * (x_ceil - x) + b4 * (x - x_floor);
+		
+		u8 rfinal = rtop * (y_ceil - y) + rbot * (y - y_floor);
+		u8 gfinal = gtop * (y_ceil - y) + gbot * (y - y_floor);
+		u8 bfinal = btop * (y_ceil - y) + bbot * (y - y_floor);
+		
+		return AGIDL_RGB(rfinal,gfinal,bfinal,fmt);
 	}
 }
 
@@ -178,15 +244,53 @@ void AGIDL_FilterImgDataBilerp(void* data, u32 width, u32 height, AGIDL_CLR_FMT 
 					clr4 = AGIDL_GetClr(clrs,x+1,y-1,width,height);
 				}
 				
-				COLOR clr = AGIDL_BilerpColor(clr1,clr2,clr3,clr4,0.5,0.5,fmt);
+				u8 r1 = AGIDL_GetR(clr1,fmt);
+				u8 g1 = AGIDL_GetG(clr1,fmt);
+				u8 b1 = AGIDL_GetB(clr1,fmt);
 				
-				AGIDL_SetClr(clrs,clr,x,y,width,height); 
+				u8 r2 = AGIDL_GetR(clr2,fmt);
+				u8 g2 = AGIDL_GetG(clr2,fmt);
+				u8 b2 = AGIDL_GetB(clr2,fmt);
+				
+				u8 r3 = AGIDL_GetR(clr3,fmt);
+				u8 g3 = AGIDL_GetG(clr3,fmt);
+				u8 b3 = AGIDL_GetB(clr3,fmt);
+				
+				u8 r4 = AGIDL_GetR(clr4,fmt);
+				u8 g4 = AGIDL_GetG(clr4,fmt);
+				u8 b4 = AGIDL_GetB(clr4,fmt);
+				
+				float diffr = AGIDL_Absf(r2-r1) / 255.0f;
+				float diffg = AGIDL_Absf(g2-g1) / 255.0f;
+				float diffb = AGIDL_Absf(b2-b1) / 255.0f;
+				
+				u8 rtop = r1 + diffr * (r2-r1);
+				u8 gtop = g1 + diffg * (g2-g1);
+				u8 btop = b1 + diffb * (b2-b1);
+				
+				diffr = AGIDL_Absf(r4-r3) / 255.0f;
+				diffg = AGIDL_Absf(g4-g3) / 255.0f;
+				diffb = AGIDL_Absf(b4-b3) / 255.0f;
+				
+				u8 rbot = r3 + diffr * (r4-r3);
+				u8 gbot = g3 + diffg * (g4-g3);
+				u8 bbot = b3 + diffb * (b4-b3);
+				
+				diffr = AGIDL_Absf(rtop-rbot) / 255.0f;
+				diffg = AGIDL_Absf(gtop-gbot) / 255.0f;
+				diffb = AGIDL_Absf(btop-bbot) / 255.0f;
+				
+				u8 rfinal = rtop + diffr * (rbot-rtop);
+				u8 gfinal = gtop + diffg * (gbot-gtop);
+				u8 bfinal = btop + diffb * (bbot-btop);
+				
+				AGIDL_SetClr(clrs,AGIDL_RGB(rfinal,gfinal,bfinal,fmt),x,y,width,height); 
 			}
 		}
 	}
 	else{
 		COLOR16* clrs = (COLOR16*)data;
-
+	
 		u16 x,y;
 		for(y = 0; y < height; y++){
 			for(x = 0; x < width; x++){
@@ -209,9 +313,47 @@ void AGIDL_FilterImgDataBilerp(void* data, u32 width, u32 height, AGIDL_CLR_FMT 
 					clr4 = AGIDL_GetClr16(clrs,x+1,y-1,width,height);
 				}
 				
-				COLOR16 clr = AGIDL_BilerpColor(clr1,clr2,clr3,clr4,0.5,0.5,fmt);
+				u8 r1 = AGIDL_GetR(clr1,fmt);
+				u8 g1 = AGIDL_GetG(clr1,fmt);
+				u8 b1 = AGIDL_GetB(clr1,fmt);
 				
-				AGIDL_SetClr16(clrs,clr,x,y,width,height); 
+				u8 r2 = AGIDL_GetR(clr2,fmt);
+				u8 g2 = AGIDL_GetG(clr2,fmt);
+				u8 b2 = AGIDL_GetB(clr2,fmt);
+				
+				u8 r3 = AGIDL_GetR(clr3,fmt);
+				u8 g3 = AGIDL_GetG(clr3,fmt);
+				u8 b3 = AGIDL_GetB(clr3,fmt);
+				
+				u8 r4 = AGIDL_GetR(clr4,fmt);
+				u8 g4 = AGIDL_GetG(clr4,fmt);
+				u8 b4 = AGIDL_GetB(clr4,fmt);
+				
+				float diffr = AGIDL_Absf(r2-r1) / 31.0f;
+				float diffg = AGIDL_Absf(g2-g1) / 31.0f;
+				float diffb = AGIDL_Absf(b2-b1) / 31.0f;
+				
+				u8 rtop = r1 + diffr * (r2-r1);
+				u8 gtop = g1 + diffg * (g2-g1);
+				u8 btop = b1 + diffb * (b2-b1);
+				
+				diffr = AGIDL_Absf(r4-r3) / 31.0f;
+				diffg = AGIDL_Absf(g4-g3) / 31.0f;
+				diffb = AGIDL_Absf(b4-b3) / 31.0f;
+				
+				u8 rbot = r3 + diffr * (r4-r3);
+				u8 gbot = g3 + diffg * (g4-g3);
+				u8 bbot = b3 + diffb * (b4-b3);
+				
+				diffr = AGIDL_Absf(rtop-rbot) / 31.0f;
+				diffg = AGIDL_Absf(gtop-gbot) / 31.0f;
+				diffb = AGIDL_Absf(btop-bbot) / 31.0f;
+				
+				u8 rfinal = rtop + diffr * (rbot-rtop);
+				u8 gfinal = gtop + diffg * (gbot-gtop);
+				u8 bfinal = btop + diffb * (bbot-btop);
+				
+				AGIDL_SetClr16(clrs,AGIDL_RGB16(rfinal,gfinal,bfinal,fmt),x,y,width,height); 
 			}
 		}
 	}
@@ -344,9 +486,7 @@ void AGIDL_FilterImgDataTrilerp(void* data, u32 width, u32 height, AGIDL_CLR_FMT
 		u16 w = width, h = height;
 		
 		COLOR* clrscale = (COLOR*)malloc(sizeof(COLOR)*w*h);
-		clrscale = (COLOR*)AGIDL_ScaleImgDataNearest(clrscpy,&w,&h,0.5f,0.5f,fmt);
-		
-		AGIDL_FilterImgDataBilerp(clrscale,w,h,fmt);
+		clrscale = (COLOR*)AGIDL_ScaleImgDataBilerp(clrscpy,&w,&h,0.5f,0.5f,fmt);
 		
 		float x_scale = ((float)(w-1)/width);
 		float y_scale = ((float)(h-1)/height);
@@ -355,9 +495,9 @@ void AGIDL_FilterImgDataTrilerp(void* data, u32 width, u32 height, AGIDL_CLR_FMT
 		for(y = 0; y < height; y++){
 			for(x = 0; x < width; x++){
 				
-				u16 xx = (x * x_scale);
-				u16 yy = (y * y_scale);
-			
+				u16 xx = (x*x_scale);
+				u16 yy = (y*y_scale);
+				
 				COLOR clr1 = AGIDL_GetClr(clrs,x,y,width,height);
 				COLOR clr2 = AGIDL_GetClr(clrs,x+1,y,width,height);
 				COLOR clr3 = AGIDL_GetClr(clrs,x,y+1,width,height);
@@ -392,10 +532,10 @@ void AGIDL_FilterImgDataTrilerp(void* data, u32 width, u32 height, AGIDL_CLR_FMT
 					clr4s = AGIDL_GetClr(clrscale,xx+1,yy-1,w,h);
 				}
 				
-				COLOR clrbilerp1 = AGIDL_BilerpColor(clr1,clr2,clr3,clr4,0.5f,0.5f,fmt);
-				COLOR clrbilerp2 = AGIDL_BilerpColor(clr1s,clr2s,clr3s,clr4s,0.5f,0.5f,fmt);
+				COLOR bilerp1 = AGIDL_BilerpColor(clr1,clr2,clr3,clr4,0.5f,0.5f,fmt);
+				COLOR bilerp2 = AGIDL_BilerpColor(clr1s,clr2s,clr3s,clr4s,0.5f,0.5f,fmt);
 				
-				COLOR clr = AGIDL_InterpColor(clrbilerp1,clrbilerp2,0.5f,fmt);
+				COLOR clr = AGIDL_InterpColor(bilerp1,bilerp2,0.5f,fmt);
 				
 				AGIDL_SetClr(clrs,clr,x,y,width,height);
 			}

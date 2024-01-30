@@ -16,7 +16,7 @@
 *   File: agidl_img_bmp.c
 *   Date: 9/12/2023
 *   Version: 0.1b
-*   Updated: 1/26/2023
+*   Updated: 1/30/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -460,7 +460,32 @@ void AGIDL_BMPEncodeIMG0(AGIDL_BMP* bmp, FILE* file){
 			}
 		}break;
 		case AGIDL_RGB_555:{
-			AGIDL_WriteBufClr16(file,bmp->pixels.pix16,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp));
+			if((AGIDL_BMPGetWidth(bmp) % 4) == 0){
+				AGIDL_WriteBufClr16(file,bmp->pixels.pix16,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp));
+			}
+			else{
+				int padding = 0;
+				int pad = AGIDL_BMPGetWidth(bmp);
+				
+				int pad_count = 0;
+				
+				while((pad % 4) != 0){
+					pad++;
+					pad_count++;
+				}
+
+				int i, count;
+				for(i = 0, count = 1; i < AGIDL_BMPGetWidth(bmp) * AGIDL_BMPGetHeight(bmp); i++, count++){
+					COLOR16 clr = bmp->pixels.pix16[i];
+					
+					AGIDL_WriteShort(file,clr);
+					
+					if(count == AGIDL_BMPGetWidth(bmp)){
+						count = 0;
+						fwrite(&padding,pad_count*2,1,file);
+					}
+				}
+			}
 		}break;
 		case AGIDL_RGBA_8888:{
 			AGIDL_WriteBufBGRA(file,bmp->pixels.pix32,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp),AGIDL_BMPGetClrFmt(bmp));
