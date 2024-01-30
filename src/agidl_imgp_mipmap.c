@@ -7,7 +7,7 @@
 *   File: agidl_imgp_mipmap.c
 *   Date: 1/23/2024
 *   Version: 0.2b
-*   Updated: 1/26/2024
+*   Updated: 1/29/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -666,5 +666,27 @@ void AGIDL_GenerateMipmapFromImgData(AGIDL_MIPMAP* mipmap, void* img_data, u16 w
 		}
 		
 		free(cpy);
+	}
+}
+
+void AGIDL_FilterMipmapImgDataBilerp(AGIDL_MIPMAP* mipmap){
+	AGIDL_FastFilterImgDataBilerp(mipmap->img_data,mipmap->width,mipmap->height,mipmap->fmt);
+	
+	int i;
+	for(i = 1; i < mipmap->list->num_mips-1; i++){
+		AGIDL_MIPMAP_NODE* node = AGIDL_FindMipmapNode(mipmap->list,i);
+		
+		AGIDL_FastFilterImgDataBilerp(node->img_data,node->width,node->height,node->fmt);
+	}
+}
+
+void AGIDL_FilterMipmapImgDataTrilerp(AGIDL_MIPMAP* mipmap){
+	AGIDL_FastFilterImgDataTrilerp(mipmap->img_data,mipmap->width,mipmap->height,mipmap->fmt);
+	
+	int i;
+	for(i = 1; i < mipmap->list->num_mips-1; i++){
+		AGIDL_MIPMAP_NODE* node = AGIDL_FindMipmapNode(mipmap->list,i);
+		
+		AGIDL_FastFilterImgDataTrilerp(node->img_data,node->width,node->height,node->fmt);
 	}
 }

@@ -10,7 +10,7 @@
 *   File: agidl_imgp_impl.h
 *   Date: 12/17/2023
 *   Version: 0.2b
-*   Updated: 1/19/2024
+*   Updated: 1/27/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -24,6 +24,7 @@
 #include "agidl_imgp_filter.h"
 #include "agidl_imgp_mirror.h"
 #include "agidl_imgp_wrap.h"
+#include "agidl_imgp_halftone.h"
 
 void AGIDL_GrayscaleBMP(AGIDL_BMP* bmp);
 void AGIDL_GrayscaleTGA(AGIDL_TGA* tga);
@@ -123,5 +124,14 @@ void AGIDL_WrapAndMirrorLMP(AGIDL_LMP* lmp, u8 num_of_wraps, AGIDL_MIRROR mirror
 void AGIDL_WrapAndMirrorPVR(AGIDL_PVR* pvr, u8 num_of_wraps, AGIDL_MIRROR mirror);
 void AGIDL_WrapAndMirrorGXT(AGIDL_GXT* gxt, u8 num_of_wraps, AGIDL_MIRROR mirror);
 void AGIDL_WrapAndMirrorBTI(AGIDL_BTI* bti, u8 num_of_wraps, AGIDL_MIRROR mirror);
+
+void AGIDL_HalftoneBMP(AGIDL_BMP* bmp);
+void AGIDL_HalftoneTGA(AGIDL_TGA* tga);
+void AGIDL_HalftoneTIM(AGIDL_TIM* tim);
+void AGIDL_HalftonePCX(AGIDL_PCX* pcx);
+void AGIDL_HalftoneLMP(AGIDL_LMP* lmp);
+void AGIDL_HalftonePVR(AGIDL_PVR* pvr);
+void AGIDL_HalftoneGXT(AGIDL_GXT* gxt);
+void AGIDL_HalftoneBTI(AGIDL_BTI* bti);
 
 #endif

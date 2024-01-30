@@ -836,7 +836,7 @@ AGIDL_BMP * AGIDL_LoadBMP(char* filename){
 	
 	AGIDL_BMPDecodeIMG(bmp,file,img_type);
 	AGIDL_BMPDecodeRLE(bmp,file,img_type);
-	
+
 	fclose(file);
 	
 	return bmp;

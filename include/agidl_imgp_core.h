@@ -10,7 +10,7 @@
 *   File: agidl_imgp_core.h
 *   Date: 11/27/2023
 *   Version: 0.1b
-*   Updated: 1/23/2024
+*   Updated: 1/27/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/

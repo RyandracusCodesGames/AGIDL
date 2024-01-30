@@ -10,7 +10,7 @@
 *   File: agidl_imgp_scale.h
 *   Date: 12/9/2023
 *   Version: 0.2b
-*   Updated: 1/26/2024
+*   Updated: 1/29/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -29,6 +29,8 @@ void * AGIDL_HalfImgDataNearest(void* data, u16* width, u16* height, AGIDL_CLR_F
 void * AGIDL_HalfImgDataBilerp(void* data, u16* width, u16* height, AGIDL_CLR_FMT fmt);
 void * AGIDL_ScaleImgDataNearest(void* data, u16* width, u16* height, float sx, float sy, AGIDL_CLR_FMT fmt);
 void * AGIDL_ScaleImgDataBilerp(void* data, u16* width, u16* height, float sx, float sy, AGIDL_CLR_FMT fmt);
+void * AGIDL_FastScaleImgDataBilerp(void* data, u16* width, u16* height, float sx, float sy, AGIDL_CLR_FMT fmt);
+void * AGIDL_FastScaleImgDataTrilerp(void* data, u16* width, u16* height, float sx, float sy, AGIDL_CLR_FMT fmt);
 void * AGIDL_ScaleImgDataTrilerp(void* data, u16* width, u16* height, float sx, float sy, AGIDL_CLR_FMT fmt);
 void * AGIDL_ScaleImgData(void* data, u16* width, u16* height, float sx, float sy, AGIDL_SCALE scale, AGIDL_CLR_FMT fmt);
 

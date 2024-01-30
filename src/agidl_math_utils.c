@@ -3,6 +3,8 @@
 #include "agidl_math_utils.h"
 #include "agidl_math_trig_tables.h"
 
+#include <stdio.h>
+
 /********************************************
 *   Adaptive Graphics Image Display Library
 *
@@ -12,7 +14,7 @@
 *   File: agidl_math_utils.c
 *   Date: 10/22/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 1/29/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -183,11 +185,14 @@ u32 AGIDL_BitReverse(char* bin){
 	reverse[strlen(bin)] = '\0';
 	
 	int i;
-	for(i = 0; i <= strlen(bin); i++){
+	for(i = 0; i < strlen(bin); i++){
 		reverse[i] = bin[strlen(bin)-(i+1)];
 	}
 	
 	u32 bitreverse = AGIDL_Bin2Dec(reverse);
+	
+	printf("%s\n",bin);
+	printf("%s\n",reverse);
 
 	free(reverse);
 	

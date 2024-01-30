@@ -10,7 +10,7 @@
 *   File: agidl_imgp_mipmap.h
 *   Date: 1/23/2024
 *   Version: 0.2b
-*   Updated: 1/23/2024
+*   Updated: 1/29/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -55,5 +55,7 @@ void AGIDL_DestroyMipmap(AGIDL_MIPMAP* mipmap);
 void AGIDL_LoadMipmapImgData(AGIDL_MIPMAP* mipmap, u8 mipmap_count, FILE* file);
 void AGIDL_ExportMipmapImgData(AGIDL_MIPMAP* mipmap, AGIDL_IMG_TYPE img, int flip);
 void AGIDL_GenerateMipmapFromImgData(AGIDL_MIPMAP* mipmap, void* img_data, u16 width, u16 height, AGIDL_CLR_FMT fmt, u8 mip_lvl, AGIDL_SCALE scale);
+void AGIDL_FilterMipmapImgDataBilerp(AGIDL_MIPMAP* mipmap);
+void AGIDL_FilterMipmaImgDataTrilerp(AGIDL_MIPMAP* mipmap);
 
 #endif

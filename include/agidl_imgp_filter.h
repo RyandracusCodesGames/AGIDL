@@ -9,7 +9,7 @@
 *   File: agidl_imgp_filter.h
 *   Date: 12/13/2023
 *   Version: 0.2b
-*   Updated: 1/19/2024
+*   Updated: 1/29/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -21,6 +21,8 @@ COLOR AGIDL_SamplePointNearest(void* data, float u, float v, u32 width, u32 heig
 COLOR AGIDL_SamplePointBilerp(void* data, float u, float v, u32 width, u32 height, AGIDL_CLR_FMT fmt);
 COLOR AGIDL_SamplePointTrilerp(void* data, float u, float v, u32 width, u32 height, AGIDL_CLR_FMT fmt);
 void AGIDL_FilterImgDataBilerp(void* data, u32 width, u32 height, AGIDL_CLR_FMT fmt);
+void AGIDL_FastFilterImgDataBilerp(void* data, u32 width, u32 height, AGIDL_CLR_FMT fmt);
 void AGIDL_FilterImgDataTrilerp(void* data, u32 width, u32 height, AGIDL_CLR_FMT fmt);
+void AGIDL_FastFilterImgDataTrilerp(void* data, u32 width, u32 height, AGIDL_CLR_FMT fmt);
 
 #endif
