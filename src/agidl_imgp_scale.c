@@ -329,7 +329,7 @@ void * AGIDL_ScaleImgDataBilerp(void* data, u16* width, u16* height, float sx, f
 					u8 gfinal = gtop + ((gbot-gtop) >> 1);
 					u8 bfinal = btop + ((bbot-btop) >> 1);
 					
-					AGIDL_SetClr16(scale,AGIDL_RGB(rfinal,gfinal,bfinal,fmt),x,y,newwidth,newheight);
+					AGIDL_SetClr(scale,AGIDL_RGB(rfinal,gfinal,bfinal,fmt),x,y,newwidth,newheight);
 				}
 				else{
 					u8 r1 = AGIDL_GetR(clr1,fmt);

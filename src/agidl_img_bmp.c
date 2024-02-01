@@ -6,6 +6,7 @@
 #include "agidl_math_utils.h"
 #include "agidl_img_compression.h"
 #include "agidl_img_error.h"
+#include "agidl_file_utils.h"
 
 /********************************************
 *   Adaptive Graphics Image Display Library
@@ -465,7 +466,7 @@ void AGIDL_BMPEncodeIMG0(AGIDL_BMP* bmp, FILE* file){
 			}
 			else{
 				int padding = 0;
-				int pad = AGIDL_BMPGetWidth(bmp);
+				int pad = AGIDL_BMPGetWidth(bmp) * 2;
 				
 				int pad_count = 0;
 				
@@ -482,7 +483,7 @@ void AGIDL_BMPEncodeIMG0(AGIDL_BMP* bmp, FILE* file){
 					
 					if(count == AGIDL_BMPGetWidth(bmp)){
 						count = 0;
-						fwrite(&padding,pad_count*2,1,file);
+						fwrite(&padding,pad_count,1,file);
 					}
 				}
 			}
@@ -565,7 +566,24 @@ void AGIDL_BMPDecodeIMG(AGIDL_BMP* bmp, FILE* file, BMP_IMG_TYPE img_type){
 			case BMP_IMG_TYPE_HIGH_CLR:{
 				AGIDL_BMPSetClrFmt(bmp,AGIDL_RGB_555);
 				bmp->pixels.pix16 = (COLOR16*)malloc(sizeof(COLOR16)*(AGIDL_BMPGetSize(bmp)));
-				AGIDL_ReadBufRGB16(file,bmp->pixels.pix16,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp));
+				
+				if((AGIDL_BMPGetWidth(bmp) % 4) == 0){
+					AGIDL_ReadBufRGB16(file,bmp->pixels.pix16,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp));
+				}
+				else{
+					int padding = AGIDL_BMPGetWidth(bmp) % 4;
+					int i, count;
+					for(i = 0, count = 1; i < AGIDL_BMPGetSize(bmp); i++, count++){
+						COLOR16 clr = AGIDL_ReadShort(file);
+						
+						bmp->pixels.pix16[i] = clr;
+						
+						if(count == AGIDL_BMPGetWidth(bmp)){
+							count = 0;
+							fseek(file,2,SEEK_CUR);
+						}
+					}
+				}
 			}break;
 			case BMP_IMG_TYPE_DEEP_CLR:{
 				AGIDL_BMPSetClrFmt(bmp,AGIDL_RGBA_8888);
