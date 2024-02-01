@@ -264,6 +264,9 @@ void * AGIDL_ScaleImgDataNearest(void* data, u16* width, u16* height, float sx, 
 }
 
 void * AGIDL_ScaleImgDataBilerp(void* data, u16* width, u16* height, float sx, float sy, AGIDL_CLR_FMT fmt){
+	if(floor(sx) == 0.5f && floor(sy) == 0.5f){
+		return AGIDL_HalfImgDataBilerp(data,width,height,fmt);
+	}
 	if(AGIDL_GetBitCount(fmt) == 24 || AGIDL_GetBitCount(fmt) == 32){
 		u16 worg = *width;
 		u16 horg = *height;
