@@ -19,5 +19,6 @@
 #include "agidl_img_types.h"
 
 void AGIDL_BlendChromaImg(void* data, void* chromadata, u32 width, u32 height, u32 width2, u32 height2, AGIDL_CLR_FMT fmt1, AGIDL_CLR_FMT fmt2, u16 x_off, u16 y_off, COLOR chromaclr);
+void AGIDL_BlendImgAlpha(void* spr1, u32 width, u32 height, int tx, int ty, void* spr2, u32 width2, u32 height2, AGIDL_CLR_FMT fmt);
 
 #endif

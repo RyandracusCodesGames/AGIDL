@@ -9,7 +9,7 @@
 *   File: agidl_cc_mixer.c
 *   Date: 9/10/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 2/2/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -282,7 +282,7 @@ COLOR AGIDL_BlendColor(COLOR clr1, COLOR clr2, float blend_factor, int blend_mod
 		
 		switch(blend_mode){
 			case CC_BLEND_CLR_SRCINV:{
-				float blend_factor = AGIDL_Clampf(0,(a1/255.0f),1);
+				float blend_factor = (a1/255.0f);
 				float iblend_factor = 1.0f - blend_factor;
 				u8 r = r1*iblend_factor + r2*blend_factor;
 				u8 g = g1*iblend_factor + g2*blend_factor;
@@ -291,7 +291,7 @@ COLOR AGIDL_BlendColor(COLOR clr1, COLOR clr2, float blend_factor, int blend_mod
 				return AGIDL_RGBA(r,g,b,a,fmt);
 			}break;
 			case CC_BLEND_CLR_DESTINV:{
-				float blend_factor = AGIDL_Clampf(0,a2/255.0f,1);
+				float blend_factor = a2/255.0f;
 				float iblend_factor = 1.0f - blend_factor;
 				u8 r = r1*iblend_factor + r2*blend_factor;
 				u8 g = g1*iblend_factor + g2*blend_factor;
@@ -300,7 +300,7 @@ COLOR AGIDL_BlendColor(COLOR clr1, COLOR clr2, float blend_factor, int blend_mod
 				return AGIDL_RGBA(r,g,b,a,fmt);
 			}break;
 			case CC_BLEND_CLR_SRC:{
-				float blend_factor = AGIDL_Clampf(0,a1/255.0f,1);
+				float blend_factor = a1/255.0f;
 				u8 r = r1*blend_factor + r2;
 				u8 g = g1*blend_factor + g2;
 				u8 b = b1*blend_factor + b2;
@@ -309,7 +309,7 @@ COLOR AGIDL_BlendColor(COLOR clr1, COLOR clr2, float blend_factor, int blend_mod
 			}break;
 			
 			case CC_BLEND_CLR_DEST:{
-				float blend_factor = AGIDL_Clampf(0,a2/255.0f,1);
+				float blend_factor = a2/255.0f;
 				u8 r = r1*blend_factor + r2;
 				u8 g = g1*blend_factor + g2;
 				u8 b = b1*blend_factor + b2;
@@ -317,7 +317,7 @@ COLOR AGIDL_BlendColor(COLOR clr1, COLOR clr2, float blend_factor, int blend_mod
 				return AGIDL_RGBA(r,g,b,a,fmt);
 			}break;
 			case CC_BLEND_CLR_ISRC:{
-				float blend_factor = 1.0f - AGIDL_Clampf(0,a1/255.0f,1);
+				float blend_factor = 1.0f - (a1/255.0f);
 				u8 r = r1*blend_factor + r2;
 				u8 g = g1*blend_factor + g2;
 				u8 b = b1*blend_factor + b2;
@@ -326,7 +326,7 @@ COLOR AGIDL_BlendColor(COLOR clr1, COLOR clr2, float blend_factor, int blend_mod
 			}break;
 			
 			case CC_BLEND_CLR_IDEST:{
-				float blend_factor = 1.0f - AGIDL_Clampf(0,a2/255.0f,1);
+				float blend_factor = 1.0f - (a2/255.0f);
 				u8 r = r1*blend_factor + r2;
 				u8 g = g1*blend_factor + g2;
 				u8 b = b1*blend_factor + b2;

@@ -7,7 +7,7 @@
 *   File: agidl_file_utils.c
 *   Date: 1/25/2024
 *   Version: 0.2b
-*   Updated: 1/26/2024
+*   Updated: 2/2/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/

@@ -10,7 +10,7 @@
 *   File: agidl.h
 *   Date: 12/8/2023
 *   Version: 0.1b
-*   Updated: 1/26/2024
+*   Updated: 2/1/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -20,5 +20,6 @@
 #include "agidl_cc_core.h"
 #include "agidl_img_core.h"
 #include "agidl_imgp_core.h"
+#include "agidl_gd_display.h"
 
 #endif

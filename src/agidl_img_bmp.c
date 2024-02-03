@@ -17,7 +17,7 @@
 *   File: agidl_img_bmp.c
 *   Date: 9/12/2023
 *   Version: 0.1b
-*   Updated: 1/30/2024
+*   Updated: 2/2/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -1082,13 +1082,7 @@ void AGIDL_ExportBMP(AGIDL_BMP *bmp){
 				AGIDL_BMPEncodeIMG0(bmp,file);
 			}break;
 			case AGIDL_ARGB_8888:{
-				int x,y;
-				for(y = 0; y < AGIDL_BMPGetHeight(bmp); y++){
-					for(x = 0; x < AGIDL_BMPGetWidth(bmp); x++){
-						COLOR clr = AGIDL_BMPGetClr(bmp,x,y);
-						AGIDL_ExtractAndPrintRGBA(file,clr,AGIDL_ARGB_8888);
-					}
-				}
+				fwrite(bmp->pixels.pix32,4,AGIDL_BMPGetSize(bmp),file);
 			}break;
 		}
 	}
