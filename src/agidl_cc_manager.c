@@ -12,7 +12,7 @@
 *   File: agidl_cc_manager.c
 *   Date: 9/8/2023
 *   Version: 0.1b
-*   Updated: 1/20/2024
+*   Updated: 2/4/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -1126,6 +1126,114 @@ void AGIDL_InitICP(AGIDL_ICP *palette, int mode){
 			palette->icp.palette_16b_256[i] = 0;
 		}
 	}
+}
+
+AGIDL_Bool AGIDL_IsClrInHistogram(AGIDL_Hist hist, COLOR clr){
+	int i;
+	for(i = 0; i < hist.num_of_clrs; i++){
+		if(clr == hist.table[i].clr){
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+u32 AGIDL_FindColorIndexInHistogram(AGIDL_Hist hist, COLOR clr){
+	if(AGIDL_IsClrInHistogram(hist,clr) == TRUE){
+		int i;
+		for(i = 0; i < hist.num_of_clrs; i++){
+			if(clr == hist.table[i].clr){
+				return i;
+			}
+		}
+	}
+}
+
+void AGIDL_EncodeHistogramICP(AGIDL_ICP* palette, void* data, u32 width, u32 height, AGIDL_CLR_FMT fmt){
+	AGIDL_Hist hist;
+	hist.num_of_clrs = 0;
+	
+	if(AGIDL_GetBitCount(fmt) == 16){
+		u16* clr_data = (u16*)data;
+		
+		//ITERATE THROUGH ENTIRE BUFFER OF IMAGE DATA AND TRACK ITS NUMBER OF OCCURENCES IN A HISTOGRAM
+		int i;
+		for(i = 0; i < width*height; i++){
+			u16 color = clr_data[i];
+			
+			if(AGIDL_IsClrInHistogram(hist,color) != TRUE){
+				hist.table[hist.num_of_clrs].clr = color;
+				hist.table[hist.num_of_clrs].occurence = 1;
+				hist.num_of_clrs++;
+			}
+			else{
+				u32 index = AGIDL_FindColorIndexInHistogram(hist,color);
+				hist.table[index].occurence++;
+			}
+		}
+		
+		//PERFORM BUBBLE SORT TO LIST THE 256 MOST IMPORTANT COLORS IN ORDER OF LEAST TO MOST FREQUENTLY OCCURING COLORS
+		int j;
+		for(j = 0; j < hist.num_of_clrs; j++){
+			for(i = 0; i < hist.num_of_clrs; i++){
+				if(hist.table[i].occurence > hist.table[i+1].occurence){
+					AGIDL_HistEntry temp = hist.table[i];
+					hist.table[i] = hist.table[i+1];
+					hist.table[i+1] = temp;
+				}
+			}
+		}
+		
+		AGIDL_InitICP(palette,AGIDL_ICP_16b_256);
+		
+		int count = 0;
+		for(i = hist.num_of_clrs; i > hist.num_of_clrs - 256; i--){
+			palette->icp.palette_16b_256[count] = hist.table[i].clr;
+			count++;
+		}
+		
+	}
+	else{
+		u32* clr_data = (u32*)data;
+		
+		//ITERATE THROUGH ENTIRE BUFFER OF IMAGE DATA AND TRACK ITS NUMBER OF OCCURENCES IN A HISTOGRAM
+		int i;
+		for(i = 0; i < width*height; i++){
+			u32 color = clr_data[i];
+			
+			if(AGIDL_IsClrInHistogram(hist,color) != TRUE){
+				hist.table[hist.num_of_clrs].clr = color;
+				hist.table[hist.num_of_clrs].occurence = 1;
+				hist.num_of_clrs++;
+			}
+			else{
+				u32 index = AGIDL_FindColorIndexInHistogram(hist,color);
+				hist.table[index].occurence++;
+			}
+		}
+		
+		//PERFORM BUBBLE SORT TO LIST THE 256 MOST IMPORTANT COLORS IN ORDER OF LEAST TO MOST FREQUENTLY OCCURING COLORS
+		int j;
+		for(j = 0; j < hist.num_of_clrs; j++){
+			for(i = 0; i < hist.num_of_clrs; i++){
+				if(hist.table[i].occurence > hist.table[i+1].occurence){
+					AGIDL_HistEntry temp = hist.table[i];
+					hist.table[i] = hist.table[i+1];
+					hist.table[i+1] = temp;
+				}
+			}
+		}
+		
+		AGIDL_InitICP(palette,AGIDL_ICP_256);
+		
+		int count = 0;
+		for(i = hist.num_of_clrs; i > hist.num_of_clrs - 256; i--){
+			palette->icp.palette_256[count] = hist.table[i].clr;
+			count++;
+		}
+	}
+	
+	palette->fmt = fmt;
 }
 
 void AGIDL_AddColorICP(AGIDL_ICP *palette, u8 index, COLOR clr, AGIDL_CLR_FMT fmt, int max_diff, int *pass){

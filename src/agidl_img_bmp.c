@@ -17,7 +17,7 @@
 *   File: agidl_img_bmp.c
 *   Date: 9/12/2023
 *   Version: 0.1b
-*   Updated: 2/2/2024
+*   Updated: 2/5/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -88,6 +88,10 @@ void AGIDL_BMPSetClr16(AGIDL_BMP *bmp, int x, int y, COLOR16 clr){
 
 void AGIDL_BMPSetICPMode(AGIDL_BMP *bmp, int mode){
 	bmp->icp = mode;
+}
+
+void AGIDL_BMPSetICPEncoding(AGIDL_BMP* bmp, AGIDL_ICP_ENCODE encode){
+	bmp->encode = encode;
 }
 
 void AGIDL_BMPSetCompression(AGIDL_BMP *bmp, int compress){
@@ -267,33 +271,38 @@ BMP_IMG_TYPE AGIDL_BMPGetImgType(int bits){
 }
 
 void AGIDL_BMPEncodeICP(AGIDL_BMP* bmp, FILE* file){
-	int pass = 0;
-	u8 pal_index = 0;
-	
-	AGIDL_InitICP(&bmp->palette, AGIDL_ICP_256);
-	
-	int x,y;
-	for(y = 0; y < AGIDL_BMPGetHeight(bmp); y++){
-		for(x = 0; x < AGIDL_BMPGetWidth(bmp); x++){
-			COLOR clr = AGIDL_BMPGetClr(bmp,x,y);
-			
-			if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 32){
-				u8 r = AGIDL_GetR(clr,AGIDL_BMPGetClrFmt(bmp));
-				u8 g = AGIDL_GetG(clr,AGIDL_BMPGetClrFmt(bmp));
-				u8 b = AGIDL_GetB(clr,AGIDL_BMPGetClrFmt(bmp));
-				clr = AGIDL_RGB(r,g,b,AGIDL_BGR_888);
-				AGIDL_AddColorICP(&bmp->palette,pal_index,clr,AGIDL_BGR_888,AGIDL_BMPGetMaxDiff(bmp),&pass);
+	if(bmp->encode == ICP_ENCODE_THRESHOLD){
+		int pass = 0;
+		u8 pal_index = 0;
+		
+		AGIDL_InitICP(&bmp->palette, AGIDL_ICP_256);
+		
+		int x,y;
+		for(y = 0; y < AGIDL_BMPGetHeight(bmp); y++){
+			for(x = 0; x < AGIDL_BMPGetWidth(bmp); x++){
+				COLOR clr = AGIDL_BMPGetClr(bmp,x,y);
+				
+				if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 32){
+					u8 r = AGIDL_GetR(clr,AGIDL_BMPGetClrFmt(bmp));
+					u8 g = AGIDL_GetG(clr,AGIDL_BMPGetClrFmt(bmp));
+					u8 b = AGIDL_GetB(clr,AGIDL_BMPGetClrFmt(bmp));
+					clr = AGIDL_RGB(r,g,b,AGIDL_BGR_888);
+					AGIDL_AddColorICP(&bmp->palette,pal_index,clr,AGIDL_BGR_888,AGIDL_BMPGetMaxDiff(bmp),&pass);
+				}
+				else{
+					AGIDL_AddColorICP(&bmp->palette,pal_index,clr,bmp->fmt,AGIDL_BMPGetMaxDiff(bmp),&pass);
+				}
+				
+				if(pass == 1 && pal_index < 256){
+					pal_index++;
+				}
+				
+				pass = 0;
 			}
-			else{
-				AGIDL_AddColorICP(&bmp->palette,pal_index,clr,bmp->fmt,AGIDL_BMPGetMaxDiff(bmp),&pass);
-			}
-			
-			if(pass == 1 && pal_index < 256){
-				pal_index++;
-			}
-			
-			pass = 0;
 		}
+	}
+	else{
+		AGIDL_EncodeHistogramICP(&bmp->palette,bmp->pixels.pix32,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp),AGIDL_BMPGetClrFmt(bmp));
 	}
 	
 	int i;
@@ -408,28 +417,45 @@ void AGIDL_BMPEncodeRLE(AGIDL_BMP* bmp, FILE* file){
 }
 
 void AGIDL_BMPEncodeIMG(AGIDL_BMP* bmp, FILE* file){
-	int padding = 0;
-	int pad = AGIDL_BMPGetWidth(bmp) % 4;
-	int x,y;
-	for(y = 0; y < AGIDL_BMPGetHeight(bmp); y++){
-		for(x = 0; x < AGIDL_BMPGetWidth(bmp); x++){
-			COLOR clr = AGIDL_BMPGetClr(bmp,x,y);
-			
-			u8 index;
-			if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 32){
-				u8 r = AGIDL_GetR(clr,AGIDL_BMPGetClrFmt(bmp));
-				u8 g = AGIDL_GetG(clr,AGIDL_BMPGetClrFmt(bmp));
-				u8 b = AGIDL_GetB(clr,AGIDL_BMPGetClrFmt(bmp));
-				clr = AGIDL_RGB(r,g,b,AGIDL_BGR_888);
-				index = AGIDL_FindClosestColor(bmp->palette,clr,AGIDL_BGR_888,AGIDL_BMPGetMaxDiff(bmp));
+	if(bmp->encode == ICP_ENCODE_THRESHOLD){
+		int padding = 0;
+		int pad = AGIDL_BMPGetWidth(bmp) % 4;
+		int x,y;
+		for(y = 0; y < AGIDL_BMPGetHeight(bmp); y++){
+			for(x = 0; x < AGIDL_BMPGetWidth(bmp); x++){
+				COLOR clr = AGIDL_BMPGetClr(bmp,x,y);
+				
+				u8 index;
+				if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 32){
+					u8 r = AGIDL_GetR(clr,AGIDL_BMPGetClrFmt(bmp));
+					u8 g = AGIDL_GetG(clr,AGIDL_BMPGetClrFmt(bmp));
+					u8 b = AGIDL_GetB(clr,AGIDL_BMPGetClrFmt(bmp));
+					clr = AGIDL_RGB(r,g,b,AGIDL_BGR_888);
+					index = AGIDL_FindClosestColor(bmp->palette,clr,AGIDL_BGR_888,AGIDL_BMPGetMaxDiff(bmp));
+				}
+				else{
+					index = AGIDL_FindClosestColor(bmp->palette,clr,bmp->fmt,AGIDL_BMPGetMaxDiff(bmp));
+				}
+				AGIDL_WriteByte(file,index);
 			}
-			else{
-			    index = AGIDL_FindClosestColor(bmp->palette,clr,bmp->fmt,AGIDL_BMPGetMaxDiff(bmp));
+			if(!(pad) == 0){
+				fwrite(&padding,pad,1,file);
 			}
-			AGIDL_WriteByte(file,index);
 		}
-		if(!(pad) == 0){
-			fwrite(&padding,pad,1,file);
+	}
+	else{
+		int padding = 0;
+		int pad = AGIDL_BMPGetWidth(bmp) % 4;
+		int x,y;
+		for(y = 0; y < AGIDL_BMPGetHeight(bmp); y++){
+			for(x = 0; x < AGIDL_BMPGetWidth(bmp); x++){
+				COLOR clr = AGIDL_BMPGetClr(bmp,x,y);
+				u8 index = AGIDL_FindNearestColor(bmp->palette,clr,AGIDL_BMPGetClrFmt(bmp));
+				AGIDL_WriteByte(file,index);
+			}
+			if(!(pad) == 0){
+				fwrite(&padding,pad,1,file);
+			}
 		}
 	}
 }
@@ -860,6 +886,7 @@ AGIDL_BMP * AGIDL_LoadBMP(char* filename){
 	
 	bmp->filename = (char*)malloc(strlen(filename)+1);
 	AGIDL_FilenameCpy(bmp->filename,filename);
+	AGIDL_BMPSetICPEncoding(bmp,ICP_ENCODE_THRESHOLD);
 	
 	FILE* file = fopen(filename,"rb");
 	
@@ -895,6 +922,7 @@ AGIDL_BMP * AGIDL_CreateBMP(const char *filename, int width, int height, AGIDL_C
 	AGIDL_BMPSetICPMode(bmp,0);
 	AGIDL_BMPSetCompression(bmp,0);
 	AGIDL_BMPSetMaxDiff(bmp,7);
+	AGIDL_BMPSetICPEncoding(bmp,ICP_ENCODE_THRESHOLD);
 	
 	if(AGIDL_GetBitCount(fmt) == 24 || AGIDL_GetBitCount(fmt) == 32){
 		bmp->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*(width*height));
@@ -911,6 +939,7 @@ AGIDL_BMP* AGIDL_BMPCpyImg(AGIDL_BMP* bmp){
 	AGIDL_BMPSetICPMode(bmpcpy,bmp->icp);
 	AGIDL_BMPSetCompression(bmpcpy,bmp->compression);
 	AGIDL_BMPSetMaxDiff(bmpcpy,AGIDL_BMPGetMaxDiff(bmp));
+	AGIDL_BMPSetICPEncoding(bmpcpy,bmp->encode);
 	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 24 || AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 32){
 		AGIDL_BMPSyncPix(bmpcpy,bmp->pixels.pix32);
 	}

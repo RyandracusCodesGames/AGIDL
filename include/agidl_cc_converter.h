@@ -10,7 +10,7 @@
 *   File: agidl_cc_converter.h
 *   Date: 9/9/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 2/4/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -26,6 +26,8 @@ COLOR AGIDL_BGR_TO_RGB(COLOR bgr, AGIDL_CLR_FMT fmt);
 
 COLOR16 AGIDL_555_TO_565(COLOR16 clr, AGIDL_CLR_FMT fmt);
 COLOR16 AGIDL_565_TO_555(COLOR16 clr, AGIDL_CLR_FMT fmt);
+
+COLOR AGIDL_RGBA_TO_RGB(COLOR rgba, AGIDL_CLR_FMT src, AGIDL_CLR_FMT dest);
 
 AGIDL_YCbCr AGIDL_CLR_TO_YCbCr(COLOR clr, AGIDL_CLR_FMT fmt);
 AGIDL_YCbCr AGIDL_RGB_TO_YCbCr(u8 r, u8 g, u8 b);

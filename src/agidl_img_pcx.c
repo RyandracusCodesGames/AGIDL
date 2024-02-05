@@ -16,7 +16,7 @@
 *   File: agidl_img_pcx.c
 *   Date: 9/25/2023
 *   Version: 0.1b
-*   Updated: 1/26/2024
+*   Updated: 2/4/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -40,6 +40,10 @@ void AGIDL_PCXSetClrFmt(AGIDL_PCX *pcx, AGIDL_CLR_FMT fmt){
 
 void AGIDL_PCXSetICPMode(AGIDL_PCX *pcx, int mode){
 	pcx->icp = mode;
+}
+
+void AGIDL_PCXSetICPEncoding(AGIDL_PCX* pcx, AGIDL_ICP_ENCODE encode){
+	pcx->encode = encode;
 }
 
 void AGIDL_PCXSetMaxDiff(AGIDL_PCX* pcx, int max_diff){
@@ -233,6 +237,7 @@ AGIDL_PCX * AGIDL_CreatePCX(const char *filename, int width, int height, AGIDL_C
 	AGIDL_PCXSetHeight(pcx,height);
 	AGIDL_PCXSetMaxDiff(pcx,15);
 	AGIDL_PCXSetClrFmt(pcx,fmt);
+	AGIDL_PCXSetICPEncoding(pcx,ICP_ENCODE_THRESHOLD);
 	
 	if(fmt == AGIDL_RGB_888 || fmt == AGIDL_BGR_888 || fmt == AGIDL_RGBA_8888 || fmt == AGIDL_ARGB_8888){
 		pcx->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*(width*height));
@@ -646,24 +651,29 @@ void AGIDL_PCXEncodeHeader(AGIDL_PCX* pcx, FILE* file){
 }
 
 void AGIDL_PCXEncodeICP(AGIDL_PCX* pcx){
-	AGIDL_InitICP(&pcx->palette,AGIDL_ICP_256);
-	
-	int pass = 0;
-	u8 pal_index = 0;
-	
-	int x,y;
-	for(y = 0; y < AGIDL_PCXGetHeight(pcx); y++){
-		for(x = 0; x < AGIDL_PCXGetWidth(pcx); x++){
-			COLOR clr = AGIDL_PCXGetClr(pcx,x,y);
-			
-			AGIDL_AddColorICP(&pcx->palette,pal_index,clr,AGIDL_PCXGetClrFmt(pcx),AGIDL_PCXGetMaxDiff(pcx),&pass);
-			
-			if(pass == 1 && pal_index < 256){
-				pal_index++;
+	if(pcx->encode == ICP_ENCODE_THRESHOLD){
+		AGIDL_InitICP(&pcx->palette,AGIDL_ICP_256);
+		
+		int pass = 0;
+		u8 pal_index = 0;
+		
+		int x,y;
+		for(y = 0; y < AGIDL_PCXGetHeight(pcx); y++){
+			for(x = 0; x < AGIDL_PCXGetWidth(pcx); x++){
+				COLOR clr = AGIDL_PCXGetClr(pcx,x,y);
+				
+				AGIDL_AddColorICP(&pcx->palette,pal_index,clr,AGIDL_PCXGetClrFmt(pcx),AGIDL_PCXGetMaxDiff(pcx),&pass);
+				
+				if(pass == 1 && pal_index < 256){
+					pal_index++;
+				}
+				
+				pass = 0;
 			}
-			
-			pass = 0;
 		}
+	}
+	else{
+		AGIDL_EncodeHistogramICP(&pcx->palette,pcx->pixels.pix32,AGIDL_PCXGetWidth(pcx),AGIDL_PCXGetHeight(pcx),AGIDL_PCXGetClrFmt(pcx));
 	}
 }
 
@@ -845,14 +855,14 @@ void AGIDL_PCXEncodeImg(AGIDL_PCX* pcx, FILE* file){
 			int row;
 			for(row = 0; row < AGIDL_PCXGetWidth(pcx); row++){
 				COLOR clr = AGIDL_PCXGetClr(pcx,row,scanline);
-				buf[row] = AGIDL_FindClosestColor(pcx->palette,clr,AGIDL_PCXGetClrFmt(pcx),AGIDL_PCXGetMaxDiff(pcx));
+				buf[row] = AGIDL_FindNearestColor(pcx->palette,clr,AGIDL_PCXGetClrFmt(pcx));
 			}
 			
 			int x;
 			for(x = 0; x < AGIDL_PCXGetWidth(pcx); x++){
 				int count = 1, x_count = x+1;
 				
-				while((buf[x] == buf[x+1]) && count < 63){
+				while((buf[x] == buf[x_count+1]) && count < 63){
 					count++;
 					x_count++;
 				}
@@ -928,6 +938,7 @@ AGIDL_PCX * AGIDL_LoadPCX(char *filename){
 	AGIDL_PCX *pcx = (AGIDL_PCX*)malloc(sizeof(AGIDL_PCX));
 	pcx->filename = (char*)malloc(strlen(filename)+1);
 	AGIDL_FilenameCpy(pcx->filename,filename);
+	AGIDL_PCXSetICPEncoding(pcx,ICP_ENCODE_THRESHOLD);
 	
 	if(pcx == NULL || pcx->filename == NULL){
 		printf("%s\n",AGIDL_Error2Str(MEMORY_IMG_ERROR));

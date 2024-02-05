@@ -10,7 +10,7 @@
 *   File: agidl_img_pcx.h
 *   Date: 9/25/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 2/5/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -19,6 +19,7 @@
 #include "agidl_types.h"
 #include "agidl_cc_types.h"
 #include "agidl_img_types.h"
+#include "agidl_cc_manager.h"
 
 typedef struct PCXHEADER{
 	u8 id;
@@ -48,6 +49,7 @@ typedef struct AGIDL_PCX{
 	AGIDL_ICP palette;
 	AGIDL_CLR_FMT fmt;
 	Pixels pixels;
+	AGIDL_ICP_ENCODE encode;
 	char *filename;
 }AGIDL_PCX;
 
@@ -56,6 +58,7 @@ void AGIDL_PCXSetWidth(AGIDL_PCX *pcx, int width);
 void AGIDL_PCXSetHeight(AGIDL_PCX *pcx, int height);
 void AGIDL_PCXSetClrFmt(AGIDL_PCX *pcx, AGIDL_CLR_FMT fmt);
 void AGIDL_PCXSetICPMode(AGIDL_PCX *pcx, int mode);
+void AGIDL_PCXSetICPEncoding(AGIDL_PCX* pcx, AGIDL_ICP_ENCODE encode);
 void AGIDL_PCXSetMaxDiff(AGIDL_PCX* pcx, int max_diff);
 void AGIDL_PCXSetClr(AGIDL_PCX *pcx, int x, int y, COLOR clr);
 void AGIDL_PCXSetClr16(AGIDL_PCX *pcx, int x, int y, COLOR16 clr);

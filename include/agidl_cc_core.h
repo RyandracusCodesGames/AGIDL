@@ -10,7 +10,7 @@
 *   File: agidl_cc_core.h
 *   Date: 9/11/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 2/4/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -19,5 +19,6 @@
 #include "agidl_cc_manager.h"
 #include "agidl_cc_converter.h"
 #include "agidl_cc_mixer.h"
+#include "agidl_cc_chromascan.h"
 
 #endif

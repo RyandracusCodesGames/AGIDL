@@ -7,7 +7,7 @@
 *   File: agidl_img_converter.c
 *   Date: 11/3/2023
 *   Version: 0.1b
-*   Updated: 1/21/2024
+*   Updated: 2/4/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -26,6 +26,7 @@ AGIDL_TGA* AGIDL_ConvertBMP2TGA(AGIDL_BMP* bmp){
 	AGIDL_TGASetICPMode(tga,bmp->icp);
 	AGIDL_TGASetMaxDiff(tga,AGIDL_BMPGetMaxDiff(bmp));
 	AGIDL_TGASetCompression(tga,bmp->compression);
+	AGIDL_TGASetICPEncoding(tga,bmp->encode);
 	
 	free(imgname);
 	free(ext);
@@ -432,6 +433,7 @@ AGIDL_PCX* AGIDL_ConvertTIM2PCX(AGIDL_TIM* tim){
 	else{
 		AGIDL_PCXSyncPix16(pcx,tim->pixels.pix16);
 	}
+		
 	return pcx;
 }
 

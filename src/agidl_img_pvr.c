@@ -16,7 +16,7 @@
 *   File: agidl_img_pvr.c
 *   Date: 10/28/2023
 *   Version: 0.1b
-*   Updated: 1/26/2024
+*   Updated: 2/4/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -817,13 +817,7 @@ void AGIDL_PVREncodeIMG(AGIDL_PVR* pvr, FILE* file){
 		switch(AGIDL_PVRGetClrFmt(pvr)){
 			case AGIDL_RGB_888:{
 				if(pvr->mip_lvl == 1){
-					int x,y;
-					for(y = 0; y < AGIDL_PVRGetHeight(pvr); y++){
-						for(x = 0; x < AGIDL_PVRGetWidth(pvr); x++){
-							COLOR clr = AGIDL_PVRGetClr(pvr,x,y);
-							AGIDL_ExtractAndPrintRGB(file,clr,AGIDL_RGB_888);
-						}
-					}
+					AGIDL_WriteBufRGB(file,pvr->pixels.pix32,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr));
 				}
 				else{
 					
@@ -831,47 +825,34 @@ void AGIDL_PVREncodeIMG(AGIDL_PVR* pvr, FILE* file){
 					
 					AGIDL_GenerateMipmapFromImgData(pvr->mipmap,pvr->pixels.pix32,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),pvr->mip_lvl,AGIDL_SCALE_NEAREST);
 					
-					int x,y;
-					for(y = 0; y < AGIDL_PVRGetHeight(pvr); y++){
-						for(x = 0; x < AGIDL_PVRGetWidth(pvr); x++){
-							COLOR clr = AGIDL_PVRGetClr(pvr,x,y);
-							AGIDL_ExtractAndPrintRGB(file,clr,AGIDL_RGB_888);
-						}
-					}
+					AGIDL_WriteBufRGB(file,pvr->pixels.pix32,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr));
 					
 					int i;
 					for(i = 1; i < pvr->mipmap->list->num_mips-1; i++){
 						
 						AGIDL_MIPMAP_NODE* node = AGIDL_FindMipmapNode(pvr->mipmap->list,i);
 						COLOR* clr_data = (COLOR*)node->img_data;
-						
-						int x,y;
-						for(y = 0; y < node->height; y++){
-							for(x = 0; x < node->width; x++){
-								COLOR clr = AGIDL_GetClr(clr_data,x,y,node->width,node->height);
-								AGIDL_ExtractAndPrintRGB(file,clr,AGIDL_RGB_888);
-							}
-						}
+						AGIDL_WriteBufRGB(file,clr_data,node->width,node->height);
 					}
 				}
 			}break;
 			case AGIDL_RGB_565:{
 				if(pvr->mip_lvl == 1){
-					fwrite(pvr->pixels.pix16,2,AGIDL_PVRGetSize(pvr),file);
+					AGIDL_WriteBufClr16(file,pvr->pixels.pix16,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr));
 				}
 				else{
 					pvr->mipmap = AGIDL_CreateMipmap(pvr->pixels.pix16,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),FALSE);
 					
 					AGIDL_GenerateMipmapFromImgData(pvr->mipmap,pvr->pixels.pix16,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),pvr->mip_lvl,AGIDL_SCALE_NEAREST);
 					
-					fwrite(pvr->pixels.pix16,2,AGIDL_PVRGetSize(pvr),file);
+					AGIDL_WriteBufClr16(file,pvr->pixels.pix16,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr));
 					
 					int i;
 					for(i = 1; i < pvr->mipmap->list->num_mips-1; i++){
 						
 						AGIDL_MIPMAP_NODE* node = AGIDL_FindMipmapNode(pvr->mipmap->list,i);
 						COLOR16* clr_data = (COLOR16*)node->img_data;
-						fwrite(clr_data,2,node->width*node->height,file);
+						AGIDL_WriteBufClr16(file,clr_data,node->width,node->height);
 					}
 				}
 			}break;
@@ -891,40 +872,21 @@ void AGIDL_PVREncodeIMG(AGIDL_PVR* pvr, FILE* file){
 			}break;
 			case AGIDL_RGBA_8888:{
 				if(pvr->mip_lvl == 1){
-					int x,y;
-					for(y = 0; y < AGIDL_PVRGetHeight(pvr); y++){
-						for(x = 0; x < AGIDL_PVRGetWidth(pvr); x++){
-							COLOR clr = AGIDL_PVRGetClr(pvr,x,y);
-							AGIDL_ExtractAndPrintRGBA(file,clr,AGIDL_RGBA_8888);
-						}
-					}
+					AGIDL_WriteBufRGBA(file,pvr->pixels.pix32,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr));
 				}
 				else{
 					pvr->mipmap = AGIDL_CreateMipmap(pvr->pixels.pix32,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),FALSE);
 					
 					AGIDL_GenerateMipmapFromImgData(pvr->mipmap,pvr->pixels.pix32,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),pvr->mip_lvl,AGIDL_SCALE_NEAREST);
 					
-					int x,y;
-					for(y = 0; y < AGIDL_PVRGetHeight(pvr); y++){
-						for(x = 0; x < AGIDL_PVRGetWidth(pvr); x++){
-							COLOR clr = AGIDL_PVRGetClr(pvr,x,y);
-							AGIDL_ExtractAndPrintRGB(file,clr,AGIDL_RGB_888);
-						}
-					}
+					AGIDL_WriteBufRGBA(file,pvr->pixels.pix32,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr));
 					
 					int i;
 					for(i = 1; i < pvr->mipmap->list->num_mips-1; i++){
 						
 						AGIDL_MIPMAP_NODE* node = AGIDL_FindMipmapNode(pvr->mipmap->list,i);
 						COLOR* clr_data = (COLOR*)node->img_data;
-						
-						int x,y;
-						for(y = 0; y < node->height; y++){
-							for(x = 0; x < node->width; x++){
-								COLOR clr = AGIDL_GetClr(clr_data,x,y,node->width,node->height);
-								AGIDL_ExtractAndPrintRGBA(file,clr,AGIDL_RGBA_8888);
-							}
-						}
+						AGIDL_WriteBufRGBA(file,clr_data,node->width,node->height);
 					}
 				}
 			}break;

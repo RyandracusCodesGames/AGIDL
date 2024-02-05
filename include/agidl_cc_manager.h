@@ -4,6 +4,8 @@
 #include "agidl_types.h"
 #include "agidl_cc_types.h"
 
+#define MAX_TABLE_CLRS 8000
+
 /********************************************
 *   Adaptive Graphics Image Display Library
 *
@@ -13,7 +15,7 @@
 *   File: agidl_cc_manager.h
 *   Date: 9/8/2023
 *   Version: 0.1b
-*   Updated: 1/20/2024
+*   Updated: 2/4/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -38,6 +40,24 @@ COLOR AGIDL_Color4f(float r, float g, float b, float a, AGIDL_CLR_FMT fmt);
 
 COLOR AGIDL_GammaCorrectColor(COLOR clr, f32 gamma, AGIDL_CLR_FMT fmt);
 u8 AGIDL_GammaCorrectColorComponent(u8 rgb, f32 gamma, AGIDL_CLR_FMT fmt);
+
+typedef enum AGIDL_ICP_ENCODE{
+	ICP_ENCODE_HISTOGRAM = 0x1,
+	ICP_ENCODE_THRESHOLD = 0x2,
+}AGIDL_ICP_ENCODE;
+
+typedef struct AGIDL_HistEntry{
+	COLOR clr;
+	u32 occurence;
+}AGIDL_HistEntry;
+
+typedef struct AGIDL_Hist{
+	AGIDL_HistEntry table[MAX_TABLE_CLRS];
+	u32 num_of_clrs;
+}AGIDL_Hist;
+
+AGIDL_Bool AGIDL_IsClrInHistogram(AGIDL_Hist hist, COLOR clr);
+void AGIDL_EncodeHistogramICP(AGIDL_ICP* palette, void* data, u32 width, u32 height, AGIDL_CLR_FMT fmt);
 
 void AGIDL_SetICPMode(AGIDL_ICP* palette, int mode, AGIDL_CLR_FMT fmt);
 void AGIDL_ClearICP(AGIDL_ICP* palette, COLOR clr);

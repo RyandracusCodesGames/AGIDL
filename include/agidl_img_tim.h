@@ -10,7 +10,7 @@
 *   File: agidl_img_tim.h
 *   Date: 9/19/2023
 *   Version: 0.1b
-*   Updated: 1/20/2024
+*   Updated: 2/5/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -19,6 +19,7 @@
 #include "agidl_types.h"
 #include "agidl_cc_types.h"
 #include "agidl_img_types.h"
+#include "agidl_cc_manager.h"
 
 #define TIM_MAGIC 0x10
 
@@ -59,6 +60,7 @@ typedef struct AGIDL_TIM{
 	AGIDL_CLR_FMT fmt;
 	IMG_HEADER img_header;
 	Pixels pixels;
+	AGIDL_ICP_ENCODE encode;
 	char *filename;
 }AGIDL_TIM;
 
@@ -70,6 +72,7 @@ void AGIDL_TIMSetClr(AGIDL_TIM *tim, int x, int y, COLOR clr);
 void AGIDL_TIMSetClr16(AGIDL_TIM *tim, int x, int y, COLOR16 clr);
 void AGIDL_TIMSetRGB(AGIDL_TIM *tim, int x, int y, u8 r, u8 g, u8 b);
 void AGIDL_TIMSetICPMode(AGIDL_TIM *tim, int mode);
+void AGIDL_TIMSetICPEncoding(AGIDL_TIM* tim, AGIDL_ICP_ENCODE encode);
 void AGIDL_TIMSetMaxDiff(AGIDL_TIM *tim, int max_diff);
 void AGIDL_ClearTIM(AGIDL_TIM *tim, COLOR clr);
 void AGIDL_ClearTIM16(AGIDL_TIM *tim, COLOR16 clr);

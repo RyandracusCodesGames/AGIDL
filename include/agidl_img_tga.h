@@ -10,7 +10,7 @@
 *   File: agidl_img_tga.h
 *   Date: 9/13/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 2/5/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -19,6 +19,7 @@
 #include "agidl_types.h"
 #include "agidl_cc_types.h"
 #include "agidl_img_types.h"
+#include "agidl_cc_manager.h"
 
 typedef enum TGA_ICP_TYPE{
 	TGA_IMG_TYPE_ICP = 1,
@@ -57,6 +58,7 @@ typedef struct AGIDL_TGA{
 	AGIDL_ICP palette;
 	AGIDL_CLR_FMT fmt;
 	Pixels pixels;
+	AGIDL_ICP_ENCODE encode;
 	char *filename;
 }AGIDL_TGA;
 
@@ -70,6 +72,7 @@ void AGIDL_TGASetRGB(AGIDL_TGA *tga, int x, int y, u8 r, u8 g, u8 b);
 void AGIDL_TGASetRGBA(AGIDL_TGA* tga, int x, int y, u8 r, u8 g, u8 b, u8 a);
 void AGIDL_TGASetMaxDiff(AGIDL_TGA* tga, int max_diff);
 void AGIDL_TGASetICPMode(AGIDL_TGA *tga, int mode);
+void AGIDL_TGASetICPEncoding(AGIDL_TGA* tga, AGIDL_ICP_ENCODE encode);
 void AGIDL_TGASetCompression(AGIDL_TGA* tga, int compress);
 void AGIDL_ClearTGA(AGIDL_TGA *tga, COLOR clr);
 void AGIDL_ClearTGA16(AGIDL_TGA *tga, COLOR16 clr);

@@ -10,7 +10,7 @@
 *   File: agidl_img_bmp.h
 *   Date: 9/11/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 2/5/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include "agidl_types.h"
 #include "agidl_cc_types.h"
+#include "agidl_cc_manager.h"
 #include "agidl_img_types.h"
 
 #define BI_RGB 0
@@ -63,6 +64,7 @@ typedef struct AGIDL_BMP{
 	AGIDL_CLR_FMT fmt;
 	Pixels pixels;
 	AGIDL_Bool IsOS2;
+	AGIDL_ICP_ENCODE encode;
 	char *filename;
 }AGIDL_BMP;
 
@@ -82,6 +84,7 @@ void AGIDL_BMPSetRGB(AGIDL_BMP *bmp, int x, int y, u8 r, u8 g, u8 b);
 void AGIDL_BMPSetRGBA(AGIDL_BMP *bmp, int x, int y, u8 r, u8 g, u8 b, u8 a);
 void AGIDL_BMPSetCompression(AGIDL_BMP *bmp, int compress);
 void AGIDL_BMPSetICPMode(AGIDL_BMP *bmp, int mode);
+void AGIDL_BMPSetICPEncoding(AGIDL_BMP* bmp, AGIDL_ICP_ENCODE encode);
 void AGIDL_ClearBMP(AGIDL_BMP *bmp, COLOR clr);
 void AGIDL_ClearBMP16(AGIDL_BMP *bmp, COLOR16 clr);
 void AGIDL_ClearColorBMP(AGIDL_BMP* bmp, float r, float g, float b);

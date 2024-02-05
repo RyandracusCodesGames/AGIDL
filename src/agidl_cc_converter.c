@@ -11,7 +11,7 @@
 *   File: agidl_cc_converter.c
 *   Date: 9/9/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 2/4/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -93,12 +93,13 @@ COLOR AGIDL_RGB_TO_BGR(COLOR rgb, AGIDL_CLR_FMT fmt){
 	u8 r = AGIDL_GetR(rgb,fmt);
 	u8 g = AGIDL_GetG(rgb,fmt);
 	u8 b = AGIDL_GetB(rgb,fmt);
+	u8 a = (rgb >> 15) & 0x1;
 	
 	if(fmt == AGIDL_RGB_888){
 		return AGIDL_RGB(r,g,b,AGIDL_BGR_888);
 	}
 	else if(fmt == AGIDL_RGB_555){
-		return AGIDL_RGB16(r,g,b,AGIDL_BGR_555);
+		return a << 15 | AGIDL_RGB16(r,g,b,AGIDL_BGR_555);
 	}
 	else if(fmt == AGIDL_RGB_565){
 		return AGIDL_RGB16(r,g,b,AGIDL_BGR_565);
@@ -110,12 +111,13 @@ COLOR AGIDL_BGR_TO_RGB(COLOR bgr, AGIDL_CLR_FMT fmt){
 	u8 r = AGIDL_GetR(bgr,fmt);
 	u8 g = AGIDL_GetG(bgr,fmt);
 	u8 b = AGIDL_GetB(bgr,fmt);
+	u8 a = (bgr >> 15) & 0x1;
 	
 	if(fmt == AGIDL_BGR_888){
 		return AGIDL_RGB(r,g,b,AGIDL_RGB_888);
 	}
 	else if(fmt == AGIDL_BGR_555){
-		return AGIDL_RGB16(r,g,b,AGIDL_RGB_555);
+		return a << 15 | AGIDL_RGB16(r,g,b,AGIDL_RGB_555);
 	}
 	else if(fmt == AGIDL_BGR_565){
 		return AGIDL_RGB16(r,g,b,AGIDL_RGB_565);
@@ -157,6 +159,20 @@ AGIDL_YCbCr AGIDL_CLR_TO_YCbCr(COLOR clr, AGIDL_CLR_FMT fmt){
 	u8 b = AGIDL_GetB(clr,fmt);
 	
 	return AGIDL_RGB_TO_YCbCr(r,g,b);
+}
+
+COLOR AGIDL_RGBA_TO_RGB(COLOR rgba, AGIDL_CLR_FMT src, AGIDL_CLR_FMT dest){
+	u8 r = AGIDL_GetR(rgba,src);
+	u8 g = AGIDL_GetG(rgba,src);
+	u8 b = AGIDL_GetB(rgba,src);
+	u8 a = AGIDL_GetA(rgba,src);
+	
+	if(AGIDL_GetBitCount(dest) == 24){
+		return AGIDL_RGB(r,g,b,dest);
+	}
+	else{
+		return AGIDL_CLR_TO_CLR16(rgba,src,dest);
+	}
 }
 
 AGIDL_YCbCr AGIDL_RGB_TO_YCbCr(u8 r, u8 g, u8 b){
