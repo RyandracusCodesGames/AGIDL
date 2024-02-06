@@ -1142,7 +1142,7 @@ AGIDL_Bool AGIDL_IsClrInHistogram(AGIDL_Hist hist, COLOR clr){
 		int diffr = AGIDL_Abs(r-histr), diffg = AGIDL_Abs(g-histg), diffb = AGIDL_Abs(b-histb);
 		
 		if(AGIDL_GetBitCount(hist.fmt) != 16){
-			if(diffr <= 8 && diffg <= 8 && diffb <= 8){
+			if(diffr <= 5 && diffg <= 5 && diffb <= 5){
 				return TRUE;
 			}
 		}
@@ -1156,14 +1156,30 @@ AGIDL_Bool AGIDL_IsClrInHistogram(AGIDL_Hist hist, COLOR clr){
 }
 
 u32 AGIDL_FindColorIndexInHistogram(AGIDL_Hist hist, COLOR clr){
-	if(AGIDL_IsClrInHistogram(hist,clr) == TRUE){
-		int i;
-		for(i = 0; i < hist.num_of_clrs; i++){
-			if(clr == hist.table[i].clr){
+	int i;
+	for(i = 0; i < hist.num_of_clrs; i++){
+		int histr = AGIDL_GetR(hist.table[i].clr,hist.fmt);
+		int histg = AGIDL_GetG(hist.table[i].clr,hist.fmt);
+		int histb = AGIDL_GetB(hist.table[i].clr,hist.fmt);
+		
+		int r = AGIDL_GetR(clr,hist.fmt);
+		int g = AGIDL_GetG(clr,hist.fmt);
+		int b = AGIDL_GetB(clr,hist.fmt);
+		
+		int diffr = AGIDL_Abs(r-histr), diffg = AGIDL_Abs(g-histg), diffb = AGIDL_Abs(b-histb);
+		
+		if(AGIDL_GetBitCount(hist.fmt) != 16){
+			if(diffr <= 5 && diffg <= 5 && diffb <= 5){
+				return i;
+			}
+		}
+		else{
+			if(diffr <= 2 && diffg <= 2 && diffb <= 2){
 				return i;
 			}
 		}
 	}
+	return 0;
 }
 
 void AGIDL_EncodeHistogramICP(AGIDL_ICP* palette, void* data, u32 width, u32 height, AGIDL_CLR_FMT fmt){
@@ -1209,7 +1225,7 @@ void AGIDL_EncodeHistogramICP(AGIDL_ICP* palette, void* data, u32 width, u32 hei
 			palette->icp.palette_16b_256[count] = hist.table[i].clr;
 			count++;
 			
-			if(count > 256){
+			if(count >= 255){
 				break;
 			}
 		}
@@ -1253,7 +1269,7 @@ void AGIDL_EncodeHistogramICP(AGIDL_ICP* palette, void* data, u32 width, u32 hei
 			palette->icp.palette_256[count] = hist.table[i].clr;
 			count++;
 			
-			if(count > 256){
+			if(count >= 255){
 				break;
 			}
 		}
@@ -1476,9 +1492,9 @@ u8 AGIDL_FindClosestColor(AGIDL_ICP palette, COLOR clr, AGIDL_CLR_FMT fmt, int m
 }
 
 u8 AGIDL_FindNearestColor(AGIDL_ICP palette, COLOR clr, AGIDL_CLR_FMT fmt){
-	u8 r = AGIDL_GetR(clr,fmt);
-	u8 g = AGIDL_GetG(clr,fmt);
-	u8 b = AGIDL_GetB(clr,fmt);
+	int r = AGIDL_GetR(clr,fmt);
+	int g = AGIDL_GetG(clr,fmt);
+	int b = AGIDL_GetB(clr,fmt);
 	
 	switch(palette.mode){
 		case AGIDL_ICP_256:{
@@ -1488,13 +1504,13 @@ u8 AGIDL_FindNearestColor(AGIDL_ICP palette, COLOR clr, AGIDL_CLR_FMT fmt){
 			for(i = 0; i < 256; i++){
 				COLOR palclr = palette.icp.palette_256[i];
 				
-				u8 palr = AGIDL_GetR(palclr,fmt);
-				u8 palg = AGIDL_GetG(palclr,fmt);
-				u8 palb = AGIDL_GetB(palclr,fmt);
+				int palr = AGIDL_GetR(palclr,fmt);
+				int palg = AGIDL_GetG(palclr,fmt);
+				int palb = AGIDL_GetB(palclr,fmt);
 				
-				u8 rdiff = AGIDL_Abs(r-palr);
-				u8 gdiff = AGIDL_Abs(g-palg);
-				u8 bdiff = AGIDL_Abs(b-palb);
+				int rdiff = AGIDL_Abs(r-palr);
+				int gdiff = AGIDL_Abs(g-palg);
+				int bdiff = AGIDL_Abs(b-palb);
 				
 				u32 dist = rdiff*rdiff + gdiff*gdiff + bdiff*bdiff;
 				
@@ -1513,13 +1529,13 @@ u8 AGIDL_FindNearestColor(AGIDL_ICP palette, COLOR clr, AGIDL_CLR_FMT fmt){
 			for(i = 0; i < 16; i++){
 				COLOR palclr = palette.icp.palette_16[i];
 				
-				u8 palr = AGIDL_GetR(palclr,fmt);
-				u8 palg = AGIDL_GetG(palclr,fmt);
-				u8 palb = AGIDL_GetB(palclr,fmt);
+				int palr = AGIDL_GetR(palclr,fmt);
+				int palg = AGIDL_GetG(palclr,fmt);
+				int palb = AGIDL_GetB(palclr,fmt);
 				
-				u8 rdiff = AGIDL_Abs(r-palr);
-				u8 gdiff = AGIDL_Abs(g-palg);
-				u8 bdiff = AGIDL_Abs(b-palb);
+				int rdiff = AGIDL_Abs(r-palr);
+				int gdiff = AGIDL_Abs(g-palg);
+				int bdiff = AGIDL_Abs(b-palb);
 				
 				u32 dist = rdiff*rdiff + gdiff*gdiff + bdiff*bdiff;
 				
@@ -1538,13 +1554,13 @@ u8 AGIDL_FindNearestColor(AGIDL_ICP palette, COLOR clr, AGIDL_CLR_FMT fmt){
 			for(i = 0; i < 256; i++){
 				COLOR16 palclr = palette.icp.palette_16b_256[i];
 				
-				u8 palr = AGIDL_GetR(palclr,fmt);
-				u8 palg = AGIDL_GetG(palclr,fmt);
-				u8 palb = AGIDL_GetB(palclr,fmt);
+				int palr = AGIDL_GetR(palclr,fmt);
+				int palg = AGIDL_GetG(palclr,fmt);
+				int palb = AGIDL_GetB(palclr,fmt);
 				
-				u8 rdiff = AGIDL_Abs(r-palr);
-				u8 gdiff = AGIDL_Abs(g-palg);
-				u8 bdiff = AGIDL_Abs(b-palb);
+				int rdiff = AGIDL_Abs(r-palr);
+				int gdiff = AGIDL_Abs(g-palg);
+				int bdiff = AGIDL_Abs(b-palb);
 				
 				u32 dist = rdiff*rdiff + gdiff*gdiff + bdiff*bdiff;
 				
@@ -1563,13 +1579,13 @@ u8 AGIDL_FindNearestColor(AGIDL_ICP palette, COLOR clr, AGIDL_CLR_FMT fmt){
 			for(i = 0; i < 16; i++){
 				COLOR palclr = palette.icp.palette_16b_16[i];
 				
-				u8 palr = AGIDL_GetR(palclr,fmt);
-				u8 palg = AGIDL_GetG(palclr,fmt);
-				u8 palb = AGIDL_GetB(palclr,fmt);
+				int palr = AGIDL_GetR(palclr,fmt);
+				int palg = AGIDL_GetG(palclr,fmt);
+				int palb = AGIDL_GetB(palclr,fmt);
 				
-				u8 rdiff = AGIDL_Abs(r-palr);
-				u8 gdiff = AGIDL_Abs(g-palg);
-				u8 bdiff = AGIDL_Abs(b-palb);
+				int rdiff = AGIDL_Abs(r-palr);
+				int gdiff = AGIDL_Abs(g-palg);
+				int bdiff = AGIDL_Abs(b-palb);
 				
 				u32 dist = rdiff*rdiff + gdiff*gdiff + bdiff*bdiff;
 				
