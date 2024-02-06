@@ -899,7 +899,6 @@ void AGIDL_TGAEncodeICP(AGIDL_TGA* tga, FILE* file){
 		else{
 			AGIDL_EncodeHistogramICP(&tga->palette,tga->pixels.pix32,AGIDL_TGAGetWidth(tga),AGIDL_TGAGetHeight(tga),AGIDL_TGAGetClrFmt(tga));
 			AGIDL_TGAEncodeHeader(tga,file);
-			
 			int i;
 			for(i = 0; i < 256; i++){
 				COLOR clr = tga->palette.icp.palette_256[i];

@@ -1131,8 +1131,25 @@ void AGIDL_InitICP(AGIDL_ICP *palette, int mode){
 AGIDL_Bool AGIDL_IsClrInHistogram(AGIDL_Hist hist, COLOR clr){
 	int i;
 	for(i = 0; i < hist.num_of_clrs; i++){
-		if(clr == hist.table[i].clr){
-			return TRUE;
+		int histr = AGIDL_GetR(hist.table[i].clr,hist.fmt);
+		int histg = AGIDL_GetG(hist.table[i].clr,hist.fmt);
+		int histb = AGIDL_GetB(hist.table[i].clr,hist.fmt);
+		
+		int r = AGIDL_GetR(clr,hist.fmt);
+		int g = AGIDL_GetG(clr,hist.fmt);
+		int b = AGIDL_GetB(clr,hist.fmt);
+		
+		int diffr = AGIDL_Abs(r-histr), diffg = AGIDL_Abs(g-histg), diffb = AGIDL_Abs(b-histb);
+		
+		if(AGIDL_GetBitCount(hist.fmt) != 16){
+			if(diffr <= 8 && diffg <= 8 && diffb <= 8){
+				return TRUE;
+			}
+		}
+		else{
+			if(diffr <= 2 && diffg <= 2 && diffb <= 2){
+				return TRUE;
+			}
 		}
 	}
 	return FALSE;
@@ -1152,6 +1169,7 @@ u32 AGIDL_FindColorIndexInHistogram(AGIDL_Hist hist, COLOR clr){
 void AGIDL_EncodeHistogramICP(AGIDL_ICP* palette, void* data, u32 width, u32 height, AGIDL_CLR_FMT fmt){
 	AGIDL_Hist hist;
 	hist.num_of_clrs = 0;
+	hist.fmt = fmt;
 	
 	if(AGIDL_GetBitCount(fmt) == 16){
 		u16* clr_data = (u16*)data;
@@ -1161,7 +1179,7 @@ void AGIDL_EncodeHistogramICP(AGIDL_ICP* palette, void* data, u32 width, u32 hei
 		for(i = 0; i < width*height; i++){
 			u16 color = clr_data[i];
 			
-			if(AGIDL_IsClrInHistogram(hist,color) != TRUE){
+			if(AGIDL_IsClrInHistogram(hist,color) != TRUE && hist.num_of_clrs < 12000){
 				hist.table[hist.num_of_clrs].clr = color;
 				hist.table[hist.num_of_clrs].occurence = 1;
 				hist.num_of_clrs++;
@@ -1187,9 +1205,13 @@ void AGIDL_EncodeHistogramICP(AGIDL_ICP* palette, void* data, u32 width, u32 hei
 		AGIDL_InitICP(palette,AGIDL_ICP_16b_256);
 		
 		int count = 0;
-		for(i = hist.num_of_clrs; i > hist.num_of_clrs - 256; i--){
+		for(i = hist.num_of_clrs; i > 0; i--){
 			palette->icp.palette_16b_256[count] = hist.table[i].clr;
 			count++;
+			
+			if(count > 256){
+				break;
+			}
 		}
 		
 	}
@@ -1201,17 +1223,17 @@ void AGIDL_EncodeHistogramICP(AGIDL_ICP* palette, void* data, u32 width, u32 hei
 		for(i = 0; i < width*height; i++){
 			u32 color = clr_data[i];
 			
-			if(AGIDL_IsClrInHistogram(hist,color) != TRUE){
+			if(AGIDL_IsClrInHistogram(hist,color) != TRUE && hist.num_of_clrs < 12000){
 				hist.table[hist.num_of_clrs].clr = color;
 				hist.table[hist.num_of_clrs].occurence = 1;
-				hist.num_of_clrs++;
+				hist.num_of_clrs++; 
 			}
 			else{
 				u32 index = AGIDL_FindColorIndexInHistogram(hist,color);
 				hist.table[index].occurence++;
 			}
-		}
-		
+		}  
+
 		//PERFORM BUBBLE SORT TO LIST THE 256 MOST IMPORTANT COLORS IN ORDER OF LEAST TO MOST FREQUENTLY OCCURING COLORS
 		int j;
 		for(j = 0; j < hist.num_of_clrs; j++){
@@ -1227,9 +1249,13 @@ void AGIDL_EncodeHistogramICP(AGIDL_ICP* palette, void* data, u32 width, u32 hei
 		AGIDL_InitICP(palette,AGIDL_ICP_256);
 		
 		int count = 0;
-		for(i = hist.num_of_clrs; i > hist.num_of_clrs - 256; i--){
+		for(i = hist.num_of_clrs; i > 0; i--){
 			palette->icp.palette_256[count] = hist.table[i].clr;
 			count++;
+			
+			if(count > 256){
+				break;
+			}
 		}
 	}
 	
