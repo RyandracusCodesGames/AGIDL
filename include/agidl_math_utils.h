@@ -10,7 +10,7 @@
 *   File: agidl_math_utils.h
 *   Date: 10/22/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 2/6/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -41,5 +41,7 @@ u32 AGIDL_BitXor(u32 i, u32 j);
 u32 AGIDL_BitInterleave(u32 a, u32 b);
 char* AGIDL_Dec2Bin(u32 num);
 u32 AGIDL_BitReverse(char* bin);
+u32 AGIDL_NearestPow2(int num);
+u8 AGIDL_GetPow2Index(u32 num);
 
 #endif

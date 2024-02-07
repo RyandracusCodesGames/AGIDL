@@ -7,7 +7,7 @@
 *   File: agidl_imgp_scale.c
 *   Date: 12/9/2023
 *   Version: 0.2b
-*   Updated: 1/31/2024
+*   Updated: 2/6/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -60,6 +60,65 @@ void * AGIDL_HalfImgDataNearest(void* data, u16* width, u16* height, AGIDL_CLR_F
 			for(x = 0; x < w; x++){
 				u16 x2 = (x << 1);
 				u16 y2 = (y << 1);
+				
+				COLOR clr = AGIDL_GetClr(org_data,x2,y2,worg,horg);
+				AGIDL_SetClr(clr_data,clr,x,y,w,h);
+			}
+		}
+		
+		free(data);
+		
+		*width = w;
+		*height = h;
+		
+		return clr_data;
+	}
+}
+
+void * AGIDL_DoubleImgDataNearest(void* data, u16* width, u16* height, AGIDL_CLR_FMT fmt){
+	if(AGIDL_GetBitCount(fmt) == 16){
+		u16 worg = *width;
+		u16 horg = *height;
+		
+		u16 w = worg << 1;
+		u16 h = horg << 1;
+		
+		COLOR16* org_data = (COLOR16*)data;
+		COLOR16* clr_data = (COLOR16*)malloc(sizeof(COLOR16)*w*h);
+		
+		u16 x,y;
+		for(y = 0; y < h; y++){
+			for(x = 0; x < w; x++){
+				u16 x2 = (x >> 1);
+				u16 y2 = (y >> 1);
+				
+				COLOR16 clr = AGIDL_GetClr16(org_data,x2,y2,worg,horg);
+				AGIDL_SetClr16(clr_data,clr,x,y,w,h);
+			}
+		}
+		
+		free(data);
+		
+		*width = w;
+		*height = h;
+		
+		return clr_data;
+	}
+	else{
+		u16 worg = *width;
+		u16 horg = *height;
+		
+		u16 w = worg << 1;
+		u16 h = horg << 1;
+		
+		COLOR* org_data = (COLOR*)data;
+		COLOR* clr_data = (COLOR*)malloc(sizeof(COLOR)*w*h);
+		
+		u16 x,y;
+		for(y = 0; y < h; y++){
+			for(x = 0; x < w; x++){
+				u16 x2 = (x >> 1);
+				u16 y2 = (y >> 1);
 				
 				COLOR clr = AGIDL_GetClr(org_data,x2,y2,worg,horg);
 				AGIDL_SetClr(clr_data,clr,x,y,w,h);
@@ -1301,4 +1360,73 @@ void * AGIDL_FastScaleImgData(void* data, u16* width, u16* height, float sx, flo
 		}break;
 	}
 	return AGIDL_ScaleImgDataNearest(data,width,height,sx,sy,fmt);
+}
+
+void * AGIDL_NearestPow2ScaleImgData(void* data, u16* width, u16* height, AGIDL_CLR_FMT fmt){
+	if(AGIDL_GetBitCount(fmt) == 16){
+		COLOR16* clr_data = (COLOR16*)data;
+		
+		u16 worg = *width;
+		u16 horg = *height;
+		
+		u16 w = AGIDL_NearestPow2((int)(worg)), h = AGIDL_NearestPow2((int)(horg));
+		
+		COLOR16* scale = (COLOR16*)malloc(sizeof(COLOR16)*w*h);
+		
+		float xscale = ((float)(worg-1)/w);
+		float yscale = ((float)(horg-1)/h);
+		
+		int x,y;
+		for(y = 0; y < h; y++){
+			for(x = 0; x < w; x++){
+				
+				u32 x2 = (x*xscale);
+				u32 y2 = (y*yscale);
+				
+				COLOR16 clr = AGIDL_GetClr16(clr_data,x2,y2,worg,horg);
+				
+				AGIDL_SetClr16(scale,clr,x,y,w,h);
+			}
+		}
+		
+		*width = w;
+		*height = h;
+		
+		free(clr_data);
+		
+		return scale;
+	}
+	else{
+		COLOR* clr_data = (COLOR*)data;
+		
+		u16 worg = *width;
+		u16 horg = *height;
+		
+		u16 w = AGIDL_NearestPow2((int)(worg)), h = AGIDL_NearestPow2((int)(horg));
+		
+		COLOR* scale = (COLOR*)malloc(sizeof(COLOR)*w*h);
+		
+		float xscale = ((float)(worg-1)/w);
+		float yscale = ((float)(horg-1)/h);
+		
+		int x,y;
+		for(y = 0; y < h; y++){
+			for(x = 0; x < w; x++){
+				
+				u32 x2 = (x*xscale);
+				u32 y2 = (y*yscale);
+				
+				COLOR clr = AGIDL_GetClr(clr_data,x2,y2,worg,horg);
+				
+				AGIDL_SetClr(scale,clr,x,y,w,h);
+			}
+		}
+		
+		*width = w;
+		*height = h;
+		
+		free(clr_data);
+		
+		return scale;
+	}
 }

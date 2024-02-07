@@ -10,7 +10,7 @@
 *   File: agidl_img_pvr.h
 *   Date: 10/28/2023
 *   Version: 0.1b
-*   Updated: 1/21/2024
+*   Updated: 2/6/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/

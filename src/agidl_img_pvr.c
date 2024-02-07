@@ -16,7 +16,7 @@
 *   File: agidl_img_pvr.c
 *   Date: 10/28/2023
 *   Version: 0.1b
-*   Updated: 2/4/2024
+*   Updated: 2/6/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -201,7 +201,7 @@ void AGIDL_FreePVR(AGIDL_PVR* pvr){
 	}
 	
 	if(pvr->mipmap != NULL && (pvr->mip_lvl > 1 || pvr->mheader.num_of_mipmaps > 1) || pvr->header.pvr_img_type == PVR_IMG_SQUARE_TWIDDLED_AND_MIPMAPPED){
-		AGIDL_DestroyMipmap(pvr->mipmap);
+		AGIDL_DestroyMipmapMMU(pvr->mipmap);
 	}
 	else{
 		free(pvr);
@@ -283,8 +283,8 @@ AGIDL_PVR * AGIDL_CreatePVR(const char* filename, int width, int height, AGIDL_C
 	AGIDL_PVRSetClrFmt(pvr,fmt);
 	AGIDL_PVRSetMaxDiff(pvr,7);
 	pvr->mipmap = NULL;
+	
 	AGIDL_PVRBuildMipmap(pvr,FALSE);
-	AGIDL_PVRSetMipmapLevel(pvr,1);
 	
 	if(fmt == AGIDL_RGB_888 || fmt == AGIDL_BGR_888 || fmt == AGIDL_RGBA_8888 || fmt == AGIDL_ARGB_8888){
 		pvr->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*(width*height));
@@ -301,6 +301,9 @@ AGIDL_PVR* AGIDL_PVRCpyImg(AGIDL_PVR* pvr){
 	AGIDL_PVRSetType(pvrcpy,pvr->pvr_type);
 	AGIDL_PVRSetICPMode(pvrcpy,pvr->icp);
 	AGIDL_PVRSetMaxDiff(pvrcpy,AGIDL_PVRGetMaxDiff(pvr));
+	
+	memcpy(pvrcpy->mipmap,pvr->mipmap,sizeof(AGIDL_MIPMAP));
+	
 	AGIDL_CLR_FMT fmt = AGIDL_PVRGetClrFmt(pvr);
 	if(fmt == AGIDL_RGB_888 || fmt == AGIDL_BGR_888 || fmt == AGIDL_RGBA_8888 || fmt == AGIDL_ARGB_8888){
 		AGIDL_PVRSyncPix(pvrcpy,pvr->pixels.pix32);
@@ -575,6 +578,18 @@ void AGIDL_PVREncodeHeader(AGIDL_PVR* pvr, FILE* file){
 		
 		u32 one = 1, zero = 0;
 		
+		u16 w = pvr->mheader.width;
+		u16 h = pvr->mheader.height;
+		
+		u32 count = 0;
+		
+		while(w >= 2 && h >= 2){
+			w >>= 1;
+			h >>= 1;
+			
+			count++;
+		}
+		
 		AGIDL_WriteByte(file,pvrc[0]);
 		AGIDL_WriteByte(file,pvrc[1]);
 		AGIDL_WriteByte(file,pvrc[2]);
@@ -595,7 +610,12 @@ void AGIDL_PVREncodeHeader(AGIDL_PVR* pvr, FILE* file){
 		AGIDL_WriteLong(file,1);
 		AGIDL_WriteLong(file,1);
 		AGIDL_WriteLong(file,1);
-		AGIDL_WriteLong(file,pvr->mip_lvl);
+		if(pvr->mipped = TRUE){
+			AGIDL_WriteLong(file,count);
+		}
+		else{
+			AGIDL_WriteLong(file,1);
+		}
 		AGIDL_WriteLong(file,0);
 	}
 }
@@ -644,143 +664,68 @@ void AGIDL_PVRDecodeImg(AGIDL_PVR* pvr, PVRClrFmt fmt, PVRImgType img, FILE* fil
 				AGIDL_PVRSetClrFmt(pvr,AGIDL_RGB_888);
 				pvr->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*AGIDL_PVRGetSize(pvr));
 				
-				int x,y;
-				for(y = 0; y < AGIDL_PVRGetHeight(pvr); y++){
-					for(x = 0; x < AGIDL_PVRGetWidth(pvr); x++){
-						u8 r = AGIDL_ReadByte(file);
-						u8 g = AGIDL_ReadByte(file);
-						u8 b = AGIDL_ReadByte(file);
-						
-						COLOR clr = AGIDL_GammaCorrectColor(AGIDL_RGB(r,g,b,AGIDL_RGB_888),2.2f,AGIDL_RGB_888);
-						
-						if(pvr->mheader.clr_fmt == 0){
-							AGIDL_PVRSetClr(pvr,x,y,clr);
-						}
-						else{
-							AGIDL_PVRSetClr(pvr,x,y,AGIDL_RGB(r,g,b,AGIDL_RGB_888));
-						}
-					}
-				}
-				
 				if(pvr->mheader.clr_fmt == 0){
 					if(pvr->mheader.num_of_mipmaps > 1){
-						pvr->mipmap = AGIDL_CreateMipmap(pvr->pixels.pix32,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),TRUE);
-						AGIDL_LoadMipmapImgData(pvr->mipmap,pvr->mheader.num_of_mipmaps-1,file);
+						pvr->mipmap = AGIDL_LoadMipmapImgData(file,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),pvr->mheader.num_of_mipmaps,TRUE);
 					}
 				}
 				else{
 					if(pvr->mheader.num_of_mipmaps > 1){
-						pvr->mipmap = AGIDL_CreateMipmap(pvr->pixels.pix32,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),FALSE);
-						AGIDL_LoadMipmapImgData(pvr->mipmap,pvr->mheader.num_of_mipmaps-1,file);
+						pvr->mipmap = AGIDL_LoadMipmapImgData(file,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),pvr->mheader.num_of_mipmaps,FALSE);
 					}
 				}
+				
+				COLOR* clr = (COLOR*)pvr->mipmap->mipmap[0].img_data;
+				AGIDL_ClrMemcpy(pvr->pixels.pix32,clr,AGIDL_PVRGetSize(pvr));
 			}break;
 			case PVRTC_RGB_565:{
-				AGIDL_PVRSetClrFmt(pvr,AGIDL_RGB_565);
-				pvr->pixels.pix16 = (COLOR16*)malloc(sizeof(COLOR16)*AGIDL_PVRGetSize(pvr));
-				
 				if(pvr->mheader.clr_fmt == 0){
-					int x,y;
-					for(y = 0; y < AGIDL_PVRGetHeight(pvr); y++){
-						for(x = 0; x < AGIDL_PVRGetWidth(pvr); x++){
-							COLOR16 clr16 = AGIDL_ReadShort(file);
-							
-							COLOR16 clr = AGIDL_GammaCorrectColor(clr16,2.2f,AGIDL_RGB_565);
-
-							AGIDL_PVRSetClr16(pvr,x,y,clr);
-						}
-					}
-					
 					if(pvr->mheader.num_of_mipmaps > 1){
-						pvr->mipmap = AGIDL_CreateMipmap(pvr->pixels.pix16,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),TRUE);
-						AGIDL_LoadMipmapImgData(pvr->mipmap,pvr->mheader.num_of_mipmaps-1,file);
+						pvr->mipmap = AGIDL_LoadMipmapImgData(file,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),pvr->mheader.num_of_mipmaps,TRUE);
 					}
 				}
 				else{
-					fread(pvr->pixels.pix16,2,AGIDL_PVRGetSize(pvr),file);
-					
 					if(pvr->mheader.num_of_mipmaps > 1){
-						pvr->mipmap = AGIDL_CreateMipmap(pvr->pixels.pix16,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),FALSE);
-						AGIDL_LoadMipmapImgData(pvr->mipmap,pvr->mheader.num_of_mipmaps-1,file);
+						pvr->mipmap = AGIDL_LoadMipmapImgData(file,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),pvr->mheader.num_of_mipmaps,FALSE);
 					}
 				}
 				
+				AGIDL_ClrMemcpy16(pvr->pixels.pix16,pvr->mipmap->mipmap[0].img_data,AGIDL_PVRGetSize(pvr));
 				
 			}break;
 			case PVRTC_RGB_555:{
 				AGIDL_PVRSetClrFmt(pvr,AGIDL_RGB_555);
 				pvr->pixels.pix16 = (COLOR16*)malloc(sizeof(COLOR16)*AGIDL_PVRGetSize(pvr));
 				
-				int x,y;
-				for(y = 0; y < AGIDL_PVRGetHeight(pvr); y++){
-					for(x = 0; x < AGIDL_PVRGetWidth(pvr); x++){
-						COLOR16 clr16 = AGIDL_ReadShort(file);
-						
-						u8 r = (clr16 & 0xf800) >> 11;
-						u8 g = (clr16 & 0x7c0) >> 6;
-						u8 b = (clr16 & 0x3e) >> 1;
-						
-						clr16 = AGIDL_RGB16(r,g,b,AGIDL_RGB_555);
-						
-						COLOR16 clr = AGIDL_GammaCorrectColor(clr16,2.2f,AGIDL_RGB_555);
-						
-						if(pvr->mheader.clr_fmt == 0){
-							AGIDL_PVRSetClr16(pvr,x,y,clr);
-						}
-						else{
-							AGIDL_PVRSetClr16(pvr,x,y,clr16);
-						}
-					}
-				}
-				
 				if(pvr->mheader.clr_fmt == 0){
 					if(pvr->mheader.num_of_mipmaps > 1){
-						pvr->mipmap = AGIDL_CreateMipmap(pvr->pixels.pix16,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),TRUE);
-						AGIDL_LoadMipmapImgData(pvr->mipmap,pvr->mheader.num_of_mipmaps-1,file);
+						pvr->mipmap = AGIDL_LoadMipmapImgData(file,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),pvr->mheader.num_of_mipmaps,TRUE);
 					}
 				}
 				else{
 					if(pvr->mheader.num_of_mipmaps > 1){
-						pvr->mipmap = AGIDL_CreateMipmap(pvr->pixels.pix16,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),FALSE);
-						AGIDL_LoadMipmapImgData(pvr->mipmap,pvr->mheader.num_of_mipmaps-1,file);
+						pvr->mipmap = AGIDL_LoadMipmapImgData(file,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),pvr->mheader.num_of_mipmaps,FALSE);
 					}
 				}
+				
+				AGIDL_ClrMemcpy16(pvr->pixels.pix16,pvr->mipmap->mipmap[0].img_data,AGIDL_PVRGetSize(pvr));
 			}break;
 			case PVRTC_RGBA_8888:{
 				AGIDL_PVRSetClrFmt(pvr,AGIDL_RGBA_8888);
 				pvr->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*AGIDL_PVRGetSize(pvr));
 				
-				int x,y;
-				for(y = 0; y < AGIDL_PVRGetHeight(pvr); y++){
-					for(x = 0; x < AGIDL_PVRGetWidth(pvr); x++){
-						u8 r = AGIDL_ReadByte(file);
-						u8 g = AGIDL_ReadByte(file);
-						u8 b = AGIDL_ReadByte(file);
-						u8 a = AGIDL_ReadByte(file);
-						
-						COLOR clr = AGIDL_GammaCorrectColor(AGIDL_RGBA(r,g,b,a,AGIDL_RGBA_8888),2.2f,AGIDL_RGBA_8888);
-						
-						if(pvr->mheader.clr_fmt == 0){
-							AGIDL_PVRSetClr(pvr,x,y,clr);
-						}
-						else{
-							AGIDL_PVRSetClr(pvr,x,y,AGIDL_RGBA(r,g,b,a,AGIDL_RGBA_8888));
-						}
-					}
-				}
-				
 				if(pvr->mheader.clr_fmt == 0){
 					if(pvr->mheader.num_of_mipmaps > 1){
-						pvr->mipmap = AGIDL_CreateMipmap(pvr->pixels.pix32,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),TRUE);
-						AGIDL_LoadMipmapImgData(pvr->mipmap,pvr->mheader.num_of_mipmaps-1,file);
+						pvr->mipmap = AGIDL_LoadMipmapImgData(file,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),pvr->mheader.num_of_mipmaps,TRUE);
 					}
 				}
 				else{
 					if(pvr->mheader.num_of_mipmaps > 1){
-						pvr->mipmap = AGIDL_CreateMipmap(pvr->pixels.pix32,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),FALSE);
-						AGIDL_LoadMipmapImgData(pvr->mipmap,pvr->mheader.num_of_mipmaps-1,file);
+						pvr->mipmap = AGIDL_LoadMipmapImgData(file,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),pvr->mheader.num_of_mipmaps,FALSE);
 					}
 				}
+				
+				AGIDL_ClrMemcpy(pvr->pixels.pix32,pvr->mipmap->mipmap[0].img_data,AGIDL_PVRGetSize(pvr));
 			}break;
 			case PVRTC_BGRA_8888:{
 				AGIDL_PVRSetClrFmt(pvr,AGIDL_RGBA_8888);
@@ -816,43 +761,34 @@ void AGIDL_PVREncodeIMG(AGIDL_PVR* pvr, FILE* file){
 	else{
 		switch(AGIDL_PVRGetClrFmt(pvr)){
 			case AGIDL_RGB_888:{
-				if(pvr->mip_lvl == 1){
+				if(pvr->mipped != TRUE){
 					AGIDL_WriteBufRGB(file,pvr->pixels.pix32,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr));
 				}
 				else{
-					
-					pvr->mipmap = AGIDL_CreateMipmap(pvr->pixels.pix32,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),FALSE);
-					
-					AGIDL_GenerateMipmapFromImgData(pvr->mipmap,pvr->pixels.pix32,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),pvr->mip_lvl,AGIDL_SCALE_NEAREST);
-					
+					pvr->mipmap = AGIDL_GenerateMipmapFromImgData(pvr->pixels.pix32,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr));
+
 					AGIDL_WriteBufRGB(file,pvr->pixels.pix32,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr));
 					
 					int i;
-					for(i = 1; i < pvr->mipmap->list->num_mips-1; i++){
-						
-						AGIDL_MIPMAP_NODE* node = AGIDL_FindMipmapNode(pvr->mipmap->list,i);
-						COLOR* clr_data = (COLOR*)node->img_data;
-						AGIDL_WriteBufRGB(file,clr_data,node->width,node->height);
+					for(i = 1; i < pvr->mipmap->mipcount; i++){
+						COLOR* clr_data = (COLOR*)pvr->mipmap->mipmap[i].img_data;
+						AGIDL_WriteBufRGB(file,clr_data,pvr->mipmap->mipmap[i].width,pvr->mipmap->mipmap[i].height);
 					}
 				}
 			}break;
 			case AGIDL_RGB_565:{
-				if(pvr->mip_lvl == 1){
+				if(pvr->mipped != TRUE){
 					AGIDL_WriteBufClr16(file,pvr->pixels.pix16,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr));
 				}
 				else{
-					pvr->mipmap = AGIDL_CreateMipmap(pvr->pixels.pix16,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),FALSE);
-					
-					AGIDL_GenerateMipmapFromImgData(pvr->mipmap,pvr->pixels.pix16,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),pvr->mip_lvl,AGIDL_SCALE_NEAREST);
+					pvr->mipmap = AGIDL_GenerateMipmapFromImgData(pvr->pixels.pix16,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr));
 					
 					AGIDL_WriteBufClr16(file,pvr->pixels.pix16,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr));
 					
 					int i;
-					for(i = 1; i < pvr->mipmap->list->num_mips-1; i++){
-						
-						AGIDL_MIPMAP_NODE* node = AGIDL_FindMipmapNode(pvr->mipmap->list,i);
-						COLOR16* clr_data = (COLOR16*)node->img_data;
-						AGIDL_WriteBufClr16(file,clr_data,node->width,node->height);
+					for(i = 1; i < pvr->mipmap->mipcount; i++){
+						COLOR16* clr_data = (COLOR16*)pvr->mipmap->mipmap[i].img_data;
+						AGIDL_WriteBufClr16(file,clr_data,pvr->mipmap->mipmap[i].width,pvr->mipmap->mipmap[i].height);
 					}
 				}
 			}break;
@@ -871,22 +807,18 @@ void AGIDL_PVREncodeIMG(AGIDL_PVR* pvr, FILE* file){
 				}
 			}break;
 			case AGIDL_RGBA_8888:{
-				if(pvr->mip_lvl == 1){
+				if(pvr->mipped != TRUE){
 					AGIDL_WriteBufRGBA(file,pvr->pixels.pix32,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr));
 				}
 				else{
-					pvr->mipmap = AGIDL_CreateMipmap(pvr->pixels.pix32,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),FALSE);
-					
-					AGIDL_GenerateMipmapFromImgData(pvr->mipmap,pvr->pixels.pix32,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),pvr->mip_lvl,AGIDL_SCALE_NEAREST);
-					
-					AGIDL_WriteBufRGBA(file,pvr->pixels.pix32,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr));
+					pvr->mipmap = AGIDL_GenerateMipmapFromImgData(pvr->pixels.pix32,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr));
+
+					AGIDL_WriteBufRGB(file,pvr->pixels.pix32,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr));
 					
 					int i;
-					for(i = 1; i < pvr->mipmap->list->num_mips-1; i++){
-						
-						AGIDL_MIPMAP_NODE* node = AGIDL_FindMipmapNode(pvr->mipmap->list,i);
-						COLOR* clr_data = (COLOR*)node->img_data;
-						AGIDL_WriteBufRGBA(file,clr_data,node->width,node->height);
+					for(i = 1; i < pvr->mipmap->mipcount; i++){
+						COLOR* clr_data = (COLOR*)pvr->mipmap->mipmap[i].img_data;
+						AGIDL_WriteBufRGBA(file,clr_data,pvr->mipmap->mipmap[i].width,pvr->mipmap->mipmap[i].height);
 					}
 				}
 			}break;
@@ -995,6 +927,9 @@ void AGIDL_PVRDecodeTwiddledImg(AGIDL_PVR* pvr, PVRClrFmt fmt, PVRImgType img, F
 		AGIDL_PVRSetClrFmt(pvr,AGIDL_RGB_555);
 		pvr->pixels.pix16 = (COLOR16*)malloc(sizeof(COLOR16)*(AGIDL_PVRGetWidth(pvr)*AGIDL_PVRGetHeight(pvr)));
 		
+		AGIDL_PVRSetClrFmt(pvr,AGIDL_RGB_565);
+		pvr->pixels.pix16 = (COLOR16*)malloc(sizeof(COLOR16)*(AGIDL_PVRGetWidth(pvr)*AGIDL_PVRGetHeight(pvr)));
+		
 		u16 w = 1;
 		u16 h = 1;
 		
@@ -1002,19 +937,24 @@ void AGIDL_PVRDecodeTwiddledImg(AGIDL_PVR* pvr, PVRClrFmt fmt, PVRImgType img, F
 		
 		COLOR16 clr = 0x7C00;
 		
-		pvr->mipmap = AGIDL_CreateMipmap(&clr,2,2,AGIDL_PVRGetClrFmt(pvr),FALSE);
+		pvr->mipmap = AGIDL_CreateMipmapMMU(AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),FALSE);
+		
+		int count = 0;
 		
 		while(w < AGIDL_PVRGetWidth(pvr) && h < AGIDL_PVRGetWidth(pvr)){
 			w <<= 1;
 			h <<= 1;
 			
-			u16* clr_buf = (u16*)malloc(sizeof(u16)*w*h);
+			COLOR16* buf = (COLOR16*)AGIDL_AllocImgDataMMU(w,h,AGIDL_PVRGetClrFmt(pvr));
 			
-			if(!fread(clr_buf,2,w*h,file)){
+			if(!fread(buf,2,w*h,file)){
 				break;
 			}
 			
-			u16* clrs = (u16*)malloc(sizeof(u16)*w*h);
+			pvr->mipmap->mipmap[count].width = w;
+			pvr->mipmap->mipmap[count].height = h;
+			pvr->mipmap->mipmap[count].fmt = fmt;
+			pvr->mipmap->mipmap[count].img_data = (COLOR16*)AGIDL_AllocImgDataMMU(w,h,AGIDL_PVRGetClrFmt(pvr));
 			
 			int x,y;
 			for(y = 0; y < h; y++){
@@ -1022,25 +962,19 @@ void AGIDL_PVRDecodeTwiddledImg(AGIDL_PVR* pvr, PVRClrFmt fmt, PVRImgType img, F
 					
 					int index = AGIDL_GetDetwiddledIndex(x,y);
 					
-					AGIDL_SetClr16(clrs,clr_buf[index],x,y,w,h);
+					AGIDL_SetClr16(pvr->mipmap->mipmap[count].img_data,buf[index],x,y,w,h);
 				}
 			}
 			
-			AGIDL_AddMipmapNode(pvr->mipmap->list,clrs,w,h,pvr->mipmap->fmt);
+			count++;
 			
-			free(clr_buf);
-			free(clrs);
+			free(buf);
 		}
 		
-		AGIDL_MIPMAP_NODE* deepest_lvl = AGIDL_FindMipmapNode(pvr->mipmap->list,pvr->mipmap->list->num_mips-1);
+		pvr->mipmap->mipcount = count-1;
 		
-		COLOR16* clr_data = (COLOR16*)deepest_lvl->img_data;
-		
-		if(deepest_lvl == NULL){
-			return;
-		}
-		
-		AGIDL_ClrMemcpy16(pvr->pixels.pix16,clr_data,AGIDL_PVRGetSize(pvr));
+		COLOR16* img = (COLOR16*)pvr->mipmap->mipmap[count-1].img_data;
+		AGIDL_ClrMemcpy16(pvr->pixels.pix16,img,AGIDL_PVRGetSize(pvr));
 	}
 	else if(fmt == PVR_RGB_565 && img == PVR_IMG_SQUARE_TWIDDLED_AND_MIPMAPPED){
 		AGIDL_PVRSetClrFmt(pvr,AGIDL_RGB_565);
@@ -1053,19 +987,24 @@ void AGIDL_PVRDecodeTwiddledImg(AGIDL_PVR* pvr, PVRClrFmt fmt, PVRImgType img, F
 		
 		COLOR16 clr = 0x7C00;
 		
-		pvr->mipmap = AGIDL_CreateMipmap(&clr,2,2,AGIDL_PVRGetClrFmt(pvr),FALSE);
+		pvr->mipmap = AGIDL_CreateMipmapMMU(AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),AGIDL_PVRGetClrFmt(pvr),FALSE);
+		
+		int count = 0;
 		
 		while(w < AGIDL_PVRGetWidth(pvr) && h < AGIDL_PVRGetWidth(pvr)){
 			w <<= 1;
 			h <<= 1;
 			
-			u16* clr_buf = (u16*)malloc(sizeof(u16)*w*h);
+			COLOR16* buf = (COLOR16*)AGIDL_AllocImgDataMMU(w,h,AGIDL_PVRGetClrFmt(pvr));
 			
-			if(!fread(clr_buf,2,w*h,file)){
+			if(!fread(buf,2,w*h,file)){
 				break;
 			}
 			
-			u16* clrs = (u16*)malloc(sizeof(u16)*w*h);
+			pvr->mipmap->mipmap[count].width = w;
+			pvr->mipmap->mipmap[count].height = h;
+			pvr->mipmap->mipmap[count].fmt = fmt;
+			pvr->mipmap->mipmap[count].img_data = (COLOR16*)AGIDL_AllocImgDataMMU(w,h,AGIDL_PVRGetClrFmt(pvr));
 			
 			int x,y;
 			for(y = 0; y < h; y++){
@@ -1073,25 +1012,19 @@ void AGIDL_PVRDecodeTwiddledImg(AGIDL_PVR* pvr, PVRClrFmt fmt, PVRImgType img, F
 					
 					int index = AGIDL_GetDetwiddledIndex(x,y);
 					
-					AGIDL_SetClr16(clrs,clr_buf[index],x,y,w,h);
+					AGIDL_SetClr16(pvr->mipmap->mipmap[count].img_data,buf[index],x,y,w,h);
 				}
 			}
 			
-			AGIDL_AddMipmapNode(pvr->mipmap->list,clrs,w,h,pvr->mipmap->fmt);
+			count++;
 			
-			free(clr_buf);
-			free(clrs);
+			free(buf);
 		}
 		
-		AGIDL_MIPMAP_NODE* deepest_lvl = AGIDL_FindMipmapNode(pvr->mipmap->list,pvr->mipmap->list->num_mips-1);
+		pvr->mipmap->mipcount = count-1;
 		
-		COLOR16* clr_data = (COLOR16*)deepest_lvl->img_data;
-		
-		if(deepest_lvl == NULL){
-			return;
-		}
-		
-		AGIDL_ClrMemcpy16(pvr->pixels.pix16,clr_data,AGIDL_PVRGetSize(pvr));
+		COLOR16* img = (COLOR16*)pvr->mipmap->mipmap[count-1].img_data;
+		AGIDL_ClrMemcpy16(pvr->pixels.pix16,img,AGIDL_PVRGetSize(pvr));
 	}
 }
 

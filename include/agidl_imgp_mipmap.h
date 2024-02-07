@@ -10,7 +10,7 @@
 *   File: agidl_imgp_mipmap.h
 *   Date: 1/23/2024
 *   Version: 0.2b
-*   Updated: 1/29/2024
+*   Updated: 2/6/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -20,42 +20,29 @@
 #include "agidl_img_types.h"
 #include "agidl_imgp_scale.h"
 
-typedef struct AGIDL_MIPMAP_NODE{
-	void* img_data;
+#define MAX_MIP_LVL 16
+
+typedef struct AGIDL_MIPMAP_LEVEL{
+	AGIDL_CLR_FMT fmt;
 	u16 width;
 	u16 height;
 	u8 mip_lvl;
-	AGIDL_CLR_FMT fmt;
-	struct AGIDL_MIPMAP_NODE *next;
-}AGIDL_MIPMAP_NODE;
+	void* img_data;
+}AGIDL_MIPMAP_LEVEL;
 
-typedef struct AGIDL_MIPMAP_LINKED_LIST{
-	AGIDL_MIPMAP_NODE* head;
-	u8 num_mips;
-}AGIDL_MIPMAP_LINKED_LIST;
-
-typedef struct AGIDL_MIPMAP{
-	AGIDL_MIPMAP_LINKED_LIST *list;
+typedef struct AGIDL_MIPMAPP{
 	AGIDL_CLR_FMT fmt;
 	u16 width;
 	u16 height;
 	AGIDL_Bool IsLinear;
-	void* img_data;
+	u8 mipcount;
+	AGIDL_MIPMAP_LEVEL mipmap[MAX_MIP_LVL];
 }AGIDL_MIPMAP;
 
-AGIDL_MIPMAP_NODE* AGIDL_CreateMipmapNode(void* img_data, u16 width, u16 height, AGIDL_CLR_FMT fmt, u8 mip_lvl);
-AGIDL_MIPMAP_LINKED_LIST* AGIDL_CreateMipmapList();
-void AGIDL_AddMipmapNode(AGIDL_MIPMAP_LINKED_LIST* list, void* img_data, u16 width, u16 height, AGIDL_CLR_FMT fmt);
-void AGIDL_RemoveMipampNode(AGIDL_MIPMAP_LINKED_LIST* list, u8 mip_lvl);
-AGIDL_MIPMAP_NODE* AGIDL_FindMipmapNode(AGIDL_MIPMAP_LINKED_LIST* list, u8 mip_lvl);
-void AGIDL_PopMipmapStart(AGIDL_MIPMAP_LINKED_LIST* list);
-void AGIDL_DestroyMipmapList(AGIDL_MIPMAP_LINKED_LIST* list);
-AGIDL_MIPMAP* AGIDL_CreateMipmap(void* img_data, u16 width, u16 height, AGIDL_CLR_FMT fmt, AGIDL_Bool IsLinear);
-void AGIDL_DestroyMipmap(AGIDL_MIPMAP* mipmap);
-void AGIDL_LoadMipmapImgData(AGIDL_MIPMAP* mipmap, u8 mipmap_count, FILE* file);
-void AGIDL_ExportMipmapImgData(AGIDL_MIPMAP* mipmap, AGIDL_IMG_TYPE img, int flip);
-void AGIDL_GenerateMipmapFromImgData(AGIDL_MIPMAP* mipmap, void* img_data, u16 width, u16 height, AGIDL_CLR_FMT fmt, u8 mip_lvl, AGIDL_SCALE scale);
-void AGIDL_FilterMipmapImgDataBilerp(AGIDL_MIPMAP* mipmap);
-void AGIDL_FilterMipmaImgDataTrilerp(AGIDL_MIPMAP* mipmap);
+AGIDL_MIPMAP* AGIDL_CreateMipmapMMU(u16 width, u16 height, AGIDL_CLR_FMT fmt, AGIDL_Bool IsLinear);
+AGIDL_MIPMAP* AGIDL_GenerateMipmapFromImgData(void* data, u16 width, u16 height, AGIDL_CLR_FMT fmt);
+AGIDL_MIPMAP* AGIDL_LoadMipmapImgData(FILE* file, u16 width, u16 height, AGIDL_CLR_FMT fmt, u8 count, AGIDL_Bool IsLinear);
+void AGIDL_DestroyMipmapMMU(AGIDL_MIPMAP* mipmap);
+void AGIDL_ExportMipmap(AGIDL_MIPMAP* mipmap, AGIDL_IMG_TYPE img_type, AGIDL_Bool flip);
 
 #endif

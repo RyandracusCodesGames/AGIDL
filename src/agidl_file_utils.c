@@ -7,7 +7,7 @@
 *   File: agidl_file_utils.c
 *   Date: 1/25/2024
 *   Version: 0.2b
-*   Updated: 2/2/2024
+*   Updated: 2/6/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -133,6 +133,13 @@ void AGIDL_ReadBufRGB16(FILE* file, COLOR16* buf, u32 width, u32 height){
 	fread(buf,2,width*height,file);
 }
 
+void AGIDL_ReadBufClr16(FILE* file, COLOR16* buf, u32 width, u32 height){
+	int i;
+	for(i = 0; i < width*height; i++){
+		buf[i] = AGIDL_ReadShort(file);
+	}
+}
+
 void AGIDL_ReadBufRGB(FILE* file, COLOR* clr, u32 width, u32 height){
 	int i;
 	for(i = 0; i < width*height; i++){
@@ -170,6 +177,13 @@ void AGIDL_ReadBufBGRA(FILE* file, COLOR* clr, u32 width, u32 height){
 
 void AGIDL_WriteBufClr16(FILE* file, COLOR16* buf, u32 width, u32 height){
 	fwrite(buf,2,width*height,file);
+}
+
+void AGIDL_WriteBufRGB16(FILE* file, COLOR16* buf, u32 width, u32 height){
+	int i;
+	for(i = 0; i < width*height; i++){
+		AGIDL_WriteShort(file,buf[i]);
+	}
 }
 
 void AGIDL_WriteBufRGB(FILE* file, COLOR* clr, u32 width, u32 height){

@@ -14,7 +14,7 @@
 *   File: agidl_img_types.c
 *   Date: 9/16/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 2/6/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -416,14 +416,6 @@ void AGIDL_CopyScanline(void* dest, void* src, u32 destw, u32 desth, u32 srcw, u
 			free(srcclr);
 		}
 	}
-}
-
-COLOR * AGIDL_MallocClr(COLOR* clrs, int width, int height){
-	return clrs = (COLOR*)malloc(sizeof(COLOR)*(width*height));
-}
-
-COLOR16 * AGIDL_MallocClr16(COLOR16* clrs, int width, int height){
-	return clrs = (COLOR16*)malloc(sizeof(COLOR16)*(width*height));
 }
 
 u8 AGIDL_GetBitCount(AGIDL_CLR_FMT fmt){

@@ -10,7 +10,7 @@
 *   File: agidl_img_types.h
 *   Date: 9/15/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 2/6/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -62,8 +62,6 @@ void AGIDL_CopyScanline(void* dest, void* src, u32 destw, u32 desth, u32 srcw, u
 void AGIDL_ClrMemset(COLOR *dest, COLOR clr, u32 count);
 void AGIDL_ClrMemset16(COLOR16 *dest, COLOR16 clr, u32 count);
 void AGIDL_ClearColorBuffer(void* data, float r, float g, float b, AGIDL_CLR_FMT fmt, u32 count);
-COLOR * AGIDL_MallocClr(COLOR* clrs, int width, int height);
-COLOR16 * AGIDL_MallocClr16(COLOR16* clrs, int width, int height);
 u8 AGIDL_GetBitCount(AGIDL_CLR_FMT fmt);
 void AGIDL_ExtractAndPrintBGR(FILE* file, COLOR clr, AGIDL_CLR_FMT fmt);
 void AGIDL_ExtractAndPrintRGB(FILE* file, COLOR clr, AGIDL_CLR_FMT fmt);

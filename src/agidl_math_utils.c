@@ -14,7 +14,7 @@
 *   File: agidl_math_utils.c
 *   Date: 10/22/2023
 *   Version: 0.1b
-*   Updated: 1/29/2024
+*   Updated: 2/6/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -229,4 +229,41 @@ u32 AGIDL_BitInterleave(u32 a, u32 b){
 	free(binC);
 	
 	return bitinterleave;
+}
+
+u32 AGIDL_NearestPow2(int num){
+	int pow2[12] = {1,2,4,8,16,32,64,128,256,512,1024,2048};
+	
+	u8 min_index = 0;
+	
+	u32 min_diff = 40000;
+	
+	int i;
+	for(i = 0; i < 12; i++){
+		int diff = AGIDL_Abs(pow2[i]-num);
+		if(diff < min_diff){
+			min_diff = diff;
+			min_index = i;
+		}
+	}
+	
+	return pow2[min_index];
+}
+
+u8 AGIDL_GetPow2Index(u32 num){
+	int pow2[12] = {1,2,4,8,16,32,64,128,256,512,1024,2048};
+	
+	int i;
+	for(i = 0; i < 12; i++){
+		if(num == pow2[i]){
+			if(i > 1){
+				return i - 1;
+			}
+			else{
+				return i;
+			}
+		}
+	}
+	
+	return 0;
 }

@@ -17,7 +17,7 @@
 *   File: agidl_img_bmp.c
 *   Date: 9/12/2023
 *   Version: 0.1b
-*   Updated: 2/5/2024
+*   Updated: 2/6/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -617,7 +617,7 @@ void AGIDL_BMPDecodeIMG(AGIDL_BMP* bmp, FILE* file, BMP_IMG_TYPE img_type){
 				AGIDL_ReadBufBGRA(file,bmp->pixels.pix32,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp));
 			}break;
 			case BMP_IMG_TYPE_ICP_256:{
-				AGIDL_BMPSetClrFmt(bmp,AGIDL_RGB_888);
+				AGIDL_BMPSetClrFmt(bmp,AGIDL_BGR_888);
 				
 				int pad = AGIDL_BMPGetWidth(bmp);
 				int count = 0;
