@@ -9,8 +9,8 @@
 *   Library: libagidl
 *   File: agidl_imgp_mipmap.h
 *   Date: 1/23/2024
-*   Version: 0.2b
-*   Updated: 2/6/2024
+*   Version: 0.3b
+*   Updated: 2/7/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -44,5 +44,10 @@ AGIDL_MIPMAP* AGIDL_GenerateMipmapFromImgData(void* data, u16 width, u16 height,
 AGIDL_MIPMAP* AGIDL_LoadMipmapImgData(FILE* file, u16 width, u16 height, AGIDL_CLR_FMT fmt, u8 count, AGIDL_Bool IsLinear);
 void AGIDL_DestroyMipmapMMU(AGIDL_MIPMAP* mipmap);
 void AGIDL_ExportMipmap(AGIDL_MIPMAP* mipmap, AGIDL_IMG_TYPE img_type, AGIDL_Bool flip);
+void AGIDL_FilterBilerpMipmapLevel(AGIDL_MIPMAP* mipmap, u8 mip_lvl);
+void AGIDL_FilterBilerpMipmap(AGIDL_MIPMAP* mipmap);
+void AGIDL_ClearMipmapLevel(AGIDL_MIPMAP* mipmap, u8 mip_lvl);
+void AGIDL_RebuildMipmapLevel(AGIDL_MIPMAP* mipmap, u8 mip_lvl);
+void AGIDL_BlendMipmapLevel(AGIDL_MIPMAP* mipmap, u8 mip_lvl1, u8 mip_lvl2);
 
 #endif

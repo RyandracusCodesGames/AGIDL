@@ -7,7 +7,7 @@
 *   File: agidl_mmu_utils.c
 *   Date: 2/6/2024
 *   Version: 0.3b
-*   Updated: 2/6/2024
+*   Updated: 2/8/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -21,7 +21,7 @@ void* AGIDL_AllocImgDataMMU(u32 width, u32 height, AGIDL_CLR_FMT fmt){
 		return clr;
 	}
 	else{
-		COLOR clr = (COLOR)malloc(sizeof(COLOR)*width*height);
+		COLOR* clr = (COLOR*)malloc(sizeof(COLOR)*width*height);
 		return clr;
 	}
 	return NULL;

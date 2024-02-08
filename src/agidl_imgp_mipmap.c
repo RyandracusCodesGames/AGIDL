@@ -6,8 +6,8 @@
 *   Library: libagidl
 *   File: agidl_imgp_mipmap.c
 *   Date: 1/23/2024
-*   Version: 0.2b
-*   Updated: 2/6/2024
+*   Version: 0.3b
+*   Updated: 2/7/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -87,7 +87,7 @@ AGIDL_MIPMAP* AGIDL_GenerateMipmapFromImgData(void* data, u16 width, u16 height,
 			mipmap->mipmap[i].fmt = fmt;
 			mipmap->mipmap[i].img_data = (COLOR16*)AGIDL_AllocImgDataMMU(width,height,fmt);
 			
-			clr_cpy = (COLOR16*)AGIDL_HalfImgDataNearest(clr_cpy,&w,&h,fmt);
+			clr_cpy = (COLOR16*)AGIDL_HalfImgDataBilerp(clr_cpy,&w,&h,fmt);
 			AGIDL_ClrMemcpy16(mipmap->mipmap[i].img_data,clr_cpy,width*height);
 		}
 		
@@ -119,7 +119,7 @@ AGIDL_MIPMAP* AGIDL_GenerateMipmapFromImgData(void* data, u16 width, u16 height,
 			mipmap->mipmap[i].fmt = fmt;
 			mipmap->mipmap[i].img_data = (COLOR*)AGIDL_AllocImgDataMMU(width,height,fmt);
 			
-			clr_cpy = (COLOR*)AGIDL_HalfImgDataNearest(clr_cpy,&w,&h,fmt);
+			clr_cpy = (COLOR*)AGIDL_HalfImgDataBilerp(clr_cpy,&w,&h,fmt);
 			AGIDL_ClrMemcpy(mipmap->mipmap[i].img_data,clr_cpy,width*height);
 		}
 		
@@ -340,6 +340,312 @@ void AGIDL_ExportMipmap(AGIDL_MIPMAP* mipmap, AGIDL_IMG_TYPE img_type, AGIDL_Boo
 				AGIDL_ExportBTI(bti);
 				AGIDL_FreeBTI(bti);
 			}break;
+		}
+	}
+}
+
+void AGIDL_FilterBilerpMipmapLevel(AGIDL_MIPMAP* mipmap, u8 mip_lvl){
+	if(mip_lvl <= mipmap->mipcount){
+		AGIDL_FilterImgDataBilerp(mipmap->mipmap[mip_lvl].img_data,mipmap->mipmap[mip_lvl].width,mipmap->mipmap[mip_lvl].height,mipmap->mipmap[mip_lvl].fmt);
+	}
+}
+
+void AGIDL_FilterBilerpMipmap(AGIDL_MIPMAP* mipmap){
+	int i;
+	for(i = 0; i < mipmap->mipcount; i++){
+		AGIDL_FilterBilerpMipmapLevel(mipmap,i);
+	}
+}
+
+void AGIDL_ClearMipmapLevel(AGIDL_MIPMAP* mipmap, u8 mip_lvl){
+	if(mip_lvl <= mipmap->mipcount){
+		if(AGIDL_GetBitCount(mipmap->mipmap[mip_lvl].fmt) == 16){
+			AGIDL_ClrMemset16(mipmap->mipmap[mip_lvl].img_data,0,mipmap->mipmap[mip_lvl].width*mipmap->mipmap[mip_lvl].height);
+		}
+		else{
+			AGIDL_ClrMemset(mipmap->mipmap[mip_lvl].img_data,0,mipmap->mipmap[mip_lvl].width*mipmap->mipmap[mip_lvl].height);
+		}
+	}
+}
+
+void AGIDL_RebuildMipmapLevel(AGIDL_MIPMAP* mipmap, u8 mip_lvl){
+	if(mip_lvl <= mipmap->mipcount){
+		if(mip_lvl == 0){
+			if(AGIDL_GetBitCount(mipmap->fmt) == 16){
+				COLOR16* data = (COLOR16*)mipmap->mipmap[mip_lvl+1].img_data;
+				COLOR16* data_cpy = (COLOR16*)AGIDL_AllocImgDataMMU(mipmap->mipmap[mip_lvl+1].width,mipmap->mipmap[mip_lvl+1].height,mipmap->mipmap[mip_lvl+1].fmt);
+				
+				u16 w = mipmap->mipmap[mip_lvl+1].width;
+				u16 h = mipmap->mipmap[mip_lvl+1].height;
+				
+				AGIDL_CLR_FMT fmt = mipmap->mipmap[mip_lvl+1].fmt;
+				
+				AGIDL_ClrMemcpy16(data_cpy,data,w*h);
+				
+				COLOR16* rebuild = (COLOR16*)AGIDL_DoubleImgDataNearest(data_cpy,&w,&h,fmt);
+				
+				AGIDL_ClrMemcpy16(mipmap->mipmap[mip_lvl].img_data,rebuild,w*h);
+				
+				free(rebuild);
+				
+			}
+			else{
+				COLOR* data = (COLOR*)mipmap->mipmap[mip_lvl+1].img_data;
+				COLOR* data_cpy = (COLOR*)AGIDL_AllocImgDataMMU(mipmap->mipmap[mip_lvl+1].width,mipmap->mipmap[mip_lvl+1].height,mipmap->mipmap[mip_lvl+1].fmt);
+				
+				u16 w = mipmap->mipmap[mip_lvl+1].width;
+				u16 h = mipmap->mipmap[mip_lvl+1].height;
+				
+				AGIDL_CLR_FMT fmt = mipmap->mipmap[mip_lvl+1].fmt;
+				
+				AGIDL_ClrMemcpy(data_cpy,data,w*h);
+				
+				COLOR* rebuild = (COLOR*)AGIDL_DoubleImgDataNearest(data_cpy,&w,&h,fmt);
+				
+				AGIDL_ClrMemcpy(mipmap->mipmap[mip_lvl].img_data,rebuild,w*h);
+				
+				free(rebuild);
+			}
+		}
+		else{
+			if(AGIDL_GetBitCount(mipmap->fmt) == 16){
+				COLOR16* data = (COLOR16*)mipmap->mipmap[mip_lvl-1].img_data;
+				COLOR16* data_cpy = (COLOR16*)AGIDL_AllocImgDataMMU(mipmap->mipmap[mip_lvl-1].width,mipmap->mipmap[mip_lvl-1].height,mipmap->mipmap[mip_lvl-1].fmt);
+				
+				u16 w = mipmap->mipmap[mip_lvl-1].width;
+				u16 h = mipmap->mipmap[mip_lvl-1].height;
+				
+				AGIDL_CLR_FMT fmt = mipmap->mipmap[mip_lvl-1].fmt;
+				
+				AGIDL_ClrMemcpy16(data_cpy,data,w*h);
+				
+				COLOR16* rebuild = (COLOR16*)AGIDL_HalfImgDataBilerp(data_cpy,&w,&h,fmt);
+				
+				AGIDL_ClrMemcpy16(mipmap->mipmap[mip_lvl].img_data,rebuild,w*h);
+				
+				free(rebuild);
+				
+			}
+			else{
+				COLOR* data = (COLOR*)mipmap->mipmap[mip_lvl-1].img_data;
+				COLOR* data_cpy = (COLOR*)AGIDL_AllocImgDataMMU(mipmap->mipmap[mip_lvl-1].width,mipmap->mipmap[mip_lvl-1].height,mipmap->mipmap[mip_lvl-1].fmt);
+				
+				u16 w = mipmap->mipmap[mip_lvl-1].width;
+				u16 h = mipmap->mipmap[mip_lvl-1].height;
+				
+				AGIDL_CLR_FMT fmt = mipmap->mipmap[mip_lvl-1].fmt;
+				
+				AGIDL_ClrMemcpy(data_cpy,data,w*h);
+				
+				COLOR* rebuild = (COLOR*)AGIDL_HalfImgDataBilerp(data_cpy,&w,&h,fmt);
+				
+				AGIDL_ClrMemcpy(mipmap->mipmap[mip_lvl].img_data,rebuild,w*h);
+				
+				free(rebuild);
+			}
+		}
+	}
+}
+
+void AGIDL_BlendMipmapLevel(AGIDL_MIPMAP* mipmap, u8 mip_lvl1, u8 mip_lvl2){
+	if(mip_lvl1 != mip_lvl2 && mip_lvl1 <= mipmap->mipcount && mip_lvl2 <= mipmap->mipcount){
+		if(AGIDL_GetBitCount(mipmap->fmt) == 16){
+			COLOR16* img1 = (COLOR16*)mipmap->mipmap[mip_lvl1].img_data;
+			u16 w1 = mipmap->mipmap[mip_lvl1].width;
+			u16 h1 = mipmap->mipmap[mip_lvl1].height;
+			
+			COLOR16* img2 = (COLOR16*)mipmap->mipmap[mip_lvl2].img_data;
+			u16 w2 = mipmap->mipmap[mip_lvl2].width;
+			u16 h2 = mipmap->mipmap[mip_lvl2].height;
+			
+			COLOR16* img1_cpy = (COLOR16*)AGIDL_AllocImgDataMMU(w1,h1,mipmap->fmt);
+			AGIDL_ClrMemcpy16(img1_cpy,img1,w1*h1);
+			
+			float xscale = (float)w2/w1;
+			float yscale = (float)h2/h1;
+			
+			AGIDL_CLR_FMT fmt = mipmap->fmt;
+			
+			int x,y;
+			for(y = 0; y < h1; y++){
+				for(x = 0; x < w1; x++){
+					u16 x2 = (x*xscale);
+					u16 y2 = (y*yscale);
+					
+					COLOR16 clr1 = AGIDL_GetClr16(img1_cpy,x,y,w1,h1);
+					COLOR16 clr2 = AGIDL_GetClr16(img1_cpy,x+1,y,w1,h1);
+					COLOR16 clr3 = AGIDL_GetClr16(img1_cpy,x,y+1,w1,h1);
+					COLOR16 clr4 = AGIDL_GetClr16(img1_cpy,x+1,y+1,w1,h1);
+					
+					COLOR16 clr12 = AGIDL_GetClr16(img2,x2,y2,w2,h2);
+					COLOR16 clr22 = AGIDL_GetClr16(img2,x2+1,y2,w2,h2);
+					COLOR16 clr32 = AGIDL_GetClr16(img2,x2,y2+1,w2,h2);
+					COLOR16 clr42 = AGIDL_GetClr16(img2,x2+1,y2+1,w2,h2);
+					
+					u8 r1 = AGIDL_GetR(clr1,fmt);
+					u8 g1 = AGIDL_GetG(clr1,fmt);
+					u8 b1 = AGIDL_GetB(clr1,fmt);
+					
+					u8 r2 = AGIDL_GetR(clr2,fmt);
+					u8 g2 = AGIDL_GetG(clr2,fmt);
+					u8 b2 = AGIDL_GetB(clr2,fmt);
+					
+					u8 r3 = AGIDL_GetR(clr3,fmt);
+					u8 g3 = AGIDL_GetG(clr3,fmt);
+					u8 b3 = AGIDL_GetB(clr3,fmt);
+					
+					u8 r4 = AGIDL_GetR(clr4,fmt);
+					u8 g4 = AGIDL_GetG(clr4,fmt);
+					u8 b4 = AGIDL_GetB(clr4,fmt);
+					
+					u8 rtop = r1 + ((r2-r1) >> 1);
+					u8 gtop = g1 + ((g2-g1) >> 1);
+					u8 btop = b1 + ((b2-b1) >> 1);
+					
+					u8 rbot = r3 + ((r4-r3) >> 1);
+					u8 gbot = g3 + ((g4-g3) >> 1);
+					u8 bbot = b3 + ((b4-b3) >> 1);
+					
+					u8 rbilerp1 = rtop + ((rbot-rtop) >> 1);
+					u8 gbilerp1 = gtop + ((gbot-gtop) >> 1);
+					u8 bbilerp1 = btop + ((bbot-btop) >> 1);
+					
+					r1 = AGIDL_GetR(clr12,fmt);
+					g1 = AGIDL_GetG(clr12,fmt);
+					b1 = AGIDL_GetB(clr12,fmt);
+					
+					r2 = AGIDL_GetR(clr22,fmt);
+					g2 = AGIDL_GetG(clr22,fmt);
+					b2 = AGIDL_GetB(clr22,fmt);
+					
+					r3 = AGIDL_GetR(clr32,fmt);
+					g3 = AGIDL_GetG(clr32,fmt);
+					b3 = AGIDL_GetB(clr32,fmt);
+					
+					r4 = AGIDL_GetR(clr42,fmt);
+					g4 = AGIDL_GetG(clr42,fmt);
+					b4 = AGIDL_GetB(clr42,fmt);
+					
+					rtop = r1 + ((r2-r1) >> 1);
+					gtop = g1 + ((g2-g1) >> 1);
+					btop = b1 + ((b2-b1) >> 1);
+					
+					rbot = r3 + ((r4-r3) >> 1);
+					gbot = g3 + ((g4-g3) >> 1);
+					bbot = b3 + ((b4-b3) >> 1);
+					
+					u8 rbilerp2 = rtop + ((rbot-rtop) >> 1);
+					u8 gbilerp2 = gtop + ((gbot-gtop) >> 1);
+					u8 bbilerp2 = btop + ((bbot-btop) >> 1);
+					
+					u8 rfinal = rbilerp1 + ((rbilerp2-rbilerp1) >> 1);
+					u8 gfinal = gbilerp1 + ((gbilerp2-gbilerp1) >> 1);
+					u8 bfinal = bbilerp1 + ((bbilerp2-bbilerp1) >> 1);
+					
+					AGIDL_SetClr16(img1,AGIDL_RGB16(rfinal,gfinal,bfinal,fmt),x,y,w1,h1);
+				}
+			}
+			
+			free(img1_cpy);
+		}
+		else{
+			COLOR* img1 = (COLOR*)mipmap->mipmap[mip_lvl1].img_data;
+			u16 w1 = mipmap->mipmap[mip_lvl1].width;
+			u16 h1 = mipmap->mipmap[mip_lvl1].height;
+			
+			COLOR* img2 = (COLOR*)mipmap->mipmap[mip_lvl2].img_data;
+			u16 w2 = mipmap->mipmap[mip_lvl2].width;
+			u16 h2 = mipmap->mipmap[mip_lvl2].height;
+			
+			COLOR* img1_cpy = (COLOR*)AGIDL_AllocImgDataMMU(w1,h1,mipmap->fmt);
+			AGIDL_ClrMemcpy(img1_cpy,img1,w1*h1);
+			
+			float xscale = (float)w2/w1;
+			float yscale = (float)h2/h1;
+			
+			AGIDL_CLR_FMT fmt = mipmap->fmt;
+			
+			int x,y;
+			for(y = 0; y < h1; y++){
+				for(x = 0; x < w1; x++){
+					u16 x2 = (x*xscale);
+					u16 y2 = (y*yscale);
+					
+					COLOR clr1 = AGIDL_GetClr(img1_cpy,x,y,w1,h1);
+					COLOR clr2 = AGIDL_GetClr(img1_cpy,x+1,y,w1,h1);
+					COLOR clr3 = AGIDL_GetClr(img1_cpy,x,y+1,w1,h1);
+					COLOR clr4 = AGIDL_GetClr(img1_cpy,x+1,y+1,w1,h1);
+					
+					COLOR clr12 = AGIDL_GetClr(img2,x2,y2,w2,h2);
+					COLOR clr22 = AGIDL_GetClr(img2,x2+1,y2,w2,h2);
+					COLOR clr32 = AGIDL_GetClr(img2,x2,y2+1,w2,h2);
+					COLOR clr42 = AGIDL_GetClr(img2,x2+1,y2+1,w2,h2);
+					
+					u8 r1 = AGIDL_GetR(clr1,fmt);
+					u8 g1 = AGIDL_GetG(clr1,fmt);
+					u8 b1 = AGIDL_GetB(clr1,fmt);
+					
+					u8 r2 = AGIDL_GetR(clr2,fmt);
+					u8 g2 = AGIDL_GetG(clr2,fmt);
+					u8 b2 = AGIDL_GetB(clr2,fmt);
+					
+					u8 r3 = AGIDL_GetR(clr3,fmt);
+					u8 g3 = AGIDL_GetG(clr3,fmt);
+					u8 b3 = AGIDL_GetB(clr3,fmt);
+					
+					u8 r4 = AGIDL_GetR(clr4,fmt);
+					u8 g4 = AGIDL_GetG(clr4,fmt);
+					u8 b4 = AGIDL_GetB(clr4,fmt);
+					
+					u8 rtop = r1 + ((r2-r1) >> 1);
+					u8 gtop = g1 + ((g2-g1) >> 1);
+					u8 btop = b1 + ((b2-b1) >> 1);
+					
+					u8 rbot = r3 + ((r4-r3) >> 1);
+					u8 gbot = g3 + ((g4-g3) >> 1);
+					u8 bbot = b3 + ((b4-b3) >> 1);
+					
+					u8 rbilerp1 = rtop + ((rbot-rtop) >> 1);
+					u8 gbilerp1 = gtop + ((gbot-gtop) >> 1);
+					u8 bbilerp1 = btop + ((bbot-btop) >> 1);
+					
+					r1 = AGIDL_GetR(clr12,fmt);
+					g1 = AGIDL_GetG(clr12,fmt);
+					b1 = AGIDL_GetB(clr12,fmt);
+					
+					r2 = AGIDL_GetR(clr22,fmt);
+					g2 = AGIDL_GetG(clr22,fmt);
+					b2 = AGIDL_GetB(clr22,fmt);
+					
+					r3 = AGIDL_GetR(clr32,fmt);
+					g3 = AGIDL_GetG(clr32,fmt);
+					b3 = AGIDL_GetB(clr32,fmt);
+					
+					r4 = AGIDL_GetR(clr42,fmt);
+					g4 = AGIDL_GetG(clr42,fmt);
+					b4 = AGIDL_GetB(clr42,fmt);
+					
+					rtop = r1 + ((r2-r1) >> 1);
+					gtop = g1 + ((g2-g1) >> 1);
+					btop = b1 + ((b2-b1) >> 1);
+					
+					rbot = r3 + ((r4-r3) >> 1);
+					gbot = g3 + ((g4-g3) >> 1);
+					bbot = b3 + ((b4-b3) >> 1);
+					
+					u8 rbilerp2 = rtop + ((rbot-rtop) >> 1);
+					u8 gbilerp2 = gtop + ((gbot-gtop) >> 1);
+					u8 bbilerp2 = btop + ((bbot-btop) >> 1);
+					
+					u8 rfinal = rbilerp1 + ((rbilerp2-rbilerp1) >> 1);
+					u8 gfinal = gbilerp1 + ((gbilerp2-gbilerp1) >> 1);
+					u8 bfinal = bbilerp1 + ((bbilerp2-bbilerp1) >> 1);
+					
+					AGIDL_SetClr(img1,AGIDL_RGB(rfinal,gfinal,bfinal,fmt),x,y,w1,h1);
+				}
+			}
+			
+			free(img1_cpy);
 		}
 	}
 }
