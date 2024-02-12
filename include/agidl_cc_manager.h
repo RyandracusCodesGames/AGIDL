@@ -41,6 +41,14 @@ COLOR AGIDL_Color4f(float r, float g, float b, float a, AGIDL_CLR_FMT fmt);
 COLOR AGIDL_GammaCorrectColor(COLOR clr, f32 gamma, AGIDL_CLR_FMT fmt);
 u8 AGIDL_GammaCorrectColorComponent(u8 rgb, f32 gamma, AGIDL_CLR_FMT fmt);
 
+u32 AGIDL_AcquireRedMask(AGIDL_CLR_FMT fmt);
+u32 AGIDL_AcquireGreenMask(AGIDL_CLR_FMT fmt);
+u32 AGIDL_AcquireBlueMask(AGIDL_CLR_FMT fmt);
+u32 AGIDL_AcquireColorMask(AGIDL_CLR_FMT fmt, AGIDL_CLR_COMPONENT component);
+
+COLOR AGIDL_DarkenColor(COLOR clr, AGIDL_CLR_FMT fmt);
+COLOR AGIDL_BrightenColor(COLOR clr, AGIDL_CLR_FMT fmt);
+
 typedef enum AGIDL_ICP_ENCODE{
 	ICP_ENCODE_HISTOGRAM = 0x1,
 	ICP_ENCODE_THRESHOLD = 0x2,

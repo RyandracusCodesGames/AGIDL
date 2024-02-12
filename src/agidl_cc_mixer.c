@@ -9,7 +9,7 @@
 *   File: agidl_cc_mixer.c
 *   Date: 9/10/2023
 *   Version: 0.1b
-*   Updated: 2/2/2024
+*   Updated: 2/11/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -191,8 +191,7 @@ COLOR AGIDL_DotColor(COLOR clr1, float factor, AGIDL_CLR_FMT fmt){
 	
 	if(AGIDL_GetBitCount(fmt) == 32){
 		u8 a1 = AGIDL_GetA(clr1,fmt);
-		u8 a = a1 * factor;
-		return AGIDL_RGBA(r,g,b,a,fmt);
+		return AGIDL_RGBA(r,g,b,a1,fmt);
 	}
 	
 	return AGIDL_RGB(r,g,b,fmt);
@@ -213,8 +212,7 @@ COLOR AGIDL_DivColor(COLOR clr1, float factor, AGIDL_CLR_FMT fmt){
 	
 	if(AGIDL_GetBitCount(fmt) == 32){
 		u8 a1 = AGIDL_GetA(clr1,fmt);
-		u8 a = a1 / factor;
-		return AGIDL_RGBA(r,g,b,a,fmt);
+		return AGIDL_RGBA(r,g,b,a1,fmt);
 	}
 	
 	return AGIDL_RGB(r,g,b,fmt);

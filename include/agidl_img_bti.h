@@ -10,7 +10,7 @@
 *   File: agidl_img_bti.h
 *   Date: 11/22/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 2/11/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -19,6 +19,7 @@
 #include "agidl_types.h"
 #include "agidl_cc_types.h"
 #include "agidl_img_types.h"
+#include "agidl_cc_manager.h"
 
 typedef enum BTI_CLR_FMT{
 	BTI_I4 = 0x00,
@@ -67,6 +68,7 @@ typedef struct AGIDL_BTI{
 	int max_diff;
 	AGIDL_ICP palette;
 	AGIDL_CLR_FMT fmt;
+	AGIDL_ICP_ENCODE encode;
 	Pixels pixels;
 	char* filename;
 }AGIDL_BTI;
@@ -77,6 +79,7 @@ void AGIDL_BTISetHeight(AGIDL_BTI* bti, u16 height);
 void AGIDL_BTISetClrFmt(AGIDL_BTI* bti, AGIDL_CLR_FMT fmt);
 void AGIDL_BTISetMaxDiff(AGIDL_BTI* bti, int max_diff);
 void AGIDL_BTISetICPMode(AGIDL_BTI* bti, int mode);
+void AGIDL_BTISetICPEncoding(AGIDL_BTI* bti, AGIDL_ICP_ENCODE encode);
 void AGIDL_BTISetCompression(AGIDL_BTI* bti, int compress);
 void AGIDL_BTISetClr(AGIDL_BTI* bti, int x, int y, COLOR clr);
 void AGIDL_BTISetClr16(AGIDL_BTI* bti, int x, int y, COLOR16 clr);
@@ -111,7 +114,7 @@ BTI_CLR_FMT AGIDL_GetBTIClrFmt(u8 type);
 BTI_ICP_FMT AGIDL_BTIGetICPFmt(u8 type);
 void AGIDL_ExportBTI(AGIDL_BTI* bti);
 void AGIDL_FreeBTI(AGIDL_BTI* bti);
-void AGIDL_BTIDecodeHeader(AGIDL_BTI* bti, FILE* file);
+int AGIDL_BTIDecodeHeader(AGIDL_BTI* bti, FILE* file);
 void AGIDL_BTIDecodeIMG(AGIDL_BTI* bti, FILE* file);
 void AGIDL_BTIEncodeHeader(AGIDL_BTI* bti, FILE* file);
 void AGIDL_BTIEncodeICP(AGIDL_BTI* bti);

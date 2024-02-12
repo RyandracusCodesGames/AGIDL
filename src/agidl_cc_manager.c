@@ -3,6 +3,9 @@
 #include "agidl_math_utils.h"
 #include "agidl_img_types.h"
 #include "agidl_cc_converter.h"
+#include "agidl_file_utils.h"
+#include "agidl_img_error.h"
+
 /********************************************
 *   Adaptive Graphics Image Display Library
 *
@@ -12,10 +15,115 @@
 *   File: agidl_cc_manager.c
 *   Date: 9/8/2023
 *   Version: 0.1b
-*   Updated: 2/4/2024
+*   Updated: 2/11/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
+
+u32 AGIDL_AcquireRedMask(AGIDL_CLR_FMT fmt){
+	switch(fmt){
+		case AGIDL_RGBA_8888:{
+			return 0xff000000;
+		}break;
+		case AGIDL_ARGB_8888:{
+			return  0xff0000;
+		}break;
+		case AGIDL_RGB_888:{
+			return 0xff0000;
+		}break;
+		case AGIDL_BGR_888:{
+			return 0xff;
+		}break;
+		case AGIDL_RGB_555:{
+			return 0x7c00;
+		}break;
+		case AGIDL_BGR_555:{
+			return 0x1f;
+		}break;
+		case AGIDL_RGB_565:{
+			return 0xf800;
+		}break;
+		case AGIDL_BGR_565:{
+			return 0x1f;
+		}break;
+		default: return 0; break;
+	}
+}
+
+u32 AGIDL_AcquireGreenMask(AGIDL_CLR_FMT fmt){
+	switch(fmt){
+		case AGIDL_RGBA_8888:{
+			return 0xff0000;
+		}break;
+		case AGIDL_ARGB_8888:{
+			return 0xff00;
+		}break;
+		case AGIDL_RGB_888:{
+			return 0xff00;
+		}break;
+		case AGIDL_BGR_888:{
+			return 0xff00;
+		}break;
+		case AGIDL_RGB_555:{
+			return 0x3e0;
+		}break;
+		case AGIDL_BGR_555:{
+			return 0x3e0;
+		}break;
+		case AGIDL_RGB_565:{
+			return 0x7e0;
+		}break;
+		case AGIDL_BGR_565:{
+			return 0x7e0;
+		}break;
+		default: return 0; break;
+	}
+}
+
+u32 AGIDL_AcquireBlueMask(AGIDL_CLR_FMT fmt){
+	switch(fmt){
+		case AGIDL_RGBA_8888:{
+			return 0xff00;
+		}break;
+		case AGIDL_ARGB_8888:{
+			return 0xff000000;
+		}break;
+		case AGIDL_RGB_888:{
+			return 0xff;
+		}break;
+		case AGIDL_BGR_888:{
+			return 0xff0000;
+		}break;
+		case AGIDL_RGB_555:{
+			return 0x1f;
+		}break;
+		case AGIDL_BGR_555:{
+			return 0x7c00;
+		}break;
+		case AGIDL_RGB_565:{
+			return 0x1f;
+		}break;
+		case AGIDL_BGR_565:{
+			return 0xf800;
+		}break;
+		default: return 0; break;
+	}
+}
+
+u32 AGIDL_AcquireColorMask(AGIDL_CLR_FMT fmt, AGIDL_CLR_COMPONENT component){
+	switch(component){
+		case CC_R:{
+			return AGIDL_AcquireRedMask(fmt);
+		}break;
+		case CC_G:{
+			return AGIDL_AcquireGreenMask(fmt);
+		}break;
+		case CC_B:{
+			return AGIDL_AcquireBlueMask(fmt);
+		}break;
+		default: return 0; break;
+	}
+}
 
 u8 AGIDL_GetR(COLOR clr, AGIDL_CLR_FMT fmt){
 	switch(fmt){
@@ -169,8 +277,8 @@ COLOR AGIDL_SetR(COLOR clr, u8 newR, AGIDL_CLR_FMT fmt){
 			u8 b = AGIDL_GetB(clr,fmt);
 			return AGIDL_RGB(r,g,b,fmt);
 		}break;
+		default: return clr; break;
 	}
-	return 0;
 }
 
 COLOR AGIDL_SetG(COLOR clr, u8 newG, AGIDL_CLR_FMT fmt){
@@ -225,8 +333,8 @@ COLOR AGIDL_SetG(COLOR clr, u8 newG, AGIDL_CLR_FMT fmt){
 			u8 b = AGIDL_GetB(clr,fmt);
 			return AGIDL_RGB(r,g,b,fmt); 
 		}break;
+		default: return clr; break;
 	}
-	return 0;
 }
 
 COLOR AGIDL_SetB(COLOR clr, u8 newB, AGIDL_CLR_FMT fmt){
@@ -281,8 +389,8 @@ COLOR AGIDL_SetB(COLOR clr, u8 newB, AGIDL_CLR_FMT fmt){
 			u8 b = AGIDL_Clamp(0,newB,31);
 			return AGIDL_RGB(r,g,b,fmt); 
 		}break;
+		default: return clr; break;
 	}
-	return 0;
 }
 
 COLOR AGIDL_SetA(COLOR clr, u8 newA, AGIDL_CLR_FMT fmt){
@@ -299,8 +407,8 @@ COLOR AGIDL_SetA(COLOR clr, u8 newA, AGIDL_CLR_FMT fmt){
 			u8 b = AGIDL_GetB(clr,fmt);
 			return AGIDL_RGBA(r,g,b,newA,fmt); 
 		}break;
+		default: return clr; break;
 	}
-	return 0;
 }
 
 COLOR AGIDL_RGB(u8 r, u8 g, u8 b, AGIDL_CLR_FMT fmt){
@@ -770,6 +878,58 @@ COLOR AGIDL_GammaCorrectColor(COLOR clr, f32 gamma, AGIDL_CLR_FMT fmt){
 	return 0;
 }
 
+COLOR AGIDL_DarkenColor(COLOR clr, AGIDL_CLR_FMT fmt){
+	if(AGIDL_GetBitCount(fmt) != 32){
+		u8 r = AGIDL_GetR(clr,fmt);
+		u8 g = AGIDL_GetG(clr,fmt);
+		u8 b = AGIDL_GetB(clr,fmt);
+		
+		r *= 0.75;
+		g *= 0.75;
+		b *= 0.75;
+		
+		return AGIDL_RGB(r,g,b,fmt);
+	}
+	else{
+		u8 r = AGIDL_GetR(clr,fmt);
+		u8 g = AGIDL_GetG(clr,fmt);
+		u8 b = AGIDL_GetB(clr,fmt);
+		u8 a = AGIDL_GetA(clr,fmt);
+		
+		r *= 0.75;
+		g *= 0.75;
+		b *= 0.75;
+		
+		return AGIDL_RGBA(r,g,b,a,fmt);
+	}
+}
+
+COLOR AGIDL_BrightenColor(COLOR clr, AGIDL_CLR_FMT fmt){
+	if(AGIDL_GetBitCount(fmt) != 32){
+		u8 r = AGIDL_GetR(clr,fmt);
+		u8 g = AGIDL_GetG(clr,fmt);
+		u8 b = AGIDL_GetB(clr,fmt);
+		
+		r *= 1.25;
+		g *= 1.25;
+		b *= 1.25;
+		
+		return AGIDL_RGB(r,g,b,fmt);
+	}
+	else{
+		u8 r = AGIDL_GetR(clr,fmt);
+		u8 g = AGIDL_GetG(clr,fmt);
+		u8 b = AGIDL_GetB(clr,fmt);
+		u8 a = AGIDL_GetA(clr,fmt);
+		
+		r *= 1.25;
+		g *= 1.25;
+		b *= 1.25;
+		
+		return AGIDL_RGBA(r,g,b,a,fmt);
+	}
+}
+
 int AGIDL_IsInThreshold(COLOR clr1, COLOR clr2, AGIDL_CLR_FMT fmt, AGIDL_CLR_FMT fmt2, u8 max_diff){
 	if((AGIDL_GetBitCount(fmt) == 24 || AGIDL_GetBitCount(fmt) == 32) && (AGIDL_GetBitCount(fmt2) == 24 || AGIDL_GetBitCount(fmt2) == 32)){
 		u8 r = AGIDL_GetR(clr1,fmt);
@@ -960,8 +1120,8 @@ void AGIDL_ExportICP(const char* name, AGIDL_ICP icp){
 	u8 clrmdl = AGIDL_GetClrMDL(icp.fmt);
 	u8 bits = AGIDL_GetBitCount(icp.fmt);
 	
-	fwrite(&clrmdl,1,1,file);
-	fwrite(&bits,1,1,file);
+	AGIDL_WriteByte(file,clrmdl);
+	AGIDL_WriteByte(file,bits);
 	
 	u16 num_of_clrs = 0;
 		
@@ -972,76 +1132,62 @@ void AGIDL_ExportICP(const char* name, AGIDL_ICP icp){
 		num_of_clrs = 16;
 	}
 	
-	fwrite(&num_of_clrs,2,1,file);
+	AGIDL_WriteShort(file,num_of_clrs);
 	
 	switch(icp.mode){
 		case AGIDL_ICP_256:{
 			int i;
 			for(i = 0; i < 256; i++){
 				COLOR clr = icp.icp.palette_256[i];
-				u8 r = AGIDL_GetR(clr,icp.fmt);
-				u8 g = AGIDL_GetR(clr,icp.fmt);
-				u8 b = AGIDL_GetR(clr,icp.fmt);
-				fwrite(&r,1,1,file);
-				fwrite(&g,1,1,file);
-				fwrite(&b,1,1,file);
+				AGIDL_WriteRGB(file,clr,icp.fmt,icp.fmt);
 			}
 		}break;
 		case AGIDL_ICP_16:{
 			int i;
 			for(i = 0; i < 16; i++){
 				COLOR clr = icp.icp.palette_256[i];
-				u8 r = AGIDL_GetR(clr,icp.fmt);
-				u8 g = AGIDL_GetR(clr,icp.fmt);
-				u8 b = AGIDL_GetR(clr,icp.fmt);
-				fwrite(&r,1,1,file);
-				fwrite(&g,1,1,file);
-				fwrite(&b,1,1,file);
+				AGIDL_WriteRGB(file,clr,icp.fmt,icp.fmt);
 			}
 		}break;
 		case AGIDL_ICP_16b_256:{
 			int i;
 			for(i = 0; i < 256; i++){
 				COLOR16 clr = icp.icp.palette_16b_256[i];
-				u8 r = AGIDL_GetR(clr,icp.fmt);
-				u8 g = AGIDL_GetR(clr,icp.fmt);
-				u8 b = AGIDL_GetR(clr,icp.fmt);
-				fwrite(&r,1,1,file);
-				fwrite(&g,1,1,file);
-				fwrite(&b,1,1,file);
+				AGIDL_WriteShort(file,clr);
 			}
 		}break;
 		case AGIDL_ICP_16b_16:{
 			int i;
 			for(i = 0; i < 16; i++){
 				COLOR16 clr = icp.icp.palette_16b_256[i];
-				u8 r = AGIDL_GetR(clr,icp.fmt);
-				u8 g = AGIDL_GetR(clr,icp.fmt);
-				u8 b = AGIDL_GetR(clr,icp.fmt);
-				fwrite(&r,1,1,file);
-				fwrite(&g,1,1,file);
-				fwrite(&b,1,1,file);
+				AGIDL_WriteShort(file,clr);
 			}
 		}break;
 	}
 	fclose(file);
+	
+	free(filename);
 }
 
 AGIDL_ICP AGIDL_LoadICP(const char* filename){
 	FILE* file = fopen(filename,"rb");
 	
-	if(file == NULL){
-		printf("Cannot find/located AGIDL Indexed Color Palette(ICP) - %s!\n",filename);
-	}
-	
 	AGIDL_ICP icp;
 	
-	u8 clrmdl = 0, bits = 0;
-	u16 num_of_colors = 0;
+	if(file == NULL){
+		printf("%s - %s!\n",AGIDL_Error2Str(FILE_NOT_LOCATED_IMG_ERROR),filename);
+		return icp;
+	}
 	
-	fread(&clrmdl,1,1,file);
-	fread(&bits,1,1,file);
-	fread(&num_of_colors,2,1,file);
+	u8 clrmdl = AGIDL_ReadByte(file);
+    u8 bits = AGIDL_ReadByte(file);
+	u16 num_of_colors = AGIDL_ReadShort(file);
+	
+	if(!(bits == 16 || bits == 24 || bits == 32) || num_of_colors <= 0 || num_of_colors > 256 || 
+	!(clrmdl == AGIDL_CLR_RGB || clrmdl == AGIDL_CLR_BGR || clrmdl == AGIDL_CLR_RGBA)){
+		printf("%s - %s\n",AGIDL_Error2Str(INVALID_IMG_FORMATTING_ERROR),filename);
+		return icp;
+	}
 	
 	icp.fmt = AGIDL_GetClrFmt(clrmdl,bits);
 	
@@ -1050,11 +1196,7 @@ AGIDL_ICP AGIDL_LoadICP(const char* filename){
 		
 		int i;
 		for(i = 0; i < num_of_colors; i++){
-			u8 r = 0, g = 0, b = 0;
-			fread(&r,1,1,file);
-			fread(&g,1,1,file);
-			fread(&b,1,1,file);
-			icp.icp.palette_256[i] = AGIDL_RGB(r,g,b,icp.fmt);
+			icp.icp.palette_256[i] = AGIDL_ReadRGB(file,icp.fmt);
 		}
 	}
 	else if(num_of_colors == 16 && bits != 16){
@@ -1062,11 +1204,7 @@ AGIDL_ICP AGIDL_LoadICP(const char* filename){
 		
 		int i;
 		for(i = 0; i < num_of_colors; i++){
-			u8 r = 0, g = 0, b = 0;
-			fread(&r,1,1,file);
-			fread(&g,1,1,file);
-			fread(&b,1,1,file);
-			icp.icp.palette_16[i] = AGIDL_RGB(r,g,b,icp.fmt);
+			icp.icp.palette_16[i] = AGIDL_ReadRGB(file,icp.fmt);
 		}
 	}
 	else if(num_of_colors == 16 && bits != 256){
@@ -1074,11 +1212,7 @@ AGIDL_ICP AGIDL_LoadICP(const char* filename){
 		
 		int i;
 		for(i = 0; i < num_of_colors; i++){
-			u8 r = 0, g = 0, b = 0;
-			fread(&r,1,1,file);
-			fread(&g,1,1,file);
-			fread(&b,1,1,file);
-			icp.icp.palette_16b_256[i] = AGIDL_RGB16(r,g,b,icp.fmt);
+			icp.icp.palette_16b_256[i] = AGIDL_ReadShort(file);
 		}
 	}
 	else{
@@ -1086,11 +1220,7 @@ AGIDL_ICP AGIDL_LoadICP(const char* filename){
 		
 		int i;
 		for(i = 0; i < num_of_colors; i++){
-			u8 r = 0, g = 0, b = 0;
-			fread(&r,1,1,file);
-			fread(&g,1,1,file);
-			fread(&b,1,1,file);
-			icp.icp.palette_16b_16[i] = AGIDL_RGB16(r,g,b,icp.fmt);
+			icp.icp.palette_16b_16[i] = AGIDL_ReadShort(file);
 		}
 	}
 	

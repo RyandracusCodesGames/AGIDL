@@ -10,7 +10,7 @@
 *   File: agidl_cc_mixer.h
 *   Date: 9/10/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 2/11/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -66,10 +66,9 @@ COLOR AGIDL_BlendColor(COLOR clr1, COLOR clr2, float blend_factor, int blend_mod
 COLOR AGIDL_ColorCombine(COLOR clr1, COLOR clr2, AGIDL_CC_COMBINE_MODE cc, AGIDL_CLR_FMT fmt);
 COLOR AGIDL_InterpColor(COLOR clr1, COLOR clr2, float interp, AGIDL_CLR_FMT fmt);
 COLOR AGIDL_BilerpColor(COLOR clr1, COLOR clr2, COLOR clr3, COLOR clr4, float interp, float bilerp, AGIDL_CLR_FMT fmt);
-COLOR AGIDL_BrightenColor(COLOR clr, AGIDL_CLR_FMT fmt);
-COLOR AGIDL_DarkenColor(COLOR clr, AGIDL_CLR_FMT fmt);
 COLOR AGIDL_GrayscaleColor(COLOR clr, AGIDL_CLR_FMT fmt);
-u8 AGIDL_AlphaCombine(u8 alpha1, u8 alpha2);
-u8 AGIDL_AlphaBlend(u8 alpha1, u8 alpha2);
+
+
+
 
 #endif

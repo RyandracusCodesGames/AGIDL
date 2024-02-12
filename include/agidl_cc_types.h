@@ -10,7 +10,7 @@
 *   File: agidl_cc_types.h
 *   Date: 9/8/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 2/11/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -68,6 +68,12 @@ typedef enum AGIDL_BITS{
 	AGIDL_BITS_8888 = 32,
 	AGIDL_BITS_ICP = 8,
 }AGIDL_BITS;
+
+typedef enum AGIDL_CLR_COMPONENT{
+	CC_R = 0x1,
+	CC_G = 0x2,
+	CC_B = 0x3,
+}AGIDL_CLR_COMPONENT;
 
 /*Enumeration that holds the most fundamental, named colors that when 
   called through the AGIDL_GetColor() function, it will provide a way to call 

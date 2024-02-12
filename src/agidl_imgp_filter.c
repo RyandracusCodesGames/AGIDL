@@ -977,7 +977,7 @@ void AGIDL_FastFilterImgDataTrilerp(void* data, u32 width, u32 height, AGIDL_CLR
 		u16 w = width, h = height;
 		
 		COLOR* clrscale = (COLOR*)malloc(sizeof(COLOR)*w*h);
-		clrscale = (COLOR*)AGIDL_ScaleImgDataNearest(clrscpy,&w,&h,0.5f,0.5f,fmt);
+		clrscale = (COLOR*)AGIDL_ScaleImgDataNearest(clrscpy,&w,&h,2.0f,2.0f,fmt);
 		
 		AGIDL_FastFilterImgDataBilerp(clrscale,w,h,fmt);
 		
@@ -1100,7 +1100,7 @@ void AGIDL_FastFilterImgDataTrilerp(void* data, u32 width, u32 height, AGIDL_CLR
 		u16 w = width, h = height;
 		
 		COLOR16* clrscale = (COLOR16*)malloc(sizeof(COLOR16)*w*h);
-		clrscale = (COLOR16*)AGIDL_ScaleImgDataNearest(clrscpy,&w,&h,0.5f,0.5f,fmt);
+		clrscale = (COLOR16*)AGIDL_ScaleImgDataNearest(clrscpy,&w,&h,2.0f,2.0f,fmt);
 		
 		AGIDL_FastFilterImgDataBilerp(clrscale,w,h,fmt);
 		

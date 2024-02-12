@@ -2,6 +2,9 @@
 #include <string.h>
 #include "agidl_img_bti.h"
 #include "agidl_cc_core.h"
+#include "agidl_img_error.h"
+#include "agidl_file_utils.h"
+#include "agidl_mmu_utils.h"
 
 /********************************************
 *   Adaptive Graphics Image Display Library
@@ -12,7 +15,7 @@
 *   File: agidl_img_bti.c
 *   Date: 11/22/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 2/11/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -40,6 +43,10 @@ void AGIDL_BTISetMaxDiff(AGIDL_BTI* bti, int max_diff){
 
 void AGIDL_BTISetICPMode(AGIDL_BTI* bti, int mode){
 	bti->icp = mode;
+}
+
+void AGIDL_BTISetICPEncoding(AGIDL_BTI* bti, AGIDL_ICP_ENCODE encode){
+	bti->encode = encode;
 }
 
 void AGIDL_BTISetCompression(AGIDL_BTI* bti, int compress){
@@ -230,6 +237,7 @@ AGIDL_BTI* AGIDL_CreateBTI(const char* filename, int width, int height, AGIDL_CL
 	AGIDL_BTISetHeight(bti,height);
 	AGIDL_BTISetClrFmt(bti,fmt);
 	AGIDL_BTISetICPMode(bti,0);
+	AGIDL_BTISetICPEncoding(bti,ICP_ENCODE_THRESHOLD);
 	AGIDL_BTISetMaxDiff(bti,7);
 	AGIDL_BTISetCompression(bti,0);
 	
@@ -249,6 +257,7 @@ AGIDL_BTI* AGIDL_BTICpyImg(AGIDL_BTI* bti){
 	AGIDL_BTISetICPMode(cpybti,bti->icp);
 	AGIDL_BTISetMaxDiff(cpybti,AGIDL_BTIGetMaxDiff(bti));
 	AGIDL_BTISetCompression(cpybti,bti->compression);
+	AGIDL_BTISetICPEncoding(cpybti,ICP_ENCODE_THRESHOLD);
 	
 	if(AGIDL_GetBitCount(AGIDL_BTIGetClrFmt(bti)) == 24 ||  AGIDL_GetBitCount(AGIDL_BTIGetClrFmt(bti)) == 32){
 		AGIDL_BTISyncPix(cpybti,bti->pixels.pix32);
@@ -314,6 +323,7 @@ BTI_CLR_FMT AGIDL_GetBTIClrFmt(u8 type){
 			return BTI_CMPR;
 		}break;
 	}
+	return 44;
 }
 
 BTI_ICP_FMT AGIDL_BTIGetICPFmt(u8 type){
@@ -327,33 +337,41 @@ BTI_ICP_FMT AGIDL_BTIGetICPFmt(u8 type){
 		case 0x02:{
 			return BTI_ICP_5A3;
 		}break;
-		default: return 0x04; break;
+		default: return 44; break;
 	}
 }
 
-void AGIDL_BTIDecodeHeader(AGIDL_BTI* bti, FILE* file){
-	u8 fmt1;
-	u16 fmt2;
-	fread(&fmt1,1,1,file);
-	fread(&bti->header.alpha,2,1,file);
-	fread(&bti->header.width,2,1,file);
-	fread(&bti->header.height,2,1,file);
-	fread(&bti->header.wraps,1,1,file);
-	fread(&bti->header.wrapt,1,1,file);
-	fread(&fmt2,2,1,file);
-	fread(&bti->header.num_of_icps,2,1,file);
-	fread(&bti->header.offset_icp,4,1,file);
-	fread(&bti->header.blank,3,1,file);
-	fread(&bti->header.filter_type,1,1,file);
-	fread(&bti->header.filter_type2,1,1,file);
-	fread(&bti->header.blank2,2,1,file);
-	fread(&bti->header.mipmapcount,1,1,file);
-	fread(&bti->header.blank3,4,1,file);
-	fread(&bti->header.blank4,2,1,file);
-	fread(&bti->header.offset,1,1,file);
+int AGIDL_BTIDecodeHeader(AGIDL_BTI* bti, FILE* file){
+	
+	AGIDL_InitBigEndArch();
+	
+	u8 fmt1 = AGIDL_ReadByte(file);
+	bti->header.alpha = AGIDL_ReadByte(file);
+	bti->header.width = AGIDL_ReadShort(file);
+	bti->header.height = AGIDL_ReadShort(file);
+	bti->header.wraps = AGIDL_ReadByte(file);
+	bti->header.wrapt = AGIDL_ReadByte(file);
+	u16 fmt2 = AGIDL_ReadShort(file);
+	bti->header.num_of_icps = AGIDL_ReadShort(file);
+	bti->header.offset_icp = AGIDL_ReadLong(file);
+	fseek(file,4,SEEK_CUR);
+	bti->header.filter_type = AGIDL_ReadByte(file);
+	bti->header.filter_type2 = AGIDL_ReadByte(file);
+	bti->header.blank2 = AGIDL_ReadShort(file);
+	bti->header.mipmapcount = AGIDL_ReadByte(file);
+	bti->header.blank3 = AGIDL_ReadLong(file);
+	bti->header.blank4 = AGIDL_ReadShort(file);
+	bti->header.offset = AGIDL_ReadByte(file);
 	
 	bti->header.fmt = AGIDL_GetBTIClrFmt(fmt1);
 	bti->header.icp_fmt = AGIDL_BTIGetICPFmt(fmt2);
+	
+	AGIDL_DisableBigEndArch();
+	
+	if(bti->header.fmt == 44 || bti->header.icp_fmt == 44){
+		return INVALID_HEADER_FORMATTING_ERROR;
+	}
+	else return NO_IMG_ERROR;
 }
 
 void AGIDL_BTIDecodeIMG(AGIDL_BTI* bti, FILE* file){
@@ -361,7 +379,7 @@ void AGIDL_BTIDecodeIMG(AGIDL_BTI* bti, FILE* file){
 		switch(bti->header.fmt){
 			case BTI_RGB5A3:{
 				AGIDL_BTISetClrFmt(bti,AGIDL_RGBA_8888);
-				bti->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*AGIDL_BTIGetSize(bti));
+				bti->pixels.pix32 = (COLOR*)AGIDL_AllocImgDataMMU(AGIDL_BTIGetWidth(bti),AGIDL_BTIGetHeight(bti),AGIDL_BTIGetClrFmt(bti));
 
 				int x,y;
 				for(y = 0; y < AGIDL_BTIGetHeight(bti); y += 4){
@@ -370,9 +388,8 @@ void AGIDL_BTIDecodeIMG(AGIDL_BTI* bti, FILE* file){
 						u8 i,j;
 						for(j = 0; j < 4; j++){
 							for(i = 0; i < 4; i++){
-								u8 byte1 = 0,byte2 = 0;
-								fread(&byte1,1,1,file);
-								fread(&byte2,1,1,file);
+								u8 byte1 = AGIDL_ReadByte(file);
+								u8 byte2 = AGIDL_ReadByte(file);
 								
 								u8 r = 0, g = 0, b = 0;
 								
@@ -397,8 +414,10 @@ void AGIDL_BTIDecodeIMG(AGIDL_BTI* bti, FILE* file){
 				}
 			}break;
 			case BTI_RGB_565:{
+				AGIDL_InitBigEndArch();
+				
 				AGIDL_BTISetClrFmt(bti,AGIDL_RGB_565);
-				bti->pixels.pix16 = (COLOR16*)malloc(sizeof(COLOR16)*AGIDL_BTIGetSize(bti));
+				bti->pixels.pix16 = (COLOR16*)AGIDL_AllocImgDataMMU(AGIDL_BTIGetWidth(bti),AGIDL_BTIGetHeight(bti),AGIDL_BTIGetClrFmt(bti));
 
 				int x,y;
 				for(y = 0; y < AGIDL_BTIGetHeight(bti); y += 4){
@@ -407,93 +426,88 @@ void AGIDL_BTIDecodeIMG(AGIDL_BTI* bti, FILE* file){
 						u8 i,j;
 						for(j = 0; j < 4; j++){
 							for(i = 0; i < 4; i++){
-								u8 byte1,byte2;
-								fread(&byte1,1,1,file);
-								fread(&byte2,1,1,file);
-								COLOR16 clr = byte1 << 8 | byte2;
+								COLOR16 clr = AGIDL_ReadShort(file);
 								AGIDL_BTISetClr16(bti,x+i,y+j,clr);
 							}
 						}
 					}
 				}
+				
+				AGIDL_DisableBigEndArch();
 			}break;
 			case BTI_RGBA32:{
 				AGIDL_BTISetClrFmt(bti,AGIDL_RGBA_8888);
-				bti->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*AGIDL_BTIGetSize(bti));
-
+				bti->pixels.pix32 = (COLOR*)AGIDL_AllocImgDataMMU(AGIDL_BTIGetWidth(bti),AGIDL_BTIGetHeight(bti),AGIDL_BTIGetClrFmt(bti));
+				
 				int x,y;
 				for(y = 0; y < AGIDL_BTIGetHeight(bti); y += 4){
 					for(x = 0; x < AGIDL_BTIGetWidth(bti); x += 4){
 						u8 byte1,byte2,byte3,byte4,byte5,byte6,byte7,byte8,
 						byte9,byte10,byte11,byte12,byte13,byte14,byte15,byte16;
 						
-						fread(&byte1,1,1,file);fread(&byte2,1,1,file);fread(&byte3,1,1,file);
-						fread(&byte4,1,1,file);fread(&byte5,1,1,file);fread(&byte6,1,1,file);
-						fread(&byte7,1,1,file);fread(&byte8,1,1,file);fread(&byte9,1,1,file);
-						fread(&byte10,1,1,file);fread(&byte11,1,1,file);fread(&byte12,1,1,file);
-						fread(&byte13,1,1,file);fread(&byte14,1,1,file);fread(&byte15,1,1,file);
-						fread(&byte16,1,1,file);
+						byte1 = AGIDL_ReadByte(file); byte2 = AGIDL_ReadByte(file); byte3 = AGIDL_ReadByte(file);
+						byte4 = AGIDL_ReadByte(file); byte5 = AGIDL_ReadByte(file); byte6 = AGIDL_ReadByte(file);
+						byte7 = AGIDL_ReadByte(file); byte8 = AGIDL_ReadByte(file); byte9 = AGIDL_ReadByte(file);
+						byte10 = AGIDL_ReadByte(file); byte11 = AGIDL_ReadByte(file); byte12 = AGIDL_ReadByte(file);
+						byte13 = AGIDL_ReadByte(file); byte14 = AGIDL_ReadByte(file); byte15 = AGIDL_ReadByte(file); byte16 = AGIDL_ReadByte(file);
 						
 						u8 a1 = byte1, a2 = byte3, a3 = byte5, a4 = byte7;
 						u8 r1 = byte2, r2 = byte4, r3 = byte6, r4 = byte8;
 						u8 aa1 = byte9, aa2 = byte11, aa3 = byte13, aa4 = byte15;
 						u8 rr1 = byte10, rr2 = byte12, rr3 = byte14, rr4 = byte16;
 											
-						fread(&byte1,1,1,file);fread(&byte2,1,1,file);fread(&byte3,1,1,file);
-						fread(&byte4,1,1,file);fread(&byte5,1,1,file);fread(&byte6,1,1,file);
-						fread(&byte7,1,1,file);fread(&byte8,1,1,file);fread(&byte9,1,1,file);
-						fread(&byte10,1,1,file);fread(&byte11,1,1,file);fread(&byte12,1,1,file);
-						fread(&byte13,1,1,file);fread(&byte14,1,1,file);fread(&byte15,1,1,file);
-						fread(&byte16,1,1,file);
+						byte1 = AGIDL_ReadByte(file); byte2 = AGIDL_ReadByte(file); byte3 = AGIDL_ReadByte(file);
+						byte4 = AGIDL_ReadByte(file); byte5 = AGIDL_ReadByte(file); byte6 = AGIDL_ReadByte(file);
+						byte7 = AGIDL_ReadByte(file); byte8 = AGIDL_ReadByte(file); byte9 = AGIDL_ReadByte(file);
+						byte10 = AGIDL_ReadByte(file); byte11 = AGIDL_ReadByte(file); byte12 = AGIDL_ReadByte(file);
+						byte13 = AGIDL_ReadByte(file); byte14 = AGIDL_ReadByte(file); byte15 = AGIDL_ReadByte(file); byte16 = AGIDL_ReadByte(file);
 						
 						u8 aaa1 = byte1, aaa2 = byte3, aaa3 = byte5, aaa4 = byte7;
 						u8 rrr1 = byte2, rrr2 = byte4, rrr3 = byte6, rrr4 = byte8;
 						u8 aaaa1 = byte9, aaaa2 = byte11, aaaa3 = byte13, aaaa4 = byte15;
 						u8 rrrr1 = byte10, rrrr2 = byte12, rrrr3 = byte14, rrrr4 = byte16;
 						
-						fread(&byte1,1,1,file);fread(&byte2,1,1,file);fread(&byte3,1,1,file);
-						fread(&byte4,1,1,file);fread(&byte5,1,1,file);fread(&byte6,1,1,file);
-						fread(&byte7,1,1,file);fread(&byte8,1,1,file);fread(&byte9,1,1,file);
-						fread(&byte10,1,1,file);fread(&byte11,1,1,file);fread(&byte12,1,1,file);
-						fread(&byte13,1,1,file);fread(&byte14,1,1,file);fread(&byte15,1,1,file);
-						fread(&byte16,1,1,file);
+						byte1 = AGIDL_ReadByte(file); byte2 = AGIDL_ReadByte(file); byte3 = AGIDL_ReadByte(file);
+						byte4 = AGIDL_ReadByte(file); byte5 = AGIDL_ReadByte(file); byte6 = AGIDL_ReadByte(file);
+						byte7 = AGIDL_ReadByte(file); byte8 = AGIDL_ReadByte(file); byte9 = AGIDL_ReadByte(file);
+						byte10 = AGIDL_ReadByte(file); byte11 = AGIDL_ReadByte(file); byte12 = AGIDL_ReadByte(file);
+						byte13 = AGIDL_ReadByte(file); byte14 = AGIDL_ReadByte(file); byte15 = AGIDL_ReadByte(file); byte16 = AGIDL_ReadByte(file);
 						
 						u8 g1 = byte1, g2 = byte3, g3 = byte5, g4 = byte7;
 						u8 b1 = byte2, b2 = byte4, b3 = byte6, b4 = byte8;
 						u8 gg1 = byte9, gg2 = byte11, gg3 = byte13, gg4 = byte15;
 						u8 bb1 = byte10, bb2 = byte12, bb3 = byte14, bb4 = byte16;
 						
-						fread(&byte1,1,1,file);fread(&byte2,1,1,file);fread(&byte3,1,1,file);
-						fread(&byte4,1,1,file);fread(&byte5,1,1,file);fread(&byte6,1,1,file);
-						fread(&byte7,1,1,file);fread(&byte8,1,1,file);fread(&byte9,1,1,file);
-						fread(&byte10,1,1,file);fread(&byte11,1,1,file);fread(&byte12,1,1,file);
-						fread(&byte13,1,1,file);fread(&byte14,1,1,file);fread(&byte15,1,1,file);
-						fread(&byte16,1,1,file);
+						byte1 = AGIDL_ReadByte(file); byte2 = AGIDL_ReadByte(file); byte3 = AGIDL_ReadByte(file);
+						byte4 = AGIDL_ReadByte(file); byte5 = AGIDL_ReadByte(file); byte6 = AGIDL_ReadByte(file);
+						byte7 = AGIDL_ReadByte(file); byte8 = AGIDL_ReadByte(file); byte9 = AGIDL_ReadByte(file);
+						byte10 = AGIDL_ReadByte(file); byte11 = AGIDL_ReadByte(file); byte12 = AGIDL_ReadByte(file);
+						byte13 = AGIDL_ReadByte(file); byte14 = AGIDL_ReadByte(file); byte15 = AGIDL_ReadByte(file); byte16 = AGIDL_ReadByte(file);
 						
 						u8 ggg1 = byte1, ggg2 = byte3, ggg3 = byte5, ggg4 = byte7;
 						u8 bbb1 = byte2, bbb2 = byte4, bbb3 = byte6, bbb4 = byte8;
 						u8 gggg1 = byte9, gggg2 = byte11, gggg3 = byte13, gggg4 = byte15;
 						u8 bbbb1 = byte10, bbbb2 = byte12, bbbb3 = byte14, bbbb4 = byte16;
 						
-						COLOR clr1 = AGIDL_RGBA(r1,g1,b1,a2,bti->fmt);
-						COLOR clr2 = AGIDL_RGBA(r2,g2,b2,a2,bti->fmt);
-						COLOR clr3 = AGIDL_RGBA(r3,g3,b3,a3,bti->fmt);
-						COLOR clr4 = AGIDL_RGBA(r4,g4,b4,a4,bti->fmt);
+						COLOR clr1 = AGIDL_RGBA(r1,g1,b1,a2,AGIDL_BTIGetClrFmt(bti));
+						COLOR clr2 = AGIDL_RGBA(r2,g2,b2,a2,AGIDL_BTIGetClrFmt(bti));
+						COLOR clr3 = AGIDL_RGBA(r3,g3,b3,a3,AGIDL_BTIGetClrFmt(bti));
+						COLOR clr4 = AGIDL_RGBA(r4,g4,b4,a4,AGIDL_BTIGetClrFmt(bti));
 						
-						COLOR clr5 = AGIDL_RGBA(rr1,gg1,bb1,aa2,bti->fmt);
-						COLOR clr6 = AGIDL_RGBA(rr2,gg2,bb2,aa2,bti->fmt);
-						COLOR clr7 = AGIDL_RGBA(rr3,gg3,bb3,aa3,bti->fmt);
-						COLOR clr8 = AGIDL_RGBA(rr4,gg4,bb4,aa4,bti->fmt);
+						COLOR clr5 = AGIDL_RGBA(rr1,gg1,bb1,aa2,AGIDL_BTIGetClrFmt(bti));
+						COLOR clr6 = AGIDL_RGBA(rr2,gg2,bb2,aa2,AGIDL_BTIGetClrFmt(bti));
+						COLOR clr7 = AGIDL_RGBA(rr3,gg3,bb3,aa3,AGIDL_BTIGetClrFmt(bti));
+						COLOR clr8 = AGIDL_RGBA(rr4,gg4,bb4,aa4,AGIDL_BTIGetClrFmt(bti));
 						
-						COLOR clr9 = AGIDL_RGBA(rrr1,ggg1,bbb1,aaa2,bti->fmt);
-						COLOR clr10 = AGIDL_RGBA(rrr2,ggg2,bbb2,aaa2,bti->fmt);
-						COLOR clr11 = AGIDL_RGBA(rrr3,ggg3,bbb3,aaa3,bti->fmt);
-						COLOR clr12 = AGIDL_RGBA(rrr4,ggg4,bbb4,aaa4,bti->fmt);
+						COLOR clr9 = AGIDL_RGBA(rrr1,ggg1,bbb1,aaa2,AGIDL_BTIGetClrFmt(bti));
+						COLOR clr10 = AGIDL_RGBA(rrr2,ggg2,bbb2,aaa2,AGIDL_BTIGetClrFmt(bti));
+						COLOR clr11 = AGIDL_RGBA(rrr3,ggg3,bbb3,aaa3,AGIDL_BTIGetClrFmt(bti));
+						COLOR clr12 = AGIDL_RGBA(rrr4,ggg4,bbb4,aaa4,AGIDL_BTIGetClrFmt(bti));
 						
-						COLOR clr13 = AGIDL_RGBA(rrrr1,gggg1,bbbb1,aaaa2,bti->fmt);
-						COLOR clr14 = AGIDL_RGBA(rrrr2,gggg2,bbbb2,aaaa2,bti->fmt);
-						COLOR clr15 = AGIDL_RGBA(rrrr3,gggg3,bbbb3,aaaa3,bti->fmt);
-						COLOR clr16 = AGIDL_RGBA(rrrr4,gggg4,bbbb4,aaaa4,bti->fmt);
+						COLOR clr13 = AGIDL_RGBA(rrrr1,gggg1,bbbb1,aaaa2,AGIDL_BTIGetClrFmt(bti));
+						COLOR clr14 = AGIDL_RGBA(rrrr2,gggg2,bbbb2,aaaa2,AGIDL_BTIGetClrFmt(bti));
+						COLOR clr15 = AGIDL_RGBA(rrrr3,gggg3,bbbb3,aaaa3,AGIDL_BTIGetClrFmt(bti));
+						COLOR clr16 = AGIDL_RGBA(rrrr4,gggg4,bbbb4,aaaa4,AGIDL_BTIGetClrFmt(bti));
 						
 						AGIDL_BTISetClr(bti,0+x,0+y,clr1);AGIDL_BTISetClr(bti,1+x,0+y,clr2);
 						AGIDL_BTISetClr(bti,2+x,0+y,clr3);AGIDL_BTISetClr(bti,3+x,0+y,clr4);
@@ -511,7 +525,7 @@ void AGIDL_BTIDecodeIMG(AGIDL_BTI* bti, FILE* file){
 			}break;
 			case BTI_I4:{
 				AGIDL_BTISetClrFmt(bti,AGIDL_RGB_888);
-				bti->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*AGIDL_BTIGetSize(bti));
+				bti->pixels.pix32 = (COLOR*)AGIDL_AllocImgDataMMU(AGIDL_BTIGetWidth(bti),AGIDL_BTIGetHeight(bti),AGIDL_BTIGetClrFmt(bti));
 				
 				int x,y;
 				for(y = 0; y < AGIDL_BTIGetHeight(bti); y += 8){
@@ -519,8 +533,7 @@ void AGIDL_BTIDecodeIMG(AGIDL_BTI* bti, FILE* file){
 						u8 i,j;
 						for(j = 0; j < 8; j++){
 							for(i = 0; i < 8; i+=2){
-								u8 byte;
-								fread(&byte,1,1,file);
+								u8 byte = AGIDL_ReadByte(file);
 								
 								u8 rgb1 = ((byte >> 4) & 0xf) * 0x11, rgb2 = (byte & 0xf) * 0x11;
 								
@@ -540,11 +553,8 @@ void AGIDL_BTIDecodeIMG(AGIDL_BTI* bti, FILE* file){
 					for(x = 0; x < AGIDL_BTIGetWidth(bti); x += 8){
 						u8 i,j;
 						for(j = 0; j < 4; j++){
-							for(i = 0; i < 8; i++){
-								u8 byte;
-								fread(&byte,1,1,file);
-								
-								u8 rgb = byte;
+							for(i = 0; i < 8; i++){	
+								u8 rgb = AGIDL_ReadByte(file);
 								
 								AGIDL_BTISetClr(bti,x+i,y+j,AGIDL_RGB(rgb,rgb,rgb,AGIDL_BTIGetClrFmt(bti)));;
 							}
@@ -554,7 +564,7 @@ void AGIDL_BTIDecodeIMG(AGIDL_BTI* bti, FILE* file){
 			}break;
 			case BTI_IA4:{
 				AGIDL_BTISetClrFmt(bti,AGIDL_RGBA_8888);
-				bti->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*AGIDL_BTIGetSize(bti));
+				bti->pixels.pix32 = (COLOR*)AGIDL_AllocImgDataMMU(AGIDL_BTIGetWidth(bti),AGIDL_BTIGetHeight(bti),AGIDL_BTIGetClrFmt(bti));
 				
 				int x,y;
 				for(y = 0; y < AGIDL_BTIGetHeight(bti); y += 4){
@@ -562,8 +572,7 @@ void AGIDL_BTIDecodeIMG(AGIDL_BTI* bti, FILE* file){
 						u8 i,j;
 						for(j = 0; j < 4; j++){
 							for(i = 0; i < 8; i++){
-								u8 byte;
-								fread(&byte,1,1,file);
+								u8 byte = AGIDL_ReadByte(file);
 								
 								u8 alpha = ((byte >> 4) & 0xf) * 0x11;
 								u8 rgb = (byte & 0xf) * 0x11;
@@ -576,7 +585,7 @@ void AGIDL_BTIDecodeIMG(AGIDL_BTI* bti, FILE* file){
 			}break;
 			case BTI_IA8:{
 				AGIDL_BTISetClrFmt(bti,AGIDL_RGBA_8888);
-				bti->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*AGIDL_BTIGetSize(bti));
+				bti->pixels.pix32 = (COLOR*)AGIDL_AllocImgDataMMU(AGIDL_BTIGetWidth(bti),AGIDL_BTIGetHeight(bti),AGIDL_BTIGetClrFmt(bti));
 				
 				int x,y;
 				for(y = 0; y < AGIDL_BTIGetHeight(bti); y += 4){
@@ -584,9 +593,8 @@ void AGIDL_BTIDecodeIMG(AGIDL_BTI* bti, FILE* file){
 						u8 i,j;
 						for(j = 0; j < 4; j++){
 							for(i = 0; i < 4; i++){
-								u8 byte1,byte2;
-								fread(&byte1,1,1,file);
-								fread(&byte2,1,1,file);
+								u8 byte1 = AGIDL_ReadByte(file);
+								u8 byte2 = AGIDL_ReadByte(file);
 								
 								u8 alpha = byte1;
 								u8 rgb = byte2;
@@ -602,14 +610,9 @@ void AGIDL_BTIDecodeIMG(AGIDL_BTI* bti, FILE* file){
 	else{
 		if(bti->header.fmt == BTI_CI8 && bti->header.icp_fmt == BTI_ICP_5A3){
 			AGIDL_BTISetClrFmt(bti,AGIDL_RGBA_8888);
-			bti->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*AGIDL_BTIGetSize(bti));
+			bti->pixels.pix32 = (COLOR*)AGIDL_AllocImgDataMMU(AGIDL_BTIGetWidth(bti),AGIDL_BTIGetHeight(bti),AGIDL_BTIGetClrFmt(bti));
 			
 			u32 offset = bti->header.offset_icp;
-			
-			u8 msb = (offset & 0xff00) >> 8;
-			u8 lsb = (offset & 0xff0000) >> 16;
-			
-			offset = msb << 8 | lsb;
 			
 			u32 pos = ftell(file);
 			fseek(file,offset,SEEK_SET);
@@ -618,9 +621,8 @@ void AGIDL_BTIDecodeIMG(AGIDL_BTI* bti, FILE* file){
 			
 			int i;
 			for(i = 0; i < bti->header.num_of_icps; i++){
-				u8 byte1 = 0,byte2 = 0;
-				fread(&byte1,1,1,file);
-				fread(&byte2,1,1,file);
+				u8 byte1 = AGIDL_ReadByte(file);
+				u8 byte2 = AGIDL_ReadByte(file);
 				
 				u8 r = 0, g = 0, b = 0;
 				
@@ -650,8 +652,7 @@ void AGIDL_BTIDecodeIMG(AGIDL_BTI* bti, FILE* file){
 					u8 i,j;
 					for(j = 0; j < 4; j++){
 						for(i = 0; i < 8; i++){
-							u8 byte;
-							fread(&byte,1,1,file);
+							u8 byte = AGIDL_ReadByte(file);
 														
 							COLOR clr = bti->palette.icp.palette_256[byte];
 							
@@ -664,28 +665,24 @@ void AGIDL_BTIDecodeIMG(AGIDL_BTI* bti, FILE* file){
 		}
 		else if(bti->header.fmt == BTI_CI8 && bti->header.icp_fmt == BTI_ICP_565){
 			AGIDL_BTISetClrFmt(bti,AGIDL_RGB_565);
-			bti->pixels.pix16 = (COLOR16*)malloc(sizeof(COLOR16)*AGIDL_BTIGetSize(bti));
+			bti->pixels.pix16 = (COLOR16*)AGIDL_AllocImgDataMMU(AGIDL_BTIGetWidth(bti),AGIDL_BTIGetHeight(bti),AGIDL_BTIGetClrFmt(bti));
 			
 			u32 offset = bti->header.offset_icp;
-			
-			u8 msb = (offset & 0xff00) >> 8;
-			u8 lsb = (offset & 0xff0000) >> 16;
-			
-			offset = msb << 8 | lsb;
-			
+
 			u32 pos = ftell(file);
 			fseek(file,offset,SEEK_SET);
 
 			AGIDL_InitICP(&bti->palette,AGIDL_ICP_16b_256);
 			
+			AGIDL_InitBigEndArch();
+			
 			int i;
 			for(i = 0; i < bti->header.num_of_icps; i++){
-				u8 byte1 = 0,byte2 = 0;
-				fread(&byte1,1,1,file);
-				fread(&byte2,1,1,file);
-				COLOR16 clr = byte1 << 8 | byte2;
+				COLOR16 clr = AGIDL_ReadShort(file);
 				bti->palette.icp.palette_16b_256[i] = clr;
 			}
+			
+			AGIDL_DisableBigEndArch();
 			
 			fseek(file,pos,SEEK_SET);
 			
@@ -695,8 +692,7 @@ void AGIDL_BTIDecodeIMG(AGIDL_BTI* bti, FILE* file){
 					u8 i,j;
 					for(j = 0; j < 4; j++){
 						for(i = 0; i < 8; i++){
-							u8 byte;
-							fread(&byte,1,1,file);
+							u8 byte = AGIDL_ReadByte(file);
 														
 							COLOR16 clr = bti->palette.icp.palette_16b_256[byte];
 							
@@ -719,8 +715,20 @@ AGIDL_BTI* AGIDL_LoadBTI(char* filename){
 	AGIDL_BTI* bti = (AGIDL_BTI*)malloc(sizeof(AGIDL_BTI));
 	bti->filename = (char*)malloc(strlen(filename)+1);
 	AGIDL_FilenameCpy(bti->filename,filename);
+	AGIDL_BTISetICPEncoding(bti,ICP_ENCODE_THRESHOLD);
 	
-	AGIDL_BTIDecodeHeader(bti,file);
+	if(bti == NULL || bti->filename == NULL){
+		printf("%s\n",AGIDL_Error2Str(MEMORY_IMG_ERROR));
+		return NULL;
+	}
+	
+	int error = AGIDL_BTIDecodeHeader(bti,file);
+	
+	if(error != NO_IMG_ERROR){
+		printf("%s - %s\n",AGIDL_Error2Str(error),filename);
+		return NULL;
+	}
+	
 	AGIDL_BTIDecodeIMG(bti,file);
 	
 	fclose(file);
@@ -730,102 +738,103 @@ AGIDL_BTI* AGIDL_LoadBTI(char* filename){
 
 void AGIDL_BTIEncodeHeader(AGIDL_BTI* bti, FILE* file){
 	if(bti->icp != 1){
-		if(AGIDL_GetBitCount(AGIDL_BTIGetClrFmt(bti)) == 24 || AGIDL_GetBitCount(AGIDL_BTIGetClrFmt(bti)) == 16){
-			u8 fmt = BTI_RGB_565, zero = 0, mipmap = 1, offsetdata = 0x20;
-			u16 zero16 = 0;
-	
-			u16 alpha = 0, zero2 = 16;
-			u32 offset = 0, blank = 0;
-			fwrite(&fmt,1,1,file);
-			fwrite(&alpha,2,1,file);
-			fwrite(&bti->header.width,2,1,file);
-			fwrite(&bti->header.height,2,1,file);
-			fwrite(&zero,1,1,file);
-			fwrite(&zero,1,1,file);
-			fwrite(&zero16,2,1,file);
-			fwrite(&zero16,2,1,file);
-			fwrite(&offset,4,1,file);
-			fwrite(&blank,3,1,file);
-			fwrite(&zero,1,1,file);
-			fwrite(&zero,1,1,file);
-			fwrite(&alpha,2,1,file);
-			fwrite(&mipmap,1,1,file);
-			fwrite(&alpha,2,1,file);
-			fwrite(&blank,4,1,file);
-			fwrite(&offsetdata,1,1,file);
+		if(AGIDL_GetBitCount(AGIDL_BTIGetClrFmt(bti)) == 24 || AGIDL_GetBitCount(AGIDL_BTIGetClrFmt(bti)) == 16){	
+			AGIDL_InitBigEndArch();
+			
+			AGIDL_WriteByte(file,BTI_RGB_565);
+			AGIDL_WriteByte(file,0);
+			AGIDL_WriteShort(file,AGIDL_BTIGetWidth(bti));
+			AGIDL_WriteShort(file,AGIDL_BTIGetHeight(bti));
+			AGIDL_WriteByte(file,0);
+			AGIDL_WriteByte(file,0);
+			AGIDL_WriteShort(file,0);
+			AGIDL_WriteShort(file,0);
+			AGIDL_WriteLong(file,0);
+			AGIDL_WriteLong(file,0);
+			AGIDL_WriteByte(file,0);
+			AGIDL_WriteByte(file,0);
+			AGIDL_WriteShort(file,0);
+			AGIDL_WriteByte(file,0);
+			AGIDL_WriteShort(file,0);
+			AGIDL_WriteLong(file,0);
+			AGIDL_WriteByte(file,0x20);
+			
+			AGIDL_DisableBigEndArch();
 		}
-		else if(AGIDL_GetBitCount(AGIDL_BTIGetClrFmt(bti)) == 32){
-			u8 fmt = BTI_RGBA32, zero = 0, mipmap = 1, offsetdata = 0x20;
-			u16 zero16 = 0;
-	
-			u16 alpha = 0, zero2 = 16;
-			u32 offset = 0, blank = 0;
-			fwrite(&fmt,1,1,file);
-			fwrite(&alpha,2,1,file);
-			fwrite(&bti->header.width,2,1,file);
-			fwrite(&bti->header.height,2,1,file);
-			fwrite(&zero,1,1,file);
-			fwrite(&zero,1,1,file);
-			fwrite(&zero16,2,1,file);
-			fwrite(&zero16,2,1,file);
-			fwrite(&offset,4,1,file);
-			fwrite(&blank,3,1,file);
-			fwrite(&zero,1,1,file);
-			fwrite(&zero,1,1,file);
-			fwrite(&alpha,2,1,file);
-			fwrite(&mipmap,1,1,file);
-			fwrite(&alpha,2,1,file);
-			fwrite(&blank,4,1,file);
-			fwrite(&offsetdata,1,1,file);
+		else{
+			AGIDL_InitBigEndArch();
+			
+			AGIDL_WriteByte(file,BTI_RGBA32);
+			AGIDL_WriteByte(file,1);
+			AGIDL_WriteShort(file,AGIDL_BTIGetWidth(bti));
+			AGIDL_WriteShort(file,AGIDL_BTIGetHeight(bti));
+			AGIDL_WriteByte(file,0);
+			AGIDL_WriteByte(file,0);
+			AGIDL_WriteShort(file,0);
+			AGIDL_WriteShort(file,0);
+			AGIDL_WriteLong(file,0);
+			AGIDL_WriteLong(file,0);
+			AGIDL_WriteByte(file,0);
+			AGIDL_WriteByte(file,0);
+			AGIDL_WriteShort(file,0);
+			AGIDL_WriteByte(file,0);
+			AGIDL_WriteShort(file,0);
+			AGIDL_WriteLong(file,0);
+			AGIDL_WriteByte(file,0x20);
+			
+			AGIDL_DisableBigEndArch();
 		}
 	}
 	else{
-			u8 fmt = BTI_CI8, zero = 0, mipmap = 1, offsetdata = 0x20;
-			u16 zero16 = 256, fmt2 = BTI_ICP_565;
-	
-			u16 alpha = 0, zero2 = 16;
-			u32 offset = 33 + AGIDL_BTIGetSize(bti), blank = 0;
+			AGIDL_InitBigEndArch();
 			
-			fwrite(&fmt,1,1,file);
-			fwrite(&alpha,2,1,file);
-			fwrite(&bti->header.width,2,1,file);
-			fwrite(&bti->header.height,2,1,file);
-			fwrite(&zero,1,1,file);
-			fwrite(&zero,1,1,file);
-			fwrite(&fmt2,2,1,file);
-			fwrite(&zero16,2,1,file);
-			fwrite(&offset,4,1,file);
-			fwrite(&blank,3,1,file);
-			fwrite(&zero,1,1,file);
-			fwrite(&zero,1,1,file);
-			fwrite(&alpha,2,1,file);
-			fwrite(&mipmap,1,1,file);
-			fwrite(&alpha,2,1,file);
-			fwrite(&blank,4,1,file);
-			fwrite(&offsetdata,1,1,file);
+			AGIDL_WriteByte(file,BTI_CI8);
+			AGIDL_WriteByte(file,0);
+			AGIDL_WriteShort(file,AGIDL_BTIGetWidth(bti));
+			AGIDL_WriteShort(file,AGIDL_BTIGetHeight(bti));
+			AGIDL_WriteByte(file,0);
+			AGIDL_WriteByte(file,0);
+			AGIDL_WriteShort(file,BTI_ICP_565);
+			AGIDL_WriteShort(file,256);
+			AGIDL_WriteLong(file,0);
+			AGIDL_WriteLong(file,0);
+			AGIDL_WriteByte(file,0);
+			AGIDL_WriteByte(file,0);
+			AGIDL_WriteShort(file,0);
+			AGIDL_WriteByte(file,0);
+			AGIDL_WriteShort(file,0);
+			AGIDL_WriteLong(file,0);
+			AGIDL_WriteByte(file,0x20);
+			
+			AGIDL_DisableBigEndArch();
 	}
 }
 
 void AGIDL_BTIEncodeICP(AGIDL_BTI* bti){
 	if(AGIDL_GetBitCount(AGIDL_BTIGetClrFmt(bti)) == 16){
-		AGIDL_InitICP(&bti->palette,AGIDL_ICP_16b_256);
-	
-		int pass = 0;
-		u8 pal_index = 0;
+		if(bti->encode == ICP_ENCODE_THRESHOLD){
+			AGIDL_InitICP(&bti->palette,AGIDL_ICP_16b_256);
 		
-		int x,y;
-		for(y = 0; y < AGIDL_BTIGetHeight(bti); y++){
-			for(x = 0; x < AGIDL_BTIGetWidth(bti); x++){
-				COLOR16 clr = AGIDL_BTIGetClr16(bti,x,y);
-				
-				AGIDL_AddColorICP16(&bti->palette,pal_index,clr,AGIDL_BTIGetClrFmt(bti),AGIDL_BTIGetMaxDiff(bti),&pass);
-				
-				if(pass == 1 && pal_index < 256){
-					pal_index++;
+			int pass = 0;
+			u8 pal_index = 0;
+			
+			int x,y;
+			for(y = 0; y < AGIDL_BTIGetHeight(bti); y++){
+				for(x = 0; x < AGIDL_BTIGetWidth(bti); x++){
+					COLOR16 clr = AGIDL_BTIGetClr16(bti,x,y);
+					
+					AGIDL_AddColorICP16(&bti->palette,pal_index,clr,AGIDL_BTIGetClrFmt(bti),AGIDL_BTIGetMaxDiff(bti),&pass);
+					
+					if(pass == 1 && pal_index < 256){
+						pal_index++;
+					}
+					
+					pass = 0;
 				}
-				
-				pass = 0;
 			}
+		}
+		else{
+			AGIDL_EncodeHistogramICP(&bti->palette,bti->pixels.pix16,AGIDL_BTIGetWidth(bti),AGIDL_BTIGetHeight(bti),AGIDL_BTIGetClrFmt(bti));
 		}
 	}
 }
@@ -833,6 +842,7 @@ void AGIDL_BTIEncodeICP(AGIDL_BTI* bti){
 void AGIDL_BTIEncodeIMG(AGIDL_BTI* bti, FILE* file){
 	if(bti->icp != 1){
 		if(AGIDL_GetBitCount(AGIDL_BTIGetClrFmt(bti)) == 16){
+			AGIDL_InitBigEndArch();
 			int x,y;
 			for(y = 0; y < AGIDL_BTIGetHeight(bti); y += 4){
 				for(x = 0; x < AGIDL_BTIGetWidth(bti); x += 4){
@@ -840,14 +850,12 @@ void AGIDL_BTIEncodeIMG(AGIDL_BTI* bti, FILE* file){
 					for(j = 0; j < 4; j++){
 						for(i = 0; i < 4; i++){
 							COLOR16 clr = AGIDL_BTIGetClr16(bti,x+i,y+j);
-							u8 msb = (clr & 0xff);
-							u8 lsb = (clr & 0xff00) >> 8; 
-							fwrite(&lsb,1,1,file);
-							fwrite(&msb,1,1,file);
+							AGIDL_WriteShort(file,clr);
 						}
 					}
 				}
 			}
+			AGIDL_DisableBigEndArch();
 		}
 		else{
 			int x,y;
@@ -880,14 +888,14 @@ void AGIDL_BTIEncodeIMG(AGIDL_BTI* bti, FILE* file){
 					u8 r3 = AGIDL_GetR(clr3,AGIDL_BTIGetClrFmt(bti));
 					u8 r4 = AGIDL_GetR(clr4,AGIDL_BTIGetClrFmt(bti));
 					
-					fwrite(&a1,1,1,file);
-					fwrite(&r1,1,1,file);
-					fwrite(&a2,1,1,file);
-					fwrite(&r1,1,1,file);
-					fwrite(&a3,1,1,file);
-					fwrite(&r3,1,1,file);
-					fwrite(&a4,1,1,file);
-					fwrite(&r4,1,1,file);
+					AGIDL_WriteByte(file,a1);
+					AGIDL_WriteByte(file,r1);
+					AGIDL_WriteByte(file,a2);
+					AGIDL_WriteByte(file,r2);
+					AGIDL_WriteByte(file,a3);
+					AGIDL_WriteByte(file,r3);
+					AGIDL_WriteByte(file,a4);
+					AGIDL_WriteByte(file,r4);
 					
 					a1 = AGIDL_GetA(clr5,AGIDL_BTIGetClrFmt(bti));
 					a2 = AGIDL_GetA(clr6,AGIDL_BTIGetClrFmt(bti));
@@ -899,14 +907,14 @@ void AGIDL_BTIEncodeIMG(AGIDL_BTI* bti, FILE* file){
 					r3 = AGIDL_GetR(clr7,AGIDL_BTIGetClrFmt(bti));
 					r4 = AGIDL_GetR(clr8,AGIDL_BTIGetClrFmt(bti));
 					
-					fwrite(&a1,1,1,file);
-					fwrite(&r1,1,1,file);
-					fwrite(&a2,1,1,file);
-					fwrite(&r1,1,1,file);
-					fwrite(&a3,1,1,file);
-					fwrite(&r3,1,1,file);
-					fwrite(&a4,1,1,file);
-					fwrite(&r4,1,1,file);
+					AGIDL_WriteByte(file,a1);
+					AGIDL_WriteByte(file,r1);
+					AGIDL_WriteByte(file,a2);
+					AGIDL_WriteByte(file,r2);
+					AGIDL_WriteByte(file,a3);
+					AGIDL_WriteByte(file,r3);
+					AGIDL_WriteByte(file,a4);
+					AGIDL_WriteByte(file,r4);
 					
 					a1 = AGIDL_GetA(clr9,AGIDL_BTIGetClrFmt(bti));
 					a2 = AGIDL_GetA(clr10,AGIDL_BTIGetClrFmt(bti));
@@ -918,14 +926,14 @@ void AGIDL_BTIEncodeIMG(AGIDL_BTI* bti, FILE* file){
 					r3 = AGIDL_GetR(clr11,AGIDL_BTIGetClrFmt(bti));
 					r4 = AGIDL_GetR(clr12,AGIDL_BTIGetClrFmt(bti));
 					
-					fwrite(&a1,1,1,file);
-					fwrite(&r1,1,1,file);
-					fwrite(&a2,1,1,file);
-					fwrite(&r1,1,1,file);
-					fwrite(&a3,1,1,file);
-					fwrite(&r3,1,1,file);
-					fwrite(&a4,1,1,file);
-					fwrite(&r4,1,1,file);
+					AGIDL_WriteByte(file,a1);
+					AGIDL_WriteByte(file,r1);
+					AGIDL_WriteByte(file,a2);
+					AGIDL_WriteByte(file,r2);
+					AGIDL_WriteByte(file,a3);
+					AGIDL_WriteByte(file,r3);
+					AGIDL_WriteByte(file,a4);
+					AGIDL_WriteByte(file,r4);
 					
 					a1 = AGIDL_GetA(clr13,AGIDL_BTIGetClrFmt(bti));
 					a2 = AGIDL_GetA(clr14,AGIDL_BTIGetClrFmt(bti));
@@ -937,14 +945,14 @@ void AGIDL_BTIEncodeIMG(AGIDL_BTI* bti, FILE* file){
 					r3 = AGIDL_GetR(clr15,AGIDL_BTIGetClrFmt(bti));
 					r4 = AGIDL_GetR(clr16,AGIDL_BTIGetClrFmt(bti));
 					
-					fwrite(&a1,1,1,file);
-					fwrite(&r1,1,1,file);
-					fwrite(&a2,1,1,file);
-					fwrite(&r1,1,1,file);
-					fwrite(&a3,1,1,file);
-					fwrite(&r3,1,1,file);
-					fwrite(&a4,1,1,file);
-					fwrite(&r4,1,1,file);
+					AGIDL_WriteByte(file,a1);
+					AGIDL_WriteByte(file,r1);
+					AGIDL_WriteByte(file,a2);
+					AGIDL_WriteByte(file,r2);
+					AGIDL_WriteByte(file,a3);
+					AGIDL_WriteByte(file,r3);
+					AGIDL_WriteByte(file,a4);
+					AGIDL_WriteByte(file,r4);
 					
 					u8 g1 = AGIDL_GetG(clr1,AGIDL_BTIGetClrFmt(bti));
 					u8 g2 = AGIDL_GetG(clr2,AGIDL_BTIGetClrFmt(bti));
@@ -956,14 +964,14 @@ void AGIDL_BTIEncodeIMG(AGIDL_BTI* bti, FILE* file){
 					u8 b3 = AGIDL_GetB(clr3,AGIDL_BTIGetClrFmt(bti));
 					u8 b4 = AGIDL_GetB(clr4,AGIDL_BTIGetClrFmt(bti));
 					
-					fwrite(&g1,1,1,file);
-					fwrite(&b1,1,1,file);
-					fwrite(&g2,1,1,file);
-					fwrite(&b1,1,1,file);
-					fwrite(&g3,1,1,file);
-					fwrite(&b3,1,1,file);
-					fwrite(&g4,1,1,file);
-					fwrite(&b4,1,1,file);
+					AGIDL_WriteByte(file,g1);
+					AGIDL_WriteByte(file,b1);
+					AGIDL_WriteByte(file,g2);
+					AGIDL_WriteByte(file,b2);
+					AGIDL_WriteByte(file,g3);
+					AGIDL_WriteByte(file,b3);
+					AGIDL_WriteByte(file,g4);
+					AGIDL_WriteByte(file,b4);
 					
 					g1 = AGIDL_GetG(clr5,AGIDL_BTIGetClrFmt(bti));
 					g2 = AGIDL_GetG(clr6,AGIDL_BTIGetClrFmt(bti));
@@ -975,14 +983,14 @@ void AGIDL_BTIEncodeIMG(AGIDL_BTI* bti, FILE* file){
 					b3 = AGIDL_GetB(clr7,AGIDL_BTIGetClrFmt(bti));
 					b4 = AGIDL_GetB(clr8,AGIDL_BTIGetClrFmt(bti));
 					
-					fwrite(&g1,1,1,file);
-					fwrite(&b1,1,1,file);
-					fwrite(&g2,1,1,file);
-					fwrite(&b1,1,1,file);
-					fwrite(&g3,1,1,file);
-					fwrite(&b3,1,1,file);
-					fwrite(&g4,1,1,file);
-					fwrite(&b4,1,1,file);
+					AGIDL_WriteByte(file,g1);
+					AGIDL_WriteByte(file,b1);
+					AGIDL_WriteByte(file,g2);
+					AGIDL_WriteByte(file,b2);
+					AGIDL_WriteByte(file,g3);
+					AGIDL_WriteByte(file,b3);
+					AGIDL_WriteByte(file,g4);
+					AGIDL_WriteByte(file,b4);
 					
 					g1 = AGIDL_GetG(clr9,AGIDL_BTIGetClrFmt(bti));
 					g2 = AGIDL_GetG(clr10,AGIDL_BTIGetClrFmt(bti));
@@ -994,14 +1002,14 @@ void AGIDL_BTIEncodeIMG(AGIDL_BTI* bti, FILE* file){
 					b3 = AGIDL_GetB(clr11,AGIDL_BTIGetClrFmt(bti));
 					b4 = AGIDL_GetB(clr12,AGIDL_BTIGetClrFmt(bti));
 					
-					fwrite(&g1,1,1,file);
-					fwrite(&b1,1,1,file);
-					fwrite(&g2,1,1,file);
-					fwrite(&b1,1,1,file);
-					fwrite(&g3,1,1,file);
-					fwrite(&b3,1,1,file);
-					fwrite(&g4,1,1,file);
-					fwrite(&b4,1,1,file);
+					AGIDL_WriteByte(file,g1);
+					AGIDL_WriteByte(file,b1);
+					AGIDL_WriteByte(file,g2);
+					AGIDL_WriteByte(file,b2);
+					AGIDL_WriteByte(file,g3);
+					AGIDL_WriteByte(file,b3);
+					AGIDL_WriteByte(file,g4);
+					AGIDL_WriteByte(file,b4);
 					
 					g1 = AGIDL_GetG(clr13,AGIDL_BTIGetClrFmt(bti));
 					g2 = AGIDL_GetG(clr14,AGIDL_BTIGetClrFmt(bti));
@@ -1013,14 +1021,14 @@ void AGIDL_BTIEncodeIMG(AGIDL_BTI* bti, FILE* file){
 					b3 = AGIDL_GetB(clr15,AGIDL_BTIGetClrFmt(bti));
 					b4 = AGIDL_GetB(clr16,AGIDL_BTIGetClrFmt(bti));
 					
-					fwrite(&g1,1,1,file);
-					fwrite(&b1,1,1,file);
-					fwrite(&g2,1,1,file);
-					fwrite(&b1,1,1,file);
-					fwrite(&g3,1,1,file);
-					fwrite(&b3,1,1,file);
-					fwrite(&g4,1,1,file);
-					fwrite(&b4,1,1,file);
+					AGIDL_WriteByte(file,g1);
+					AGIDL_WriteByte(file,b1);
+					AGIDL_WriteByte(file,g2);
+					AGIDL_WriteByte(file,b2);
+					AGIDL_WriteByte(file,g3);
+					AGIDL_WriteByte(file,b3);
+					AGIDL_WriteByte(file,g4);
+					AGIDL_WriteByte(file,b4);
 				}
 			}
 		}
@@ -1033,8 +1041,8 @@ void AGIDL_BTIEncodeIMG(AGIDL_BTI* bti, FILE* file){
 				for(j = 0; j < 4; j++){
 					for(i = 0; i < 8; i++){
 						COLOR16 clr = AGIDL_BTIGetClr16(bti,x+i,y+j);
-						u8 index = AGIDL_FindClosestColor(bti->palette,clr,AGIDL_BTIGetClrFmt(bti),AGIDL_BTIGetMaxDiff(bti));
-						fwrite(&index,1,1,file);
+						u8 index = AGIDL_FindNearestColor(bti->palette,clr,AGIDL_BTIGetClrFmt(bti));
+						AGIDL_WriteByte(file,index);
 					}
 				}
 			}
@@ -1042,31 +1050,21 @@ void AGIDL_BTIEncodeIMG(AGIDL_BTI* bti, FILE* file){
 		
 		u32 pos = ftell(file);
 		
-		fseek(file,13,SEEK_SET);
+		fseek(file,12,SEEK_SET);
 		
-		u8 msb = (pos & 0xff00) >> 8;
-		u8 lsb = (pos & 0xff);
+		AGIDL_InitBigEndArch();
 		
-		u32 offset = lsb << 16 | msb << 8;
-		
-		if(pos >= 65536){
-			u8 msb = (offset & 0xff00) >> 8;
-			u8 lsb = (offset & 0xff0000) >> 16;
-			offset = lsb << 8 | msb;
-		}
-		
-		fwrite(&offset,4,1,file);
+		AGIDL_WriteLong(file,pos);
 		
 		fseek(file,pos,SEEK_SET);
 		
 		int i;
 		for(i = 0; i < 256; i++){
 			COLOR16 clr = bti->palette.icp.palette_16b_256[i];
-			u8 msb = (clr & 0xff00) >> 8;
-			u8 lsb = (clr & 0xff);
-			fwrite(&msb,1,1,file);
-			fwrite(&lsb,1,1,file);
+			AGIDL_WriteShort(file,clr);
 		}
+		
+		AGIDL_DisableBigEndArch();
 	}
 }
 
