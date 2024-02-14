@@ -10,7 +10,7 @@
 *   File: agidl_img_types.h
 *   Date: 9/15/2023
 *   Version: 0.1b
-*   Updated: 2/6/2024
+*   Updated: 2/13/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -35,7 +35,7 @@ typedef enum AGIDL_IMG_TYPE{
 	AGIDL_IMG_PVR = 0x6,
 	AGIDL_IMG_GXT = 0x7,
 	AGIDL_IMG_BTI = 0x8,
-	AGIDL_IMG_SPR = 0x9,
+	AGIDL_IMG_3DF = 0x9,
 }AGIDL_IMG_TYPE;
 
 typedef enum AGIDL_FILE_TYPE{

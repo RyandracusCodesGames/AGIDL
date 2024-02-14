@@ -10,7 +10,7 @@
 *   File: agidl_file_utils.h
 *   Date: 1/25/2024
 *   Version: 0.2b
-*   Updated: 1/26/2024
+*   Updated: 2/12/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -45,5 +45,7 @@ void AGIDL_WriteBufRGB(FILE* file, COLOR* clr, u32 width, u32 height);
 void AGIDL_WriteBufBGR(FILE* file, COLOR* clr, u32 width, u32 height);
 void AGIDL_WriteBufRGBA(FILE* file, COLOR* clr, u32 width, u32 height);
 void AGIDL_WriteBufBGRA(FILE* file, COLOR* clr, u32 width, u32 height, AGIDL_CLR_FMT fmt);
+
+void AGIDL_PrintFourCC(FILE* file, char f, char o, char u, char r);
 
 #endif

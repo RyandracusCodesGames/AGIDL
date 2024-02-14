@@ -11,7 +11,7 @@
 *   File: agidl_img_search.c
 *   Date: 11/11/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 2/13/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -144,6 +144,18 @@ void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type, int fl
 					}
 					AGIDL_ExportBTI(bti);
 					AGIDL_FreeBTI(bti);
+				}break;
+				case AGIDL_IMG_3DF:{
+					char file_name[25] = {0};
+					sprintf(file_name,"tim_%d.tim",img_count);
+					tim->filename = (char*)malloc(strlen(file_name)+1);
+					AGIDL_FilenameCpy(tim->filename,file_name);
+					AGIDL_3DF* glide = AGIDL_ConvertTIM23DF(tim);
+					if(flip == 1){
+						AGIDL_FlipHorz3DF(glide);
+					}
+					AGIDL_Export3DF(glide);
+					AGIDL_Free3DF(glide);
 				}break;
 				
 			}

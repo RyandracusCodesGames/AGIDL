@@ -14,7 +14,7 @@
 *   File: agidl_img_types.c
 *   Date: 9/16/2023
 *   Version: 0.1b
-*   Updated: 2/6/2024
+*   Updated: 2/13/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -80,8 +80,8 @@ char* AGIDL_GetImgExtension(AGIDL_IMG_TYPE img){
 		case AGIDL_IMG_BTI:{
 			strcpy(ext,".bti");
 		}break;
-		case AGIDL_IMG_SPR:{
-			strcpy(ext,".spr");
+		case AGIDL_IMG_3DF:{
+			strcpy(ext,".3df");
 		}break;
 	}
 	ext[4] = '\0';

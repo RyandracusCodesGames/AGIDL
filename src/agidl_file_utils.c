@@ -7,7 +7,7 @@
 *   File: agidl_file_utils.c
 *   Date: 1/25/2024
 *   Version: 0.2b
-*   Updated: 2/6/2024
+*   Updated: 2/12/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -222,4 +222,11 @@ void AGIDL_WriteBufBGRA(FILE* file, COLOR* clr, u32 width, u32 height, AGIDL_CLR
 		AGIDL_WriteByte(file,r);
 		AGIDL_WriteByte(file,a);
 	}
+}
+
+void AGIDL_PrintFourCC(FILE* file, char f, char o, char u, char r){
+	AGIDL_WriteByte(file,f);
+	AGIDL_WriteByte(file,o);
+	AGIDL_WriteByte(file,u);
+	AGIDL_WriteByte(file,r);
 }

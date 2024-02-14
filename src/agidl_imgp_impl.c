@@ -7,7 +7,7 @@
 *   File: agidl_imgp_impl.c
 *   Date: 12/17/2023
 *   Version: 0.2b
-*   Updated: 1/29/2024
+*   Updated: 2/13/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -102,6 +102,17 @@ void AGIDL_GrayscaleBTI(AGIDL_BTI* bti){
 	}
 }
 
+void AGIDL_Grayscale3DF(AGIDL_3DF* glide){
+	if(AGIDL_GetBitCount(AGIDL_3DFGetClrFmt(glide)) == 16){
+		AGIDL_GrayscaleImgData(glide->pixels.pix16,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),
+		AGIDL_3DFGetClrFmt(glide));
+	}
+	else{
+		AGIDL_GrayscaleImgData(glide->pixels.pix32,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),
+		AGIDL_3DFGetClrFmt(glide));
+	}
+}
+
 void AGIDL_FlipHorzBMP(AGIDL_BMP* bmp){
 	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
 		AGIDL_FlipImgDataHorz(bmp->pixels.pix16,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp),
@@ -187,6 +198,17 @@ void AGIDL_FlipHorzBTI(AGIDL_BTI* bti){
 	else{
 		AGIDL_FlipImgDataHorz(bti->pixels.pix32,AGIDL_BTIGetWidth(bti),AGIDL_BTIGetHeight(bti),
 		AGIDL_BTIGetClrFmt(bti));
+	}
+}
+
+void AGIDL_FlipHorz3DF(AGIDL_3DF* glide){
+	if(AGIDL_GetBitCount(AGIDL_3DFGetClrFmt(glide)) == 16){
+		AGIDL_FlipImgDataHorz(glide->pixels.pix16,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),
+		AGIDL_3DFGetClrFmt(glide));
+	}
+	else{
+		AGIDL_FlipImgDataHorz(glide->pixels.pix32,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),
+		AGIDL_3DFGetClrFmt(glide));
 	}
 }
 
@@ -278,6 +300,17 @@ void AGIDL_FlipVertBTI(AGIDL_BTI* bti){
 	}
 }
 
+void AGIDL_FlipVert3DF(AGIDL_3DF* glide){
+	if(AGIDL_GetBitCount(AGIDL_3DFGetClrFmt(glide)) == 16){
+		AGIDL_FlipImgDataVert(glide->pixels.pix16,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),
+		AGIDL_3DFGetClrFmt(glide));
+	}
+	else{
+		AGIDL_FlipImgDataVert(glide->pixels.pix32,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),
+		AGIDL_3DFGetClrFmt(glide));
+	}
+}
+
 void AGIDL_FlipHorzAndVertBMP(AGIDL_BMP* bmp){
 	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
 		AGIDL_FlipImgDataHorzAndVert(bmp->pixels.pix16,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp),
@@ -363,6 +396,17 @@ void AGIDL_FlipHorzAndVertBTI(AGIDL_BTI* bti){
 	else{
 		AGIDL_FlipImgDataHorzAndVert(bti->pixels.pix32,AGIDL_BTIGetWidth(bti),AGIDL_BTIGetHeight(bti),
 		AGIDL_BTIGetClrFmt(bti));
+	}
+}
+
+void AGIDL_FlipHorzAndVert3DF(AGIDL_3DF* glide){
+	if(AGIDL_GetBitCount(AGIDL_3DFGetClrFmt(glide)) == 16){
+		AGIDL_FlipImgDataHorzAndVert(glide->pixels.pix16,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),
+		AGIDL_3DFGetClrFmt(glide));
+	}
+	else{
+		AGIDL_FlipImgDataHorzAndVert(glide->pixels.pix32,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),
+		AGIDL_3DFGetClrFmt(glide));
 	}
 }
 
@@ -454,6 +498,17 @@ void AGIDL_RotateBTI(AGIDL_BTI* bti, AGIDL_ANGLE angle){
 	}
 }
 
+void AGIDL_Rotate3DF(AGIDL_3DF* glide, AGIDL_ANGLE angle){
+	if(AGIDL_GetBitCount(AGIDL_3DFGetClrFmt(glide)) == 16){
+		AGIDL_RotateImgData(glide->pixels.pix16,&glide->width,&glide->height,
+		AGIDL_3DFGetClrFmt(glide),angle);
+	}
+	else{
+		AGIDL_RotateImgData(glide->pixels.pix32,&glide->width,&glide->height,
+		AGIDL_3DFGetClrFmt(glide),angle);
+	}
+}
+
 void AGIDL_ScaleBMP(AGIDL_BMP* bmp, float sx, float sy, AGIDL_SCALE scale){
 	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
 		bmp->pixels.pix16 = (COLOR16*)AGIDL_ScaleImgData(bmp->pixels.pix16,&bmp->header.width,&bmp->header.height,
@@ -539,6 +594,17 @@ void AGIDL_ScaleBTI(AGIDL_BTI* bti, float sx, float sy, AGIDL_SCALE scale){
 	else{
 		bti->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(bti->pixels.pix32,&bti->header.width,&bti->header.height,
 		sx,sy,scale,AGIDL_BTIGetClrFmt(bti));
+	}
+}
+
+void AGIDL_Scale3DF(AGIDL_3DF* glide, float sx, float sy, AGIDL_SCALE scale){
+	if(AGIDL_GetBitCount(AGIDL_3DFGetClrFmt(glide)) == 16){
+		glide->pixels.pix16 = (COLOR16*)AGIDL_ScaleImgData(glide->pixels.pix16,&glide->width,&glide->height,
+		sx,sy,scale,AGIDL_3DFGetClrFmt(glide));
+	}
+	else{
+		glide->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(glide->pixels.pix32,&glide->width,&glide->height,
+		sx,sy,scale,AGIDL_3DFGetClrFmt(glide));
 	}
 }
 
@@ -630,6 +696,17 @@ void AGIDL_FastScaleBTI(AGIDL_BTI* bti, float sx, float sy, AGIDL_SCALE scale){
 	}
 }
 
+void AGIDL_FastScale3DF(AGIDL_3DF* glide, float sx, float sy, AGIDL_SCALE scale){
+	if(AGIDL_GetBitCount(AGIDL_3DFGetClrFmt(glide)) == 16){
+		glide->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(glide->pixels.pix16,&glide->width,&glide->height,
+		sx,sy,scale,AGIDL_3DFGetClrFmt(glide));
+	}
+	else{
+		glide->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(glide->pixels.pix32,&glide->width,&glide->height,
+		sx,sy,scale,AGIDL_3DFGetClrFmt(glide));
+	}
+}
+
 void AGIDL_FilterBilerpBMP(AGIDL_BMP* bmp){
 	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
 		AGIDL_FilterImgDataBilerp(bmp->pixels.pix16,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp),
@@ -715,6 +792,17 @@ void AGIDL_FilterBilerpBTI(AGIDL_BTI* bti){
 	else{
 		AGIDL_FilterImgDataBilerp(bti->pixels.pix32,AGIDL_BTIGetWidth(bti),AGIDL_BTIGetHeight(bti),
 		AGIDL_BTIGetClrFmt(bti));
+	}
+}
+
+void AGIDL_FilterBilerp3DF(AGIDL_3DF* glide){
+	if(AGIDL_GetBitCount(AGIDL_3DFGetClrFmt(glide)) == 16){
+		AGIDL_FilterImgDataBilerp(glide->pixels.pix16,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),
+		AGIDL_3DFGetClrFmt(glide));
+	}
+	else{
+		AGIDL_FilterImgDataBilerp(glide->pixels.pix32,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),
+		AGIDL_3DFGetClrFmt(glide));
 	}
 }
 
@@ -806,6 +894,17 @@ void AGIDL_FilterTrilerpBTI(AGIDL_BTI* bti){
 	}
 }
 
+void AGIDL_FilterTrilerp3DF(AGIDL_3DF* glide){
+	if(AGIDL_GetBitCount(AGIDL_3DFGetClrFmt(glide)) == 16){
+		AGIDL_FilterImgDataTrilerp(glide->pixels.pix16,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),
+		AGIDL_3DFGetClrFmt(glide));
+	}
+	else{
+		AGIDL_FilterImgDataTrilerp(glide->pixels.pix32,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),
+		AGIDL_3DFGetClrFmt(glide));
+	}
+}
+
 void AGIDL_MirrorBMP(AGIDL_BMP* bmp, AGIDL_MIRROR mirror){
 	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
 		bmp->pixels.pix16 = (COLOR16*)AGIDL_MirrorImgData(bmp->pixels.pix16,&bmp->header.width,&bmp->header.height,AGIDL_BMPGetClrFmt(bmp),mirror);
@@ -875,6 +974,15 @@ void AGIDL_MirrorBTI(AGIDL_BTI* bti, AGIDL_MIRROR mirror){
 	}
 	else{
 		bti->pixels.pix32 = (COLOR*)AGIDL_MirrorImgData(bti->pixels.pix32,&bti->header.width,&bti->header.height,AGIDL_BTIGetClrFmt(bti),mirror);
+	}
+}
+
+void AGIDL_Mirror3DF(AGIDL_3DF* glide, AGIDL_MIRROR mirror){
+	if(AGIDL_GetBitCount(AGIDL_3DFGetClrFmt(glide)) == 16){
+		glide->pixels.pix16 = (COLOR16*)AGIDL_MirrorImgData(glide->pixels.pix16,&glide->width,&glide->height,AGIDL_3DFGetClrFmt(glide),mirror);
+	}
+	else{
+		glide->pixels.pix32 = (COLOR*)AGIDL_MirrorImgData(glide->pixels.pix32,&glide->width,&glide->height,AGIDL_3DFGetClrFmt(glide),mirror);
 	}
 }
 
@@ -950,6 +1058,15 @@ void AGIDL_WrapBTI(AGIDL_BTI* bti, u8 num_of_wraps){
 	}
 }
 
+void AGIDL_Wrap3DF(AGIDL_3DF* glide, u8 num_of_wraps){
+	if(AGIDL_GetBitCount(AGIDL_3DFGetClrFmt(glide)) == 16){
+		glide->pixels.pix16 = (COLOR16*)AGIDL_WrapImgData(glide->pixels.pix16,&glide->width,AGIDL_3DFGetHeight(glide),AGIDL_3DFGetClrFmt(glide),num_of_wraps);
+	}
+	else{
+		glide->pixels.pix32 = (COLOR*)AGIDL_WrapImgData(glide->pixels.pix32,&glide->width,AGIDL_3DFGetHeight(glide),AGIDL_3DFGetClrFmt(glide),num_of_wraps);
+	}
+}
+
 void AGIDL_WrapAndMirrorBMP(AGIDL_BMP* bmp, u8 num_of_wraps, AGIDL_MIRROR mirror){
 	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
 		bmp->pixels.pix16 = (COLOR16*)AGIDL_WrapAndMirrorImgData(bmp->pixels.pix16,&bmp->header.width,&bmp->header.height,AGIDL_BMPGetClrFmt(bmp),num_of_wraps, mirror);
@@ -1022,6 +1139,15 @@ void AGIDL_WrapAndMirrorBTI(AGIDL_BTI* bti, u8 num_of_wraps, AGIDL_MIRROR mirror
 	}
 }
 
+void AGIDL_WrapAndMirror3DF(AGIDL_3DF* glide, u8 num_of_wraps, AGIDL_MIRROR mirror){
+	if(AGIDL_GetBitCount(AGIDL_3DFGetClrFmt(glide)) == 16){
+		glide->pixels.pix16 = (COLOR16*)AGIDL_WrapAndMirrorImgData(glide->pixels.pix16,&glide->width,&glide->height,AGIDL_3DFGetClrFmt(glide),num_of_wraps, mirror);
+	}
+	else{
+		glide->pixels.pix32 = (COLOR*)AGIDL_WrapAndMirrorImgData(glide->pixels.pix32,&glide->width,&glide->height,AGIDL_3DFGetClrFmt(glide),num_of_wraps, mirror);
+	}
+}
+
 void AGIDL_HalftoneBMP(AGIDL_BMP* bmp){
 	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
 		AGIDL_HalftoneImgData(bmp->pixels.pix16,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp),AGIDL_BMPGetClrFmt(bmp),AGIDL_BMPGetMaxDiff(bmp));
@@ -1091,5 +1217,14 @@ void AGIDL_HalftoneBTI(AGIDL_BTI* bti){
 	}
 	else{
 		AGIDL_HalftoneImgData(bti->pixels.pix32,AGIDL_BTIGetWidth(bti),AGIDL_BTIGetHeight(bti),AGIDL_BTIGetClrFmt(bti),AGIDL_BTIGetMaxDiff(bti));
+	}
+}
+
+void AGIDL_Halftone3DF(AGIDL_3DF* glide){
+	if(AGIDL_GetBitCount(AGIDL_3DFGetClrFmt(glide)) == 16){
+		AGIDL_HalftoneImgData(glide->pixels.pix16,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),AGIDL_3DFGetClrFmt(glide),AGIDL_3DFGetMaxDiff(glide));
+	}
+	else{
+		AGIDL_HalftoneImgData(glide->pixels.pix32,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),AGIDL_3DFGetClrFmt(glide),AGIDL_3DFGetMaxDiff(glide));
 	}
 }
