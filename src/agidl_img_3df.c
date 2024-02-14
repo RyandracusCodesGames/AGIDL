@@ -937,8 +937,8 @@ void AGIDL_3DFEncodeHeader(AGIDL_3DF* glide, FILE* file){
 	u16 w = AGIDL_NearestPow2(AGIDL_3DFGetWidth(glide));
 	u16 h = AGIDL_NearestPow2(AGIDL_3DFGetHeight(glide));
 	
-	w = AGIDL_Clamp(1,w,512);
-	h = AGIDL_Clamp(1,h,512);
+	w = AGIDL_Clamp(1,w,256);
+	h = AGIDL_Clamp(1,h,256);
 	
 	char lod[11] = "lod range: ";
 	fwrite(lod,1,11,file);
@@ -1086,11 +1086,6 @@ void AGIDL_3DFEncodeHeader(AGIDL_3DF* glide, FILE* file){
 					fwrite(size,1,7,file);
 					AGIDL_WriteByte(file,10);
 				}break;
-				case 512:{
-					char size[7] = "512 512";
-					fwrite(size,1,7,file);
-					AGIDL_WriteByte(file,10);
-				}break;
 			}
 		}
 		else{
@@ -1132,11 +1127,6 @@ void AGIDL_3DFEncodeHeader(AGIDL_3DF* glide, FILE* file){
 				}break;
 				case 256:{
 					char size[7] = "256 256";
-					fwrite(size,1,7,file);
-					AGIDL_WriteByte(file,10);
-				}break;
-				case 512:{
-					char size[7] = "512 512";
 					fwrite(size,1,7,file);
 					AGIDL_WriteByte(file,10);
 				}break;
@@ -1353,10 +1343,10 @@ void AGIDL_Export3DF(AGIDL_3DF* glide){
 	AGIDL_3DFEncodeHeader(glide,file);
 	
 	if(AGIDL_GetBitCount(AGIDL_3DFGetClrFmt(glide)) == 16){
-		glide->pixels.pix16 = (COLOR16*)AGIDL_NearestPow2ScaleImgData(glide->pixels.pix16,&glide->width,&glide->height,AGIDL_3DFGetClrFmt(glide));
+		glide->pixels.pix16 = (COLOR16*)AGIDL_NearestPow2ScaleImgData(glide->pixels.pix16,&glide->width,&glide->height,256,AGIDL_3DFGetClrFmt(glide));
 	}
 	else{
-		glide->pixels.pix32 = (COLOR*)AGIDL_NearestPow2ScaleImgData(glide->pixels.pix32,&glide->width,&glide->height,AGIDL_3DFGetClrFmt(glide));
+		glide->pixels.pix32 = (COLOR*)AGIDL_NearestPow2ScaleImgData(glide->pixels.pix32,&glide->width,&glide->height,256,AGIDL_3DFGetClrFmt(glide));
 	}
 	
 	switch(AGIDL_3DFGetClrFmt(glide)){
