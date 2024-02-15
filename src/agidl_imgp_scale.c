@@ -7,7 +7,7 @@
 *   File: agidl_imgp_scale.c
 *   Date: 12/9/2023
 *   Version: 0.2b
-*   Updated: 2/6/2024
+*   Updated: 2/14/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -15,6 +15,7 @@
 #include <string.h>
 #include "agidl_imgp_scale.h"
 #include "agidl_cc_mixer.h"
+#include "agidl_math_utils.h"
 
 void * AGIDL_HalfImgDataNearest(void* data, u16* width, u16* height, AGIDL_CLR_FMT fmt){
 	if(AGIDL_GetBitCount(fmt) == 16){
@@ -1362,7 +1363,7 @@ void * AGIDL_FastScaleImgData(void* data, u16* width, u16* height, float sx, flo
 	return AGIDL_ScaleImgDataNearest(data,width,height,sx,sy,fmt);
 }
 
-void * AGIDL_NearestPow2ScaleImgData(void* data, u16* width, u16* height, AGIDL_CLR_FMT fmt){
+void * AGIDL_NearestPow2ScaleImgData(void* data, u16* width, u16* height, u16 max_pow, AGIDL_CLR_FMT fmt){
 	if(AGIDL_GetBitCount(fmt) == 16){
 		COLOR16* clr_data = (COLOR16*)data;
 		
@@ -1370,6 +1371,8 @@ void * AGIDL_NearestPow2ScaleImgData(void* data, u16* width, u16* height, AGIDL_
 		u16 horg = *height;
 		
 		u16 w = AGIDL_NearestPow2((int)(worg)), h = AGIDL_NearestPow2((int)(horg));
+		
+		w = AGIDL_Clamp(1,w,max_pow); h = AGIDL_Clamp(1,h,max_pow);
 		
 		COLOR16* scale = (COLOR16*)malloc(sizeof(COLOR16)*w*h);
 		
@@ -1403,6 +1406,8 @@ void * AGIDL_NearestPow2ScaleImgData(void* data, u16* width, u16* height, AGIDL_
 		u16 horg = *height;
 		
 		u16 w = AGIDL_NearestPow2((int)(worg)), h = AGIDL_NearestPow2((int)(horg));
+		
+		w = AGIDL_Clamp(1,w,max_pow); h = AGIDL_Clamp(1,h,max_pow);
 		
 		COLOR* scale = (COLOR*)malloc(sizeof(COLOR)*w*h);
 		
