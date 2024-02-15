@@ -110,6 +110,8 @@ void AGIDL_3DFConvert16BPPTO24BPP(AGIDL_3DF* glide);
 void AGIDL_3DFConvertRGBA2RGB(AGIDL_3DF* glide);
 void AGIDL_3DF555TO565(AGIDL_3DF* glide);
 void AGIDL_3DF565TO555(AGIDL_3DF* glide);
+void AGIDL_3DFConvertRGBA2RGB(AGIDL_3DF* glide);
+void AGIDL_3DFConvertRGB2RGBA(AGIDL_3DF* glide);
 
 int AGIDL_3DFDecodeHeader(AGIDL_3DF* glide, FILE* file);
 void AGIDL_3DFDecodeIMG(AGIDL_3DF* glide, FILE* file);

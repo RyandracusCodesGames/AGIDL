@@ -11,7 +11,7 @@
 *   File: agidl_cc_converter.c
 *   Date: 9/9/2023
 *   Version: 0.1b
-*   Updated: 2/4/2024
+*   Updated: 2/14/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -165,13 +165,29 @@ COLOR AGIDL_RGBA_TO_RGB(COLOR rgba, AGIDL_CLR_FMT src, AGIDL_CLR_FMT dest){
 	u8 r = AGIDL_GetR(rgba,src);
 	u8 g = AGIDL_GetG(rgba,src);
 	u8 b = AGIDL_GetB(rgba,src);
-	u8 a = AGIDL_GetA(rgba,src);
 	
 	if(AGIDL_GetBitCount(dest) == 24){
 		return AGIDL_RGB(r,g,b,dest);
 	}
 	else{
 		return AGIDL_CLR_TO_CLR16(rgba,src,dest);
+	}
+}
+
+COLOR AGIDL_RGB_TO_RGBA(COLOR rgb, AGIDL_CLR_FMT src, AGIDL_CLR_FMT dest){
+	u8 r = AGIDL_GetR(rgb,src);
+	u8 g = AGIDL_GetG(rgb,src);
+	u8 b = AGIDL_GetB(rgb,src);
+	
+	if(AGIDL_GetBitCount(src) == 16){
+		COLOR clr = AGIDL_CLR16_TO_CLR(rgb,src,AGIDL_RGB_888);
+		r = AGIDL_GetR(clr,AGIDL_RGB_888);
+		g = AGIDL_GetG(clr,AGIDL_RGB_888);
+		b = AGIDL_GetB(clr,AGIDL_RGB_888);
+		return AGIDL_RGBA(r,g,b,0xff,dest);
+	}
+	else{
+		return AGIDL_RGBA(r,g,b,0xff,dest);
 	}
 }
 

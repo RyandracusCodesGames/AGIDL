@@ -234,7 +234,7 @@ void AGIDL_3DFBGR2RGB(AGIDL_3DF* glide){
 }
 
 void AGIDL_3DFConvert16BPPTO24BPP(AGIDL_3DF *glide){
-	if(glide->fmt == AGIDL_RGB_555 || glide->fmt == AGIDL_BGR_555 || glide->fmt == AGIDL_RGB_565 || glide->fmt == AGIDL_BGR_565){
+	if(AGIDL_GetBitCount(AGIDL_3DFGetClrFmt(glide)) == 16){
 		glide->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*(AGIDL_3DFGetHeight(glide)*AGIDL_3DFGetWidth(glide)));
 		AGIDL_16BPPTO24BPP(glide->pixels.pix16,glide->pixels.pix32,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),&glide->fmt);
 		free(glide->pixels.pix16);
@@ -255,6 +255,26 @@ void AGIDL_3DFConvert555TO565(AGIDL_3DF* glide){
 
 void AGIDL_3DFConvert565TO555(AGIDL_3DF* glide){
 	AGIDL_565TO555(glide->pixels.pix16,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),&glide->fmt);
+}
+
+void AGIDL_3DFConvertRGB2RGBA(AGIDL_3DF* glide){
+	if(AGIDL_GetBitCount(AGIDL_3DFGetClrFmt(glide)) == 24){
+		COLOR* cpy = AGIDL_AllocImgDataMMU(AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),AGIDL_3DFGetClrFmt(glide));
+		AGIDL_ClrMemcpy(cpy,glide->pixels.pix32,AGIDL_3DFGetSize(glide));
+		AGIDL_ConvertRGB2RGBA(cpy,glide->pixels.pix32,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),AGIDL_3DFGetClrFmt(glide),AGIDL_RGBA_8888);
+		AGIDL_3DFSetClrFmt(glide,AGIDL_RGBA_8888);
+		free(cpy);
+	}
+}
+
+void AGIDL_3DFConvertRGBA2RGB(AGIDL_3DF* glide){
+	if(AGIDL_GetBitCount(AGIDL_3DFGetClrFmt(glide)) == 32){
+		COLOR* cpy = AGIDL_AllocImgDataMMU(AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),AGIDL_3DFGetClrFmt(glide));
+		AGIDL_ClrMemcpy(cpy,glide->pixels.pix32,AGIDL_3DFGetSize(glide));
+		AGIDL_ConvertRGBA2RGB(cpy,glide->pixels.pix32,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),AGIDL_3DFGetClrFmt(glide),AGIDL_RGB_888);
+		AGIDL_3DFSetClrFmt(glide,AGIDL_RGB_888);
+		free(cpy);
+	}
 }
 
 AGIDL_3DF * AGIDL_Create3DF(const char* filename, int width, int height, AGIDL_CLR_FMT fmt){
@@ -689,6 +709,23 @@ void AGIDL_3DFDecodeIMG(AGIDL_3DF* glide, FILE* file){
 					glide->pixels.pix32[i] = AGIDL_RGBA(intensity,intensity,intensity,alpha,AGIDL_3DFGetClrFmt(glide));
 				}
 			}break;
+			case GLIDE_P8:{
+				AGIDL_3DFSetClrFmt(glide,AGIDL_RGBA_8888);
+				glide->pixels.pix32 = (COLOR*)AGIDL_AllocImgDataMMU(AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),AGIDL_3DFGetClrFmt(glide));
+				AGIDL_InitICP(&glide->palette,AGIDL_ICP_256);
+				int i;
+				for(i = 0; i < 256; i++){
+					u8 a = AGIDL_ReadByte(file);
+					u8 r = AGIDL_ReadByte(file);
+					u8 g = AGIDL_ReadByte(file);
+					u8 b = AGIDL_ReadByte(file);
+					glide->palette.icp.palette_256[i] = AGIDL_RGBA(r,g,b,a,AGIDL_3DFGetClrFmt(glide));
+				}
+				for(i = 0; i < AGIDL_3DFGetSize(glide); i++){
+					u8 index = AGIDL_ReadByte(file);
+					glide->pixels.pix32[i] = glide->palette.icp.palette_256[index];
+				}
+			}break;
 		}
 	}
 	else{
@@ -902,6 +939,41 @@ void AGIDL_3DFDecodeIMG(AGIDL_3DF* glide, FILE* file){
 				COLOR* img = glide->mipmap->mipmap[0].img_data;
 				AGIDL_ClrMemcpy(glide->pixels.pix32,img,AGIDL_3DFGetSize(glide));
 			}break;
+			case GLIDE_P8:{
+				AGIDL_3DFSetClrFmt(glide,AGIDL_RGBA_8888);
+				glide->pixels.pix32 = (COLOR*)AGIDL_AllocImgDataMMU(AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),AGIDL_3DFGetClrFmt(glide));
+				AGIDL_InitICP(&glide->palette,AGIDL_ICP_256);
+				int w = AGIDL_3DFGetWidth(glide), h = AGIDL_3DFGetHeight(glide);
+				glide->mipmap = AGIDL_CreateMipmapMMU(AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),AGIDL_3DFGetClrFmt(glide),FALSE);
+				int i;
+				for(i = 0; i < 256; i++){
+					u8 a = AGIDL_ReadByte(file);
+					u8 r = AGIDL_ReadByte(file);
+					u8 g = AGIDL_ReadByte(file);
+					u8 b = AGIDL_ReadByte(file);
+					glide->palette.icp.palette_256[i] = AGIDL_RGBA(r,g,b,a,AGIDL_3DFGetClrFmt(glide));
+				}
+				for(i = 0; i < glide->mipmap->mipcount; i++){
+					glide->mipmap->mipmap[i].width = w;
+					glide->mipmap->mipmap[i].height = h;
+					glide->mipmap->mipmap[i].fmt = AGIDL_3DFGetClrFmt(glide);
+					glide->mipmap->mipmap[i].img_data = (COLOR*)AGIDL_AllocImgDataMMU(w,h,AGIDL_3DFGetClrFmt(glide));
+					
+					COLOR* img = (COLOR*)glide->mipmap->mipmap[i].img_data;
+					
+					int j;
+					for(j = 0; j < w*h; j++){
+						u8 index = AGIDL_ReadByte(file);
+						
+						img[j] = glide->palette.icp.palette_256[index];
+					}
+					
+					w >>= 1;
+					h >>= 1;
+				}
+				COLOR* img = glide->mipmap->mipmap[0].img_data;
+				AGIDL_ClrMemcpy(glide->pixels.pix32,img,AGIDL_3DFGetSize(glide));
+			}break;
 		}
 	}
 }
@@ -911,27 +983,34 @@ void AGIDL_3DFEncodeHeader(AGIDL_3DF* glide, FILE* file){
 	AGIDL_PrintFourCC(file,'v','1','.','1');
 	AGIDL_WriteByte(file,10);
 	
-	switch(AGIDL_3DFGetClrFmt(glide)){
-		case AGIDL_RGB_555:{
-			char format[8] = "argb1555";
-			fwrite(format,1,8,file);
-			AGIDL_WriteByte(file,10);
-		}break;
-		case AGIDL_RGB_565:{
-			char format[6] = "rgb565";
-			fwrite(format,1,6,file);
-			AGIDL_WriteByte(file,10);
-		}break;
-		case AGIDL_RGBA_8888:{
-			char format[8] = "argb4444";
-			fwrite(format,1,8,file);
-			AGIDL_WriteByte(file,10);
-		}break;
-		case AGIDL_ARGB_8888:{
-			char format[8] = "argb4444";
-			fwrite(format,1,8,file);
-			AGIDL_WriteByte(file,10);
-		}break;
+	if(glide->icp != TRUE){
+		switch(AGIDL_3DFGetClrFmt(glide)){
+			case AGIDL_RGB_555:{
+				char format[8] = "argb1555";
+				fwrite(format,1,8,file);
+				AGIDL_WriteByte(file,10);
+			}break;
+			case AGIDL_RGB_565:{
+				char format[6] = "rgb565";
+				fwrite(format,1,6,file);
+				AGIDL_WriteByte(file,10);
+			}break;
+			case AGIDL_RGBA_8888:{
+				char format[8] = "argb4444";
+				fwrite(format,1,8,file);
+				AGIDL_WriteByte(file,10);
+			}break;
+			case AGIDL_ARGB_8888:{
+				char format[8] = "argb4444";
+				fwrite(format,1,8,file);
+				AGIDL_WriteByte(file,10);
+			}break;
+		}
+	}
+	else{
+		char format[2] = "p8";
+		fwrite(format,1,2,file);
+		AGIDL_WriteByte(file,10);
 	}
 	
 	u16 w = AGIDL_NearestPow2(AGIDL_3DFGetWidth(glide));
@@ -1158,8 +1237,35 @@ void AGIDL_3DFEncodeHeader(AGIDL_3DF* glide, FILE* file){
 	}
 }
 
+void AGIDL_3DFEncodeICP(AGIDL_3DF* glide, FILE* file){
+	if(glide->encode == ICP_ENCODE_THRESHOLD){
+		int pass = 0;
+		u8 pal_index = 0;
+		
+		AGIDL_InitICP(&glide->palette, AGIDL_ICP_256);
+		
+		int x,y;
+		for(y = 0; y < AGIDL_3DFGetHeight(glide); y++){
+			for(x = 0; x < AGIDL_3DFGetWidth(glide); x++){
+				COLOR clr = AGIDL_3DFGetClr(glide,x,y);
+	
+				AGIDL_AddColorICP(&glide->palette,pal_index,clr,AGIDL_3DFGetClrFmt(glide),AGIDL_3DFGetMaxDiff(glide),&pass);
+				
+				if(pass == 1 && pal_index < 256){
+					pal_index++;
+				}
+				
+				pass = 0;
+			}
+		}
+	}
+	else{
+		AGIDL_EncodeHistogramICP(&glide->palette,glide->pixels.pix32,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),AGIDL_3DFGetClrFmt(glide));
+	}
+}
+
 void AGIDL_3DFEncodeIMG(AGIDL_3DF* glide, FILE* file){
-	if(glide->mipped != TRUE){
+	if(glide->mipped != TRUE && glide->icp != TRUE){
 		switch(AGIDL_3DFGetClrFmt(glide)){
 			case AGIDL_RGB_565:{
 				AGIDL_InitBigEndArch();
@@ -1211,7 +1317,7 @@ void AGIDL_3DFEncodeIMG(AGIDL_3DF* glide, FILE* file){
 			}break;
 		}
 	}
-	else{
+	else if(glide->mipped == TRUE && glide->icp != TRUE){
 		switch(AGIDL_3DFGetClrFmt(glide)){
 			case AGIDL_RGB_565:{
 				AGIDL_InitBigEndArch();
@@ -1299,6 +1405,61 @@ void AGIDL_3DFEncodeIMG(AGIDL_3DF* glide, FILE* file){
 			}break;
 		}
 	}
+	else if(glide->mipped != TRUE && glide->icp == TRUE){
+		int i;
+		for(i = 0; i < 256; i++){
+			COLOR clr = glide->palette.icp.palette_256[i];
+			
+			u8 r = AGIDL_GetR(clr,AGIDL_3DFGetClrFmt(glide));
+			u8 g = AGIDL_GetG(clr,AGIDL_3DFGetClrFmt(glide));
+			u8 b = AGIDL_GetB(clr,AGIDL_3DFGetClrFmt(glide));
+			u8 a = AGIDL_GetA(clr,AGIDL_3DFGetClrFmt(glide));
+			
+			AGIDL_WriteByte(file,a);
+			AGIDL_WriteByte(file,r);
+			AGIDL_WriteByte(file,g);
+			AGIDL_WriteByte(file,b);
+		}
+		
+		for(i = 0; i < AGIDL_3DFGetSize(glide); i++){
+			COLOR clr = glide->pixels.pix32[i];
+			u8 index = AGIDL_FindNearestColor(glide->palette,clr,AGIDL_3DFGetClrFmt(glide));
+			AGIDL_WriteByte(file,index);
+		}
+	}
+	else{
+		glide->mipmap = AGIDL_GenerateMipmapFromImgData(glide->pixels.pix32,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),AGIDL_3DFGetClrFmt(glide));
+		
+		int i;
+		for(i = 0; i < 256; i++){
+			COLOR clr = glide->palette.icp.palette_256[i];
+			
+			u8 r = AGIDL_GetR(clr,AGIDL_3DFGetClrFmt(glide));
+			u8 g = AGIDL_GetG(clr,AGIDL_3DFGetClrFmt(glide));
+			u8 b = AGIDL_GetB(clr,AGIDL_3DFGetClrFmt(glide));
+			u8 a = AGIDL_GetA(clr,AGIDL_3DFGetClrFmt(glide));
+			
+			AGIDL_WriteByte(file,a);
+			AGIDL_WriteByte(file,r);
+			AGIDL_WriteByte(file,g);
+			AGIDL_WriteByte(file,b);
+		}
+		
+		int w = AGIDL_3DFGetWidth(glide), h = AGIDL_3DFGetHeight(glide);
+		
+		int j;
+		for(i = 0; i < glide->mipmap->mipcount; i++){
+			for(j = 0; j < w*h; j++){
+				COLOR* img = (COLOR*)glide->mipmap->mipmap[i].img_data;
+				COLOR clr = img[j];
+				u8 index = AGIDL_FindNearestColor(glide->palette,clr,AGIDL_3DFGetClrFmt(glide));
+				AGIDL_WriteByte(file,index);
+			}
+			w >>= 1;
+			h >>= 1;
+		}
+		AGIDL_WriteShort(file,0);
+	}
 }
 
 AGIDL_3DF * AGIDL_Load3DF(char* filename){
@@ -1342,51 +1503,125 @@ void AGIDL_Export3DF(AGIDL_3DF* glide){
 	
 	AGIDL_3DFEncodeHeader(glide,file);
 	
-	if(AGIDL_GetBitCount(AGIDL_3DFGetClrFmt(glide)) == 16){
-		glide->pixels.pix16 = (COLOR16*)AGIDL_NearestPow2ScaleImgData(glide->pixels.pix16,&glide->width,&glide->height,256,AGIDL_3DFGetClrFmt(glide));
+	if(glide->icp != TRUE){
+		
+		if(AGIDL_GetBitCount(AGIDL_3DFGetClrFmt(glide)) == 16){
+			glide->pixels.pix16 = (COLOR16*)AGIDL_NearestPow2ScaleImgData(glide->pixels.pix16,&glide->width,&glide->height,256,AGIDL_3DFGetClrFmt(glide));
+		}
+		else{
+			glide->pixels.pix32 = (COLOR*)AGIDL_NearestPow2ScaleImgData(glide->pixels.pix32,&glide->width,&glide->height,256,AGIDL_3DFGetClrFmt(glide));
+		}
+		
+		switch(AGIDL_3DFGetClrFmt(glide)){
+			case AGIDL_RGB_555:{
+				AGIDL_3DFEncodeIMG(glide,file);
+			}break;
+			case AGIDL_RGB_565:{
+				AGIDL_3DFEncodeIMG(glide,file);
+			}break;
+			case AGIDL_BGR_555:{
+				AGIDL_3DFBGR2RGB(glide);
+				AGIDL_3DFEncodeIMG(glide,file);
+				AGIDL_3DFRGB2BGR(glide);
+			}break;
+			case AGIDL_BGR_565:{
+				AGIDL_3DFBGR2RGB(glide);
+				AGIDL_3DFEncodeIMG(glide,file);
+				AGIDL_3DFRGB2BGR(glide);
+			}break;
+			case AGIDL_RGB_888:{
+				AGIDL_3DFConvert24BPPTO16BPP(glide);
+				AGIDL_3DFConvert555TO565(glide);
+				AGIDL_3DFEncodeIMG(glide,file);
+				AGIDL_3DFConvert565TO555(glide);
+				AGIDL_3DFConvert16BPPTO24BPP(glide);
+			}break;
+			case AGIDL_BGR_888:{
+				AGIDL_3DFBGR2RGB(glide);
+				AGIDL_3DFConvert24BPPTO16BPP(glide);
+				AGIDL_3DFConvert555TO565(glide);
+				AGIDL_3DFEncodeIMG(glide,file);
+				AGIDL_3DFConvert565TO555(glide);
+				AGIDL_3DFConvert16BPPTO24BPP(glide);
+				AGIDL_3DFRGB2BGR(glide);
+			}break;
+			case AGIDL_RGBA_8888:{
+				AGIDL_3DFEncodeIMG(glide,file);
+			}break;
+			case AGIDL_ARGB_8888:{
+				AGIDL_3DFEncodeIMG(glide,file);
+			}break;
+		}
 	}
 	else{
-		glide->pixels.pix32 = (COLOR*)AGIDL_NearestPow2ScaleImgData(glide->pixels.pix32,&glide->width,&glide->height,256,AGIDL_3DFGetClrFmt(glide));
+		switch(AGIDL_3DFGetClrFmt(glide)){
+			case AGIDL_RGB_555:{
+				AGIDL_3DFConvert16BPPTO24BPP(glide);
+				glide->pixels.pix32 = (COLOR*)AGIDL_NearestPow2ScaleImgData(glide->pixels.pix32,&glide->width,&glide->height,256,AGIDL_3DFGetClrFmt(glide));
+				AGIDL_3DFConvertRGB2RGBA(glide);
+				AGIDL_3DFEncodeICP(glide,file);
+				AGIDL_3DFEncodeIMG(glide,file);
+				AGIDL_3DFConvertRGBA2RGB(glide);
+				AGIDL_3DFConvert24BPPTO16BPP(glide);
+			}break;
+			case AGIDL_RGB_565:{
+				AGIDL_3DFConvert16BPPTO24BPP(glide);
+				glide->pixels.pix32 = (COLOR*)AGIDL_NearestPow2ScaleImgData(glide->pixels.pix32,&glide->width,&glide->height,256,AGIDL_3DFGetClrFmt(glide));
+				AGIDL_3DFConvertRGB2RGBA(glide);
+				AGIDL_3DFEncodeICP(glide,file);
+				AGIDL_3DFEncodeIMG(glide,file);
+				AGIDL_3DFConvertRGBA2RGB(glide);
+				AGIDL_3DFConvert24BPPTO16BPP(glide);
+			}break;
+			case AGIDL_BGR_555:{
+				AGIDL_3DFBGR2RGB(glide);
+				AGIDL_3DFConvert16BPPTO24BPP(glide);
+				glide->pixels.pix32 = (COLOR*)AGIDL_NearestPow2ScaleImgData(glide->pixels.pix32,&glide->width,&glide->height,256,AGIDL_3DFGetClrFmt(glide));
+				AGIDL_3DFConvertRGB2RGBA(glide);
+				AGIDL_3DFEncodeICP(glide,file);
+				AGIDL_3DFEncodeIMG(glide,file);
+				AGIDL_3DFConvertRGBA2RGB(glide);
+				AGIDL_3DFConvert24BPPTO16BPP(glide);
+				AGIDL_3DFRGB2BGR(glide);
+			}break;
+			case AGIDL_BGR_565:{
+				AGIDL_3DFBGR2RGB(glide);
+				AGIDL_3DFConvert16BPPTO24BPP(glide);
+				glide->pixels.pix32 = (COLOR*)AGIDL_NearestPow2ScaleImgData(glide->pixels.pix32,&glide->width,&glide->height,256,AGIDL_3DFGetClrFmt(glide));
+				AGIDL_3DFConvertRGB2RGBA(glide);
+				AGIDL_3DFEncodeICP(glide,file);
+				AGIDL_3DFEncodeIMG(glide,file);
+				AGIDL_3DFConvertRGBA2RGB(glide);
+				AGIDL_3DFConvert24BPPTO16BPP(glide);
+				AGIDL_3DFRGB2BGR(glide);
+			}break;
+			case AGIDL_RGB_888:{
+				glide->pixels.pix32 = (COLOR*)AGIDL_NearestPow2ScaleImgData(glide->pixels.pix32,&glide->width,&glide->height,256,AGIDL_3DFGetClrFmt(glide));
+				AGIDL_3DFConvertRGB2RGBA(glide);
+				AGIDL_3DFEncodeICP(glide,file);
+				AGIDL_3DFEncodeIMG(glide,file);
+				AGIDL_3DFConvertRGBA2RGB(glide);
+			}break;
+			case AGIDL_BGR_888:{
+				AGIDL_3DFBGR2RGB(glide);
+				glide->pixels.pix32 = (COLOR*)AGIDL_NearestPow2ScaleImgData(glide->pixels.pix32,&glide->width,&glide->height,256,AGIDL_3DFGetClrFmt(glide));
+				AGIDL_3DFConvertRGB2RGBA(glide);
+				AGIDL_3DFEncodeICP(glide,file);
+				AGIDL_3DFEncodeIMG(glide,file);
+				AGIDL_3DFConvertRGBA2RGB(glide);
+				AGIDL_3DFRGB2BGR(glide);
+			}break;
+			case AGIDL_RGBA_8888:{
+				glide->pixels.pix32 = (COLOR*)AGIDL_NearestPow2ScaleImgData(glide->pixels.pix32,&glide->width,&glide->height,256,AGIDL_3DFGetClrFmt(glide));
+				AGIDL_3DFEncodeICP(glide,file);
+				AGIDL_3DFEncodeIMG(glide,file);
+			}break;
+			case AGIDL_ARGB_8888:{
+				glide->pixels.pix32 = (COLOR*)AGIDL_NearestPow2ScaleImgData(glide->pixels.pix32,&glide->width,&glide->height,256,AGIDL_3DFGetClrFmt(glide));
+				AGIDL_3DFEncodeICP(glide,file);
+				AGIDL_3DFEncodeIMG(glide,file);
+			}break;
+		}
 	}
 	
-	switch(AGIDL_3DFGetClrFmt(glide)){
-		case AGIDL_RGB_555:{
-			AGIDL_3DFEncodeIMG(glide,file);
-		}break;
-		case AGIDL_RGB_565:{
-			AGIDL_3DFEncodeIMG(glide,file);
-		}break;
-		case AGIDL_BGR_555:{
-			AGIDL_3DFBGR2RGB(glide);
-			AGIDL_3DFEncodeIMG(glide,file);
-			AGIDL_3DFRGB2BGR(glide);
-		}break;
-		case AGIDL_BGR_565:{
-			AGIDL_3DFBGR2RGB(glide);
-			AGIDL_3DFEncodeIMG(glide,file);
-			AGIDL_3DFRGB2BGR(glide);
-		}break;
-		case AGIDL_RGB_888:{
-			AGIDL_3DFConvert24BPPTO16BPP(glide);
-			AGIDL_3DFConvert555TO565(glide);
-			AGIDL_3DFEncodeIMG(glide,file);
-			AGIDL_3DFConvert565TO555(glide);
-			AGIDL_3DFConvert16BPPTO24BPP(glide);
-		}break;
-		case AGIDL_BGR_888:{
-			AGIDL_3DFBGR2RGB(glide);
-			AGIDL_3DFConvert24BPPTO16BPP(glide);
-			AGIDL_3DFConvert555TO565(glide);
-			AGIDL_3DFEncodeIMG(glide,file);
-			AGIDL_3DFConvert565TO555(glide);
-			AGIDL_3DFConvert16BPPTO24BPP(glide);
-			AGIDL_3DFRGB2BGR(glide);
-		}break;
-		case AGIDL_RGBA_8888:{
-			AGIDL_3DFEncodeIMG(glide,file);
-		}break;
-		case AGIDL_ARGB_8888:{
-			AGIDL_3DFEncodeIMG(glide,file);
-		}break;
-	}
 }
