@@ -7,7 +7,7 @@
 *   File: agidl_img_3df.c
 *   Date: 2/12/2024
 *   Version: 0.3b
-*   Updated: 2/13/2024
+*   Updated: 2/15/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -205,6 +205,7 @@ void AGIDL_Free3DF(AGIDL_3DF* glide){
 	
 	if(glide->mipmap != NULL || glide->mipped == TRUE){
 		AGIDL_DestroyMipmapMMU(glide->mipmap);
+		free(glide);
 	}
 	else{
 		free(glide);
@@ -319,6 +320,27 @@ AGIDL_3DF* AGIDL_3DFCpyImg(AGIDL_3DF* glide){
 	return glidecpy;
 }
 
+int AGIDL_3DFDecodePartialHeader(AGIDL_3DF* glide, FILE* file){
+	glide->header.magic[0] = AGIDL_ReadByte(file);
+	glide->header.magic[1] = AGIDL_ReadByte(file);
+	glide->header.magic[2] = AGIDL_ReadByte(file);
+	glide->header.magic[3] = AGIDL_ReadByte(file);
+	
+	glide->header.version[0] = AGIDL_ReadByte(file);
+	glide->header.version[1] = AGIDL_ReadByte(file);
+	glide->header.version[2] = AGIDL_ReadByte(file);
+	glide->header.version[3] = AGIDL_ReadByte(file);
+	glide->header.version[4] = AGIDL_ReadByte(file);
+	
+	if(glide->header.magic[0] != '3' || glide->header.magic[1] != 'd' || glide->header.magic[2] != 'f'){
+		return INVALID_HEADER_FORMATTING_ERROR;
+	}
+	else if(glide->header.version[0] != 'v' || glide->header.version[1] != '1' || glide->header.version[2] != '.'){
+		return INVALID_HEADER_FORMATTING_ERROR;
+	}
+	else return NO_IMG_ERROR;
+}
+
 int AGIDL_3DFDecodeHeader(AGIDL_3DF* glide, FILE* file){
 	glide->header.magic[0] = AGIDL_ReadByte(file);
 	glide->header.magic[1] = AGIDL_ReadByte(file);
@@ -339,11 +361,13 @@ int AGIDL_3DFDecodeHeader(AGIDL_3DF* glide, FILE* file){
 		byte = AGIDL_ReadByte(file);
 		format[i] = byte;
 		i++;
+		
+		if(i >= 10){
+			break;
+		}
 	}
 	
-	while(byte != ':'){
-		byte = AGIDL_ReadByte(file);
-	}
+	fseek(file,10,SEEK_CUR);
 	
 	AGIDL_ReadByte(file);
 	
@@ -355,8 +379,12 @@ int AGIDL_3DFDecodeHeader(AGIDL_3DF* glide, FILE* file){
 	while(byte != 32){
 		byte = AGIDL_ReadByte(file);
 		wlod[count++] = byte;
+		
+		if(count >= 4){
+			break;
+		}
 	}
-	
+
 	if(count == 2){
 		AGIDL_3DFSetWidth(glide,AGIDL_GetCharNum(wlod[0]));
 	}
@@ -380,6 +408,10 @@ int AGIDL_3DFDecodeHeader(AGIDL_3DF* glide, FILE* file){
 	while(byte != 10){
 		byte = AGIDL_ReadByte(file);
 		hlod[count++] = byte;
+		
+		if(count >= 4){
+			break;
+		}
 	}
 	
 	if(count == 2){

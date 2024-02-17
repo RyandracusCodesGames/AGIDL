@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "agidl_img_search.h"
+#include "agidl_img_error.h"
+#include "agidl_file_utils.h"
+#include "agidl_img_converter.h"
 
 /********************************************
 *   Adaptive Graphics Image Display Library
@@ -11,7 +15,7 @@
 *   File: agidl_img_search.c
 *   Date: 11/11/2023
 *   Version: 0.1b
-*   Updated: 2/13/2024
+*   Updated: 2/15/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -20,7 +24,7 @@ void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type, int fl
 	FILE* file = fopen(filename,"rb");
 	
 	if(file == NULL){
-		printf("Could not locate/open file - %s!\n");
+		printf("Could not locate/open file - %s!\n",filename);
 		return;
 	}
 	
@@ -56,13 +60,13 @@ void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type, int fl
 			switch(type){
 				case AGIDL_IMG_TIM:{
 					char file_name[25];
-					sprintf(file_name,"tim_%d.tim",img_count);
+					sprintf(file_name,"tim_%ld.tim",img_count);
 					tim->filename = file_name;
 					AGIDL_ExportTIM(tim);
 				}break;
 				case AGIDL_IMG_BMP:{
 					char file_name[25] = {0};
-					sprintf(file_name,"tim_%d.tim",img_count);
+					sprintf(file_name,"tim_%ld.tim",img_count);
 					tim->filename = (char*)malloc(strlen(file_name)+1);
 					AGIDL_FilenameCpy(tim->filename,file_name);
 					AGIDL_BMP* bmp = AGIDL_ConvertTIM2BMP(tim);
@@ -74,7 +78,7 @@ void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type, int fl
 				}break;
 				case AGIDL_IMG_TGA:{
 					char file_name[25] = {0};
-					sprintf(file_name,"tim_%d.tim",img_count);
+					sprintf(file_name,"tim_%ld.tim",img_count);
 					tim->filename = (char*)malloc(strlen(file_name)+1);
 					AGIDL_FilenameCpy(tim->filename,file_name);
 					AGIDL_TGA* tga = AGIDL_ConvertTIM2TGA(tim);
@@ -86,7 +90,7 @@ void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type, int fl
 				}break;
 				case AGIDL_IMG_PCX:{
 					char file_name[25] = {0};
-					sprintf(file_name,"tim_%d.tim",img_count);
+					sprintf(file_name,"tim_%ld.tim",img_count);
 					tim->filename = (char*)malloc(strlen(file_name)+1);
 					AGIDL_FilenameCpy(tim->filename,file_name);
 					AGIDL_PCX* pcx = AGIDL_ConvertTIM2PCX(tim);
@@ -98,7 +102,7 @@ void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type, int fl
 				}break;
 				case AGIDL_IMG_LMP:{
 					char file_name[25] = {0};
-					sprintf(file_name,"tim_%d.tim",img_count);
+					sprintf(file_name,"tim_%ld.tim",img_count);
 					tim->filename = (char*)malloc(strlen(file_name)+1);
 					AGIDL_FilenameCpy(tim->filename,file_name);
 					AGIDL_LMP* lmp = AGIDL_ConvertTIM2LMP(tim);
@@ -111,7 +115,7 @@ void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type, int fl
 				}break;
 				case AGIDL_IMG_PVR:{
 					char file_name[25] = {0};
-					sprintf(file_name,"tim_%d.tim",img_count);
+					sprintf(file_name,"tim_%ld.tim",img_count);
 					tim->filename = (char*)malloc(strlen(file_name)+1);
 					AGIDL_FilenameCpy(tim->filename,file_name);
 					AGIDL_PVR* pvr = AGIDL_ConvertTIM2PVR(tim);
@@ -123,7 +127,7 @@ void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type, int fl
 				}break;
 				case AGIDL_IMG_GXT:{
 					char file_name[25] = {0};
-					sprintf(file_name,"tim_%d.tim",img_count);
+					sprintf(file_name,"tim_%ld.tim",img_count);
 					tim->filename = (char*)malloc(strlen(file_name)+1);
 					AGIDL_FilenameCpy(tim->filename,file_name);
 					AGIDL_GXT* gxt = AGIDL_ConvertTIM2GXT(tim);
@@ -135,7 +139,7 @@ void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type, int fl
 				}break;
 				case AGIDL_IMG_BTI:{
 					char file_name[25] = {0};
-					sprintf(file_name,"tim_%d.tim",img_count);
+					sprintf(file_name,"tim_%ld.tim",img_count);
 					tim->filename = (char*)malloc(strlen(file_name)+1);
 					AGIDL_FilenameCpy(tim->filename,file_name);
 					AGIDL_BTI* bti = AGIDL_ConvertTIM2BTI(tim);
@@ -147,7 +151,7 @@ void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type, int fl
 				}break;
 				case AGIDL_IMG_3DF:{
 					char file_name[25] = {0};
-					sprintf(file_name,"tim_%d.tim",img_count);
+					sprintf(file_name,"tim_%ld.tim",img_count);
 					tim->filename = (char*)malloc(strlen(file_name)+1);
 					AGIDL_FilenameCpy(tim->filename,file_name);
 					AGIDL_3DF* glide = AGIDL_ConvertTIM23DF(tim);
@@ -194,6 +198,160 @@ void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type, int fl
 	}
 
 	fclose(file);
+}
+
+int AGIDL_3DFSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE img_type, int flip, u32 jump){
+	FILE* file = fopen(filename,"rb");
+	
+	if(file == NULL){
+		return FILE_NOT_LOCATED_IMG_ERROR;
+	} 
+	
+	u32 img_count = 0, file_size = 0;
+	
+	fseek(file,0,SEEK_END);
+	file_size = ftell(file);
+	fseek(file,jump,SEEK_SET);
+	
+	while(!feof(file)){
+		AGIDL_3DF* glide = (AGIDL_3DF*)malloc(sizeof(AGIDL_3DF));
+		
+		int error = AGIDL_3DFDecodePartialHeader(glide,file);
+
+		while(!feof(file) && error != NO_IMG_ERROR){
+
+			int pos = ftell(file);
+			
+			if(pos >= file_size){
+				printf("Exceeded file size! Closing file stream!\n");
+				fclose(file);
+				return MEMORY_IMG_ERROR;
+			}
+			
+			fseek(file,pos-8,SEEK_SET);
+			error = AGIDL_3DFDecodePartialHeader(glide,file);
+		}
+		
+		u32 curr = ftell(file);
+		fseek(file,curr-9,SEEK_SET);
+
+		AGIDL_3DFDecodeHeader(glide,file);
+		AGIDL_3DFDecodeIMG(glide,file);
+		
+		img_count++; 
+		
+		switch(img_type){
+			case AGIDL_IMG_BMP:{
+				char filename[25];
+				sprintf(filename,"3df_%ld.3df",img_count);
+				glide->filename = (char*)malloc(strlen(filename)+1);
+				AGIDL_FilenameCpy(glide->filename,filename);
+				AGIDL_BMP* bmp = AGIDL_Convert3DF2BMP(glide);
+				if(flip == TRUE){
+					AGIDL_FlipHorzBMP(bmp);
+				}
+				AGIDL_ExportBMP(bmp);
+				AGIDL_FreeBMP(bmp);
+			}break;
+			case AGIDL_IMG_TGA:{
+				char filename[25];
+				sprintf(filename,"3df_%ld.3df",img_count);
+				glide->filename = (char*)malloc(strlen(filename)+1);
+				AGIDL_FilenameCpy(glide->filename,filename);
+				AGIDL_TGA* tga = AGIDL_Convert3DF2TGA(glide);
+				if(flip == TRUE){
+					AGIDL_FlipHorzTGA(tga);
+				}
+				AGIDL_ExportTGA(tga);
+				AGIDL_FreeTGA(tga);
+			}break;
+			case AGIDL_IMG_TIM:{
+				char filename[25];
+				sprintf(filename,"3df_%ld.3df",img_count);
+				glide->filename = (char*)malloc(strlen(filename)+1);
+				AGIDL_FilenameCpy(glide->filename,filename);
+				AGIDL_TIM* tim = AGIDL_Convert3DF2TIM(glide);
+				if(flip == TRUE){
+					AGIDL_FlipHorzTIM(tim);
+				}
+				AGIDL_ExportTIM(tim);
+				AGIDL_FreeTIM(tim);
+			}break;
+			case AGIDL_IMG_PCX:{
+				char filename[25];
+				sprintf(filename,"3df_%ld.3df",img_count);
+				glide->filename = (char*)malloc(strlen(filename)+1);
+				AGIDL_FilenameCpy(glide->filename,filename);
+				AGIDL_PCX* pcx = AGIDL_Convert3DF2PCX(glide);
+				if(flip == TRUE){
+					AGIDL_FlipHorzPCX(pcx);
+				}
+				AGIDL_ExportPCX(pcx);
+				AGIDL_FreePCX(pcx);
+			}break;
+			case AGIDL_IMG_LMP:{
+				char filename[25];
+				sprintf(filename,"3df_%ld.3df",img_count);
+				glide->filename = (char*)malloc(strlen(filename)+1);
+				AGIDL_FilenameCpy(glide->filename,filename);
+				AGIDL_LMP* lmp = AGIDL_Convert3DF2LMP(glide);
+				if(flip == TRUE){
+					AGIDL_FlipHorzLMP(lmp);
+				}
+				AGIDL_ExportLMP(lmp);
+				AGIDL_FreeLMP(lmp);
+			}break;
+			case AGIDL_IMG_PVR:{
+				char filename[25];
+				sprintf(filename,"3df_%ld.3df",img_count);
+				glide->filename = (char*)malloc(strlen(filename)+1);
+				AGIDL_FilenameCpy(glide->filename,filename);
+				AGIDL_PVR* pvr = AGIDL_Convert3DF2PVR(glide);
+				if(flip == TRUE){
+					AGIDL_FlipHorzPVR(pvr);
+				}
+				AGIDL_ExportPVR(pvr);
+				AGIDL_FreePVR(pvr);
+			}break;
+			case AGIDL_IMG_GXT:{
+				char filename[25];
+				sprintf(filename,"3df_%ld.3df",img_count);
+				glide->filename = (char*)malloc(strlen(filename)+1);
+				AGIDL_FilenameCpy(glide->filename,filename);
+				AGIDL_GXT* gxt = AGIDL_Convert3DF2GXT(glide);
+				if(flip == TRUE){
+					AGIDL_FlipHorzGXT(gxt);
+				}
+				AGIDL_ExportGXT(gxt);
+				AGIDL_FreeGXT(gxt);
+			}break;
+			case AGIDL_IMG_BTI:{
+				char filename[25];
+				sprintf(filename,"3df_%ld.3df",img_count);
+				glide->filename = (char*)malloc(strlen(filename)+1);
+				AGIDL_FilenameCpy(glide->filename,filename);
+				AGIDL_BTI* bti = AGIDL_Convert3DF2BTI(glide);
+				if(flip == TRUE){
+					AGIDL_FlipHorzBTI(bti);
+				}
+				AGIDL_ExportBTI(bti);
+				AGIDL_FreeBTI(bti);
+			}break;
+			case AGIDL_IMG_3DF:{
+				char filename[25];
+				sprintf(filename,"3df_%ld.3df",img_count);
+				glide->filename = (char*)malloc(strlen(filename)+1);
+				AGIDL_FilenameCpy(glide->filename,filename);
+				AGIDL_Export3DF(glide);
+			}break;
+		}
+		
+		AGIDL_Free3DF(glide);
+	}
+	
+	fclose(file);
+	
+	return NO_IMG_ERROR;
 }
 
 void AGIDL_TGASearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE img_type){

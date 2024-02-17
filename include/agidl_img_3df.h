@@ -10,7 +10,7 @@
 *   File: agidl_img_3df.h
 *   Date: 2/12/2024
 *   Version: 0.3b
-*   Updated: 2/12/2024
+*   Updated: 2/15/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -114,6 +114,7 @@ void AGIDL_3DFConvertRGBA2RGB(AGIDL_3DF* glide);
 void AGIDL_3DFConvertRGB2RGBA(AGIDL_3DF* glide);
 
 int AGIDL_3DFDecodeHeader(AGIDL_3DF* glide, FILE* file);
+int AGIDL_3DFDecodePartialHeader(AGIDL_3DF* glide, FILE* file);
 void AGIDL_3DFDecodeIMG(AGIDL_3DF* glide, FILE* file);
 void AGIDL_3DFEncodeHeader(AGIDL_3DF* glide, FILE* file);
 void AGIDL_3DFEncodeICP(AGIDL_3DF* glide, FILE* file);
