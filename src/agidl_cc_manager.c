@@ -15,7 +15,7 @@
 *   File: agidl_cc_manager.c
 *   Date: 9/8/2023
 *   Version: 0.1b
-*   Updated: 2/11/2024
+*   Updated: 2/21/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -771,10 +771,10 @@ COLOR AGIDL_GetColor(AGIDL_CLR clr, AGIDL_CLR_FMT fmt){
 					return PURPLE_BGR_555;
 				}break;
 				case AGIDL_RGB_565:{
-					return ORANGE_RGB_565;
+					return PURPLE_RGB_565;
 				}break;
 				case AGIDL_BGR_565:{
-					return ORANGE_BGR_565;
+					return PURPLE_BGR_565;
 				}break;
 			}
 		}break;

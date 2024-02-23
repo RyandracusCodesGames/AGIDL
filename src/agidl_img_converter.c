@@ -7,7 +7,7 @@
 *   File: agidl_img_converter.c
 *   Date: 11/3/2023
 *   Version: 0.1b
-*   Updated: 2/13/2024
+*   Updated: 2/19/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -216,6 +216,29 @@ AGIDL_3DF* AGIDL_ConvertBMP23DF(AGIDL_BMP* bmp){
 	return glide;
 }
 
+AGIDL_PPM* AGIDL_ConvertBMP2PPM(AGIDL_BMP* bmp){
+	char* imgname = AGIDL_GetImgName(bmp->filename);
+	char* ext = AGIDL_GetImgExtension(AGIDL_IMG_PPM);
+	char* filename = AGIDL_StrCpy(imgname,ext);
+	
+	AGIDL_PPM* ppm = AGIDL_CreatePPM(filename,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp),
+	AGIDL_BMPGetClrFmt(bmp));
+	
+	free(imgname);
+	free(ext);
+	free(filename);
+	
+	int bits = AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp));
+	
+	if(bits == 24 || bits == 32){
+		AGIDL_PPMSyncPix(ppm,bmp->pixels.pix32);
+	}
+	else{
+		AGIDL_PPMSyncPix16(ppm,bmp->pixels.pix16);
+	}
+	return ppm;
+}
+
 AGIDL_BMP* AGIDL_ConvertTGA2BMP(AGIDL_TGA* tga){
 	char* imgname = AGIDL_GetImgName(tga->filename);
 	char* ext = AGIDL_GetImgExtension(AGIDL_IMG_BMP);
@@ -411,6 +434,25 @@ AGIDL_3DF* AGIDL_ConvertTGA23DF(AGIDL_TGA* tga){
 		AGIDL_3DFSyncPix16(glide,tga->pixels.pix16);
 	}
 	return glide;
+}
+
+AGIDL_PPM* AGIDL_ConvertTGA2PPM(AGIDL_TGA* tga){
+	char* imgname = AGIDL_GetImgName(tga->filename);
+	char* ext = AGIDL_GetImgExtension(AGIDL_IMG_PPM);
+	char* filename = AGIDL_StrCpy(imgname,ext);
+	
+	AGIDL_PPM* ppm = AGIDL_CreatePPM(filename,AGIDL_TGAGetWidth(tga),AGIDL_TGAGetHeight(tga),
+	AGIDL_TGAGetClrFmt(tga));
+	
+	int bits = AGIDL_GetBitCount(AGIDL_TGAGetClrFmt(tga));
+	
+	if(bits == 24 || bits == 32){
+		AGIDL_PPMSyncPix(ppm,tga->pixels.pix32);
+	}
+	else{
+		AGIDL_PPMSyncPix16(ppm,tga->pixels.pix16);
+	}
+	return ppm;
 }
 
 AGIDL_BMP* AGIDL_ConvertTIM2BMP(AGIDL_TIM* tim){
@@ -612,6 +654,29 @@ AGIDL_3DF* AGIDL_ConvertTIM23DF(AGIDL_TIM* tim){
 	return glide;
 }
 
+AGIDL_PPM* AGIDL_ConvertTIM2PPM(AGIDL_TIM* tim){
+	char* imgname = AGIDL_GetImgName(tim->filename);
+	char* ext = AGIDL_GetImgExtension(AGIDL_IMG_PPM);
+	char* filename = AGIDL_StrCpy(imgname,ext);
+	
+	AGIDL_PPM* ppm = AGIDL_CreatePPM(filename,AGIDL_TIMGetWidth(tim),AGIDL_TIMGetHeight(tim),
+	AGIDL_TIMGetClrFmt(tim));
+	
+	free(imgname);
+	free(ext);
+	free(filename);
+	
+	int bits = AGIDL_GetBitCount(AGIDL_TIMGetClrFmt(tim));
+	
+	if(bits == 24 || bits == 32){
+		AGIDL_PPMSyncPix(ppm,tim->pixels.pix32);
+	}
+	else{
+		AGIDL_PPMSyncPix16(ppm,tim->pixels.pix16);
+	}
+	return ppm;
+}
+
 AGIDL_BMP* AGIDL_ConvertPCX2BMP(AGIDL_PCX* pcx){
 	char* imgname = AGIDL_GetImgName(pcx->filename);
 	char* ext = AGIDL_GetImgExtension(AGIDL_IMG_BMP);
@@ -807,6 +872,29 @@ AGIDL_3DF* AGIDL_ConvertPCXT23DF(AGIDL_PCX* pcx){
 	return glide;
 }
 
+AGIDL_PPM* AGIDL_ConvertPCXT2PPM(AGIDL_PCX* pcx){
+	char* imgname = AGIDL_GetImgName(pcx->filename);
+	char* ext = AGIDL_GetImgExtension(AGIDL_IMG_PPM);
+	char* filename = AGIDL_StrCpy(imgname,ext);
+	
+	AGIDL_PPM* ppm = AGIDL_CreatePPM(filename,AGIDL_PCXGetWidth(pcx),AGIDL_PCXGetHeight(pcx),
+	AGIDL_PCXGetClrFmt(pcx));
+	
+	free(imgname);
+	free(ext);
+	free(filename);
+	
+	int bits = AGIDL_GetBitCount(AGIDL_PCXGetClrFmt(pcx));
+	
+	if(bits == 24 || bits == 32){
+		AGIDL_PPMSyncPix(ppm,pcx->pixels.pix32);
+	}
+	else{
+		AGIDL_PPMSyncPix16(ppm,pcx->pixels.pix16);
+	}
+	return ppm;
+}
+
 AGIDL_BMP* AGIDL_ConvertLMP2BMP(AGIDL_LMP* lmp){
 	char* imgname = AGIDL_GetImgName(lmp->filename);
 	char* ext = AGIDL_GetImgExtension(AGIDL_IMG_BMP);
@@ -997,6 +1085,29 @@ AGIDL_3DF* AGIDL_ConvertLMP23DF(AGIDL_LMP* lmp){
 		AGIDL_3DFSyncPix16(glide,lmp->pixels.pix16);
 	}
 	return glide;
+}
+
+AGIDL_PPM* AGIDL_ConvertLMP2PPM(AGIDL_LMP* lmp){
+	char* imgname = AGIDL_GetImgName(lmp->filename);
+	char* ext = AGIDL_GetImgExtension(AGIDL_IMG_PPM);
+	char* filename = AGIDL_StrCpy(imgname,ext);
+	
+	AGIDL_PPM* ppm = AGIDL_CreatePPM(filename,AGIDL_LMPGetWidth(lmp),AGIDL_LMPGetHeight(lmp),
+	AGIDL_LMPGetClrFmt(lmp));
+	
+	free(imgname);
+	free(ext);
+	free(filename);
+	
+	int bits = AGIDL_GetBitCount(AGIDL_LMPGetClrFmt(lmp));
+	
+	if(bits == 24 || bits == 32){
+		AGIDL_PPMSyncPix(ppm,lmp->pixels.pix32);
+	}
+	else{
+		AGIDL_PPMSyncPix16(ppm,lmp->pixels.pix16);
+	}
+	return ppm;
 }
 
 AGIDL_BMP* AGIDL_ConvertPVR2BMP(AGIDL_PVR* pvr){
@@ -1195,6 +1306,29 @@ AGIDL_3DF* AGIDL_ConvertPVR23DF(AGIDL_PVR* pvr){
 		AGIDL_3DFSyncPix16(glide,pvr->pixels.pix16);
 	}
 	return glide;
+}
+
+AGIDL_PPM* AGIDL_ConvertPVR2PPM(AGIDL_PVR* pvr){
+	char* imgname = AGIDL_GetImgName(pvr->filename);
+	char* ext = AGIDL_GetImgExtension(AGIDL_IMG_PPM);
+	char* filename = AGIDL_StrCpy(imgname,ext);
+	
+	AGIDL_PPM* ppm = AGIDL_CreatePPM(filename,AGIDL_PVRGetWidth(pvr),AGIDL_PVRGetHeight(pvr),
+	AGIDL_PVRGetClrFmt(pvr));
+	
+	free(imgname);
+	free(ext);
+	free(filename);
+	
+	int bits = AGIDL_GetBitCount(AGIDL_PVRGetClrFmt(pvr));
+	
+	if(bits == 24 || bits == 32){
+		AGIDL_PPMSyncPix(ppm,pvr->pixels.pix32);
+	}
+	else{
+		AGIDL_PPMSyncPix16(ppm,pvr->pixels.pix16);
+	}
+	return ppm;
 }
 
 AGIDL_BMP* AGIDL_ConvertGXT2BMP(AGIDL_GXT* gxt){
@@ -1396,6 +1530,29 @@ AGIDL_3DF* AGIDL_ConvertGXT23DF(AGIDL_GXT* gxt){
 	return glide;
 }
 
+AGIDL_PPM* AGIDL_ConvertGXT2PPM(AGIDL_GXT* gxt){
+	char* imgname = AGIDL_GetImgName(gxt->filename);
+	char* ext = AGIDL_GetImgExtension(AGIDL_IMG_PPM);
+	char* filename = AGIDL_StrCpy(imgname,ext);
+	
+	AGIDL_PPM* pmm = AGIDL_CreatePPM(filename,AGIDL_GXTGetWidth(gxt),AGIDL_GXTGetHeight(gxt),
+	AGIDL_GXTGetClrFmt(gxt));
+	
+	free(imgname);
+	free(ext);
+	free(filename);
+	
+	int bits = AGIDL_GetBitCount(AGIDL_GXTGetClrFmt(gxt));
+	
+	if(bits == 24 || bits == 32){
+		AGIDL_PPMSyncPix(pmm,gxt->pixels.pix32);
+	}
+	else{
+		AGIDL_PPMSyncPix16(pmm,gxt->pixels.pix16);
+	}
+	return pmm;
+}
+
 AGIDL_BMP* AGIDL_ConvertBTI2BMP(AGIDL_BTI* bti){
 	char* imgname = AGIDL_GetImgName(bti->filename);
 	char* ext = AGIDL_GetImgExtension(AGIDL_IMG_BMP);
@@ -1595,6 +1752,29 @@ AGIDL_3DF* AGIDL_ConvertBTI23DF(AGIDL_BTI* bti){
 	return glide;
 }
 
+AGIDL_PPM* AGIDL_ConvertBTI2PPM(AGIDL_BTI* bti){
+	char* imgname = AGIDL_GetImgName(bti->filename);
+	char* ext = AGIDL_GetImgExtension(AGIDL_IMG_PPM);
+	char* filename = AGIDL_StrCpy(imgname,ext);
+	
+	AGIDL_PPM* pmm = AGIDL_CreatePPM(filename,AGIDL_BTIGetWidth(bti),AGIDL_BTIGetHeight(bti),
+	AGIDL_BTIGetClrFmt(bti));
+	
+	free(imgname);
+	free(ext);
+	free(filename);
+	
+	int bits = AGIDL_GetBitCount(AGIDL_BTIGetClrFmt(bti));
+	
+	if(bits == 24 || bits == 32){
+		AGIDL_PPMSyncPix(pmm,bti->pixels.pix32);
+	}
+	else{
+		AGIDL_PPMSyncPix16(pmm,bti->pixels.pix16);
+	}
+	return pmm;
+}
+
 AGIDL_BMP* AGIDL_Convert3DF2BMP(AGIDL_3DF* glide){
 	char* imgname = AGIDL_GetImgName(glide->filename);
 	char* ext = AGIDL_GetImgExtension(AGIDL_IMG_BMP);
@@ -1792,4 +1972,234 @@ AGIDL_BTI* AGIDL_Convert3DF2BTI(AGIDL_3DF* glide){
 		AGIDL_BTISyncPix16(bti,glide->pixels.pix16);
 	}
 	return bti;
+}
+
+AGIDL_PPM* AGIDL_Convert3DF2PPM(AGIDL_3DF* glide){
+	char* imgname = AGIDL_GetImgName(glide->filename);
+	char* ext = AGIDL_GetImgExtension(AGIDL_IMG_PPM);
+	char* filename = AGIDL_StrCpy(imgname,ext);
+	
+	AGIDL_PPM* ppm = AGIDL_CreatePPM(filename,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),
+	AGIDL_3DFGetClrFmt(glide));
+	
+	free(imgname);
+	free(ext);
+	free(filename);
+	
+	int bits = AGIDL_GetBitCount(AGIDL_3DFGetClrFmt(glide));
+	
+	if(bits == 24 || bits == 32){
+		AGIDL_PPMSyncPix(ppm,glide->pixels.pix32);
+	}
+	else{
+		AGIDL_PPMSyncPix16(ppm,glide->pixels.pix16);
+	}
+	return ppm;
+}
+
+AGIDL_BMP* AGIDL_ConvertPPM2BMP(AGIDL_PPM* ppm){
+	char* imgname = AGIDL_GetImgName(ppm->filename);
+	char* ext = AGIDL_GetImgExtension(AGIDL_IMG_BMP);
+	char* filename = AGIDL_StrCpy(imgname,ext);
+	
+	AGIDL_BMP* bmp = AGIDL_CreateBMP(filename,AGIDL_PPMGetWidth(ppm),AGIDL_PPMGetHeight(ppm),
+	AGIDL_PPMGetClrFmt(ppm));
+	
+	free(imgname);
+	free(ext);
+	free(filename);
+	
+	int bits = AGIDL_GetBitCount(AGIDL_PPMGetClrFmt(ppm));
+	
+	if(bits == 24 || bits == 32){
+		AGIDL_BMPSyncPix(bmp,ppm->pixels.pix32);
+	}
+	else{
+		AGIDL_BMPSyncPix16(bmp,ppm->pixels.pix16);
+	}
+	return bmp;
+}
+
+AGIDL_TGA* AGIDL_ConvertPPM2TGA(AGIDL_PPM* ppm){
+	char* imgname = AGIDL_GetImgName(ppm->filename);
+	char* ext = AGIDL_GetImgExtension(AGIDL_IMG_TGA);
+	char* filename = AGIDL_StrCpy(imgname,ext);
+	
+	AGIDL_TGA* tga = AGIDL_CreateTGA(filename,AGIDL_PPMGetWidth(ppm),AGIDL_PPMGetHeight(ppm),
+	AGIDL_PPMGetClrFmt(ppm));
+
+	free(imgname);
+	free(ext);
+	free(filename);
+	
+	int bits = AGIDL_GetBitCount(AGIDL_PPMGetClrFmt(ppm));
+	
+	if(bits == 24 || bits == 32){
+		AGIDL_TGASyncPix(tga,ppm->pixels.pix32);
+	}
+	else{
+		AGIDL_TGASyncPix16(tga,ppm->pixels.pix16);
+	}
+	return tga;
+}
+
+AGIDL_TIM* AGIDL_ConvertPPM2TIM(AGIDL_PPM* ppm){
+	char* imgname = AGIDL_GetImgName(ppm->filename);
+	char* ext = AGIDL_GetImgExtension(AGIDL_IMG_TIM);
+	char* filename = AGIDL_StrCpy(imgname,ext);
+	
+	AGIDL_TIM* tim = AGIDL_CreateTIM(filename,AGIDL_PPMGetWidth(ppm),AGIDL_PPMGetHeight(ppm),
+	AGIDL_PPMGetClrFmt(ppm));
+	
+	free(imgname);
+	free(ext);
+	free(filename);
+	
+	int bits = AGIDL_GetBitCount(AGIDL_PPMGetClrFmt(ppm));
+	
+	if(bits == 24 || bits == 32){
+		AGIDL_TIMSyncPix(tim,ppm->pixels.pix32);
+	}
+	else{
+		AGIDL_TIMSyncPix16(tim,ppm->pixels.pix16);
+	}
+	return tim;
+}
+
+AGIDL_PCX* AGIDL_ConvertPPM2PCX(AGIDL_PPM* ppm){
+	char* imgname = AGIDL_GetImgName(ppm->filename);
+	char* ext = AGIDL_GetImgExtension(AGIDL_IMG_PCX);
+	char* filename = AGIDL_StrCpy(imgname,ext);
+	
+	AGIDL_PCX* pcx = AGIDL_CreatePCX(filename,AGIDL_PPMGetWidth(ppm),AGIDL_PPMGetHeight(ppm),
+	AGIDL_PPMGetClrFmt(ppm));
+	
+	free(imgname);
+	free(ext);
+	free(filename);
+	
+	int bits = AGIDL_GetBitCount(AGIDL_PPMGetClrFmt(ppm));
+	
+	if(bits == 24 || bits == 32){
+		AGIDL_PCXSyncPix(pcx,ppm->pixels.pix32);
+	}
+	else{
+		AGIDL_PCXSyncPix16(pcx,ppm->pixels.pix16);
+	}
+	return pcx;
+}
+
+AGIDL_LMP* AGIDL_ConvertPPM2LMP(AGIDL_PPM* ppm){
+	char* imgname = AGIDL_GetImgName(ppm->filename);
+	char* ext = AGIDL_GetImgExtension(AGIDL_IMG_LMP);
+	char* filename = AGIDL_StrCpy(imgname,ext);
+	
+	AGIDL_LMP* lmp = AGIDL_CreateLMP(filename,AGIDL_PPMGetWidth(ppm),AGIDL_PPMGetHeight(ppm),
+	AGIDL_PPMGetClrFmt(ppm));
+	
+	free(imgname);
+	free(ext);
+	free(filename);
+	
+	int bits = AGIDL_GetBitCount(AGIDL_PPMGetClrFmt(ppm));
+	
+	if(bits == 24 || bits == 32){
+		AGIDL_LMPSyncPix(lmp,ppm->pixels.pix32);
+	}
+	else{
+		AGIDL_LMPSyncPix16(lmp,ppm->pixels.pix16);
+	}
+	return lmp;
+}
+
+AGIDL_PVR* AGIDL_ConvertPPM2PVR(AGIDL_PPM* ppm){
+	char* imgname = AGIDL_GetImgName(ppm->filename);
+	char* ext = AGIDL_GetImgExtension(AGIDL_IMG_PVR);
+	char* filename = AGIDL_StrCpy(imgname,ext);
+	
+	AGIDL_PVR* pvr = AGIDL_CreatePVR(filename,AGIDL_PPMGetWidth(ppm),AGIDL_PPMGetHeight(ppm),
+	AGIDL_PPMGetClrFmt(ppm));
+	
+	free(imgname);
+	free(ext);
+	free(filename);
+	
+	int bits = AGIDL_GetBitCount(AGIDL_PPMGetClrFmt(ppm));
+	
+	if(bits == 24 || bits == 32){
+		AGIDL_PVRSyncPix(pvr,ppm->pixels.pix32);
+	}
+	else{
+		AGIDL_PVRSyncPix16(pvr,ppm->pixels.pix16);
+	}
+	return pvr;
+}
+
+AGIDL_GXT* AGIDL_ConvertPPM2GXT(AGIDL_PPM* ppm){
+	char* imgname = AGIDL_GetImgName(ppm->filename);
+	char* ext = AGIDL_GetImgExtension(AGIDL_IMG_GXT);
+	char* filename = AGIDL_StrCpy(imgname,ext);
+	
+	AGIDL_GXT* gxt = AGIDL_CreateGXT(filename,AGIDL_PPMGetWidth(ppm),AGIDL_PPMGetHeight(ppm),
+	AGIDL_PPMGetClrFmt(ppm));
+	
+	free(imgname);
+	free(ext);
+	free(filename);
+	
+	int bits = AGIDL_GetBitCount(AGIDL_PPMGetClrFmt(ppm));
+	
+	if(bits == 24 || bits == 32){
+		AGIDL_GXTSyncPix(gxt,ppm->pixels.pix32);
+	}
+	else{
+		AGIDL_GXTSyncPix16(gxt,ppm->pixels.pix16);
+	}
+	return gxt;
+}
+
+AGIDL_BTI* AGIDL_ConvertPPM2BTI(AGIDL_PPM* ppm){
+	char* imgname = AGIDL_GetImgName(ppm->filename);
+	char* ext = AGIDL_GetImgExtension(AGIDL_IMG_BTI);
+	char* filename = AGIDL_StrCpy(imgname,ext);
+	
+	AGIDL_BTI* bti = AGIDL_CreateBTI(filename,AGIDL_PPMGetWidth(ppm),AGIDL_PPMGetHeight(ppm),
+	AGIDL_PPMGetClrFmt(ppm));
+	
+	free(imgname);
+	free(ext);
+	free(filename);
+	
+	int bits = AGIDL_GetBitCount(AGIDL_PPMGetClrFmt(ppm));
+	
+	if(bits == 24 || bits == 32){
+		AGIDL_BTISyncPix(bti,ppm->pixels.pix32);
+	}
+	else{
+		AGIDL_BTISyncPix16(bti,ppm->pixels.pix16);
+	}
+	return bti;
+}
+
+AGIDL_3DF* AGIDL_ConvertPPM23DF(AGIDL_PPM* ppm){
+	char* imgname = AGIDL_GetImgName(ppm->filename);
+	char* ext = AGIDL_GetImgExtension(AGIDL_IMG_3DF);
+	char* filename = AGIDL_StrCpy(imgname,ext);
+	
+	AGIDL_3DF* glide = AGIDL_Create3DF(filename,AGIDL_PPMGetWidth(ppm),AGIDL_PPMGetHeight(ppm),
+	AGIDL_PPMGetClrFmt(ppm));
+	
+	free(imgname);
+	free(ext);
+	free(filename);
+	
+	int bits = AGIDL_GetBitCount(AGIDL_PPMGetClrFmt(ppm));
+	
+	if(bits == 24 || bits == 32){
+		AGIDL_3DFSyncPix(glide,ppm->pixels.pix32);
+	}
+	else{
+		AGIDL_3DFSyncPix16(glide,ppm->pixels.pix16);
+	}
+	return glide;
 }

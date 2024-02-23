@@ -16,7 +16,7 @@
 *   File: agidl_img_tga.c
 *   Date: 9/13/2023
 *   Version: 0.1b
-*   Updated: 2/5/2024
+*   Updated: 2/21/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -279,6 +279,30 @@ void AGIDL_TGAConvert555TO565(AGIDL_TGA* tga){
 
 void AGIDL_TGAConvert565TO555(AGIDL_TGA* tga){
 	AGIDL_565TO555(tga->pixels.pix16,AGIDL_TGAGetWidth(tga),AGIDL_TGAGetHeight(tga),&tga->fmt);
+}
+
+void AGIDL_ColorConvertTGA(AGIDL_TGA* tga, AGIDL_CLR_FMT dest){
+	u8 sbits = AGIDL_GetBitCount(AGIDL_TGAGetClrFmt(tga)), dbits = AGIDL_GetBitCount(dest);
+	if(sbits == 16 && dbits == 16){
+		AGIDL_ColorConvertImgData(tga->pixels.pix16,NULL,AGIDL_TGAGetWidth(tga),AGIDL_TGAGetHeight(tga),AGIDL_TGAGetClrFmt(tga),dest);
+		AGIDL_TGASetClrFmt(tga,dest);
+	}
+	else if((sbits == 24 || sbits == 32) && (dbits == 24 || dbits == 32)){
+		AGIDL_ColorConvertImgData(tga->pixels.pix32,NULL,AGIDL_TGAGetWidth(tga),AGIDL_TGAGetHeight(tga),AGIDL_TGAGetClrFmt(tga),dest);
+		AGIDL_TGASetClrFmt(tga,dest);
+	}
+	else if(sbits == 16 && (dbits == 24 || dbits == 32)){
+		tga->pixels.pix32 = (COLOR*)AGIDL_AllocImgDataMMU(AGIDL_TGAGetWidth(tga),AGIDL_TGAGetHeight(tga),dest);
+		AGIDL_ColorConvertImgData(tga->pixels.pix16,tga->pixels.pix32,AGIDL_TGAGetWidth(tga),AGIDL_TGAGetHeight(tga),AGIDL_TGAGetClrFmt(tga),dest);
+		AGIDL_TGASetClrFmt(tga,dest);
+		free(tga->pixels.pix16);
+	}
+	else{
+		tga->pixels.pix16 = (COLOR16*)AGIDL_AllocImgDataMMU(AGIDL_TGAGetWidth(tga),AGIDL_TGAGetHeight(tga),dest);
+		AGIDL_ColorConvertImgData(tga->pixels.pix32,tga->pixels.pix16,AGIDL_TGAGetWidth(tga),AGIDL_TGAGetHeight(tga),AGIDL_TGAGetClrFmt(tga),dest);
+		AGIDL_TGASetClrFmt(tga,dest);
+		free(tga->pixels.pix32);
+	}
 }
 
 TGA_ICP_TYPE AGIDL_TGAGetICPType(int num){

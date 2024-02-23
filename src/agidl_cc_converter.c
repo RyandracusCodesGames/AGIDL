@@ -11,7 +11,7 @@
 *   File: agidl_cc_converter.c
 *   Date: 9/9/2023
 *   Version: 0.1b
-*   Updated: 2/14/2024
+*   Updated: 2/21/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -189,6 +189,67 @@ COLOR AGIDL_RGB_TO_RGBA(COLOR rgb, AGIDL_CLR_FMT src, AGIDL_CLR_FMT dest){
 	else{
 		return AGIDL_RGBA(r,g,b,0xff,dest);
 	}
+}
+
+COLOR AGIDL_ColorConvert(COLOR src, AGIDL_CLR_FMT sfmt, AGIDL_CLR_FMT dfmt){
+	if(sfmt == dfmt){
+		return src;
+	}
+	
+	u8 r = AGIDL_GetR(src,sfmt);
+	u8 g = AGIDL_GetG(src,sfmt);
+	u8 b = AGIDL_GetB(src,sfmt);
+	u8 a = AGIDL_GetA(src,sfmt);
+	
+	u8 sbits = AGIDL_GetBitCount(sfmt), dbits = AGIDL_GetBitCount(dfmt);
+
+	if(sbits == dbits){
+		
+		if(dbits == 24 || (dbits == 16 && sfmt == AGIDL_RGB_555 && dfmt == AGIDL_BGR_555) || (dbits == 16 && sfmt == AGIDL_RGB_565 && dfmt == AGIDL_BGR_565)){
+			return AGIDL_RGB(r,g,b,dfmt);
+		}
+		else if(dbits == 32){
+			return AGIDL_RGBA(r,g,b,a,dfmt);
+		}
+		else{
+			if((sfmt == AGIDL_RGB_555 || sfmt == AGIDL_BGR_555) && (dfmt == AGIDL_BGR_565 || dfmt == AGIDL_RGB_565)){
+				
+				COLOR16 dest = AGIDL_555_TO_565(src,sfmt);
+				
+				if(sfmt == AGIDL_RGB_555 && dfmt == AGIDL_BGR_565){
+					return AGIDL_RGB_TO_BGR(dest,AGIDL_RGB_565);
+				}
+				else if(sfmt == AGIDL_BGR_555 && dfmt == AGIDL_RGB_565){
+					return AGIDL_BGR_TO_RGB(dest,AGIDL_BGR_565);
+				}
+				else return dest;
+			}
+			else{
+				COLOR16 dest = AGIDL_565_TO_555(src,sfmt);
+				
+				if(sfmt == AGIDL_RGB_565 && dfmt == AGIDL_BGR_555){
+					return AGIDL_RGB_TO_BGR(dest,AGIDL_RGB_555);
+				}
+				else if(sfmt == AGIDL_BGR_565 && dfmt == AGIDL_RGB_555){
+					return AGIDL_BGR_TO_RGB(dest,AGIDL_BGR_555);
+				}
+				else return dest;
+			}
+		}
+	}
+	else if(sbits == 24 && dbits == 32){
+		return AGIDL_RGBA(r,g,b,0xff,dfmt);
+	}
+	else if(sbits == 32 && dbits == 24){
+		return AGIDL_RGB(r,g,b,dfmt);
+	}
+	else if((sbits == 24 || sbits == 32) && dbits == 16){
+		return AGIDL_CLR_TO_CLR16(src,sfmt,dfmt);
+	}
+	else if(sbits == 16 && (dbits == 24 || dbits == 32)){
+		return AGIDL_CLR16_TO_CLR(src,sfmt,dfmt);
+	}
+	else return src;
 }
 
 AGIDL_YCbCr AGIDL_RGB_TO_YCbCr(u8 r, u8 g, u8 b){

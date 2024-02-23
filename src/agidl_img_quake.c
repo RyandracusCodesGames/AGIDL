@@ -3,6 +3,8 @@
 #include <string.h>
 #include "agidl_cc_core.h"
 #include "agidl_img_quake.h"
+#include "agidl_file_utils.h"
+#include "agidl_mmu_utils.h"
 
 /********************************************
 *   Adaptive Graphics Image Display Library
@@ -13,7 +15,7 @@
 *   File: agidl_img_quake.c
 *   Date: 10/3/2023
 *   Version: 0.1b
-*   Updated: 1/26/2024
+*   Updated: 2/21/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -185,6 +187,30 @@ void AGIDL_LMPConvert555TO565(AGIDL_LMP* lmp){
 
 void AGIDL_LMPConvert565TO555(AGIDL_LMP* lmp){
 	AGIDL_565TO555(lmp->pixels.pix16,AGIDL_LMPGetWidth(lmp),AGIDL_LMPGetHeight(lmp),&lmp->fmt);
+}
+
+void AGIDL_ColorConvertLMP(AGIDL_LMP* lmp, AGIDL_CLR_FMT dest){
+	u8 sbits = AGIDL_GetBitCount(AGIDL_LMPGetClrFmt(lmp)), dbits = AGIDL_GetBitCount(dest);
+	if(sbits == 16 && dbits == 16){
+		AGIDL_ColorConvertImgData(lmp->pixels.pix16,NULL,AGIDL_LMPGetWidth(lmp),AGIDL_LMPGetHeight(lmp),AGIDL_LMPGetClrFmt(lmp),dest);
+		AGIDL_LMPSetClrFmt(lmp,dest);
+	}
+	else if((sbits == 24 || sbits == 32) && (dbits == 24 || dbits == 32)){
+		AGIDL_ColorConvertImgData(lmp->pixels.pix32,NULL,AGIDL_LMPGetWidth(lmp),AGIDL_LMPGetHeight(lmp),AGIDL_LMPGetClrFmt(lmp),dest);
+		AGIDL_LMPSetClrFmt(lmp,dest);
+	}
+	else if(sbits == 16 && (dbits == 24 || dbits == 32)){
+		lmp->pixels.pix32 = (COLOR*)AGIDL_AllocImgDataMMU(AGIDL_LMPGetWidth(lmp),AGIDL_LMPGetHeight(lmp),dest);
+		AGIDL_ColorConvertImgData(lmp->pixels.pix16,lmp->pixels.pix32,AGIDL_LMPGetWidth(lmp),AGIDL_LMPGetHeight(lmp),AGIDL_LMPGetClrFmt(lmp),dest);
+		AGIDL_LMPSetClrFmt(lmp,dest);
+		free(lmp->pixels.pix16);
+	}
+	else{
+		lmp->pixels.pix16 = (COLOR16*)AGIDL_AllocImgDataMMU(AGIDL_LMPGetWidth(lmp),AGIDL_LMPGetHeight(lmp),dest);
+		AGIDL_ColorConvertImgData(lmp->pixels.pix32,lmp->pixels.pix16,AGIDL_LMPGetWidth(lmp),AGIDL_LMPGetHeight(lmp),AGIDL_LMPGetClrFmt(lmp),dest);
+		AGIDL_LMPSetClrFmt(lmp,dest);
+		free(lmp->pixels.pix32);
+	}
 }
 
 void AGIDL_LMPSyncPix(AGIDL_LMP *lmp, COLOR *clrs){
@@ -386,7 +412,7 @@ AGIDL_LMP * AGIDL_LoadLMP(char *filename){
 	AGIDL_LMPSetClrFmt(lmp,AGIDL_RGB_888);
 	AGIDL_LMPDecodeHeader(lmp,file);
 	
-	lmp->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*(AGIDL_LMPGetWidth(lmp)*(AGIDL_LMPGetHeight(lmp))));
+	lmp->pixels.pix32 = (COLOR*)AGIDL_AllocImgDataMMU(AGIDL_LMPGetWidth(lmp),AGIDL_LMPGetHeight(lmp),AGIDL_LMPGetClrFmt(lmp));
 	
 	AGIDL_LMPDecodeIMG(lmp,file);
 	
@@ -407,20 +433,9 @@ void AGIDL_LMPEncodeICP(AGIDL_LMP* lmp, FILE* file){
 	int x,y;
 	for(y = AGIDL_LMPGetHeight(lmp) - 1; y >= 0; y--){
 		for(x = 0; x < AGIDL_LMPGetWidth(lmp); x++){
-			if(AGIDL_GetBitCount(AGIDL_LMPGetClrFmt(lmp)) == 32){
-				COLOR clr = AGIDL_LMPGetClr(lmp,x,y);
-				u8 r = AGIDL_GetR(clr,AGIDL_LMPGetClrFmt(lmp));
-				u8 g = AGIDL_GetG(clr,AGIDL_LMPGetClrFmt(lmp));
-				u8 b = AGIDL_GetB(clr,AGIDL_LMPGetClrFmt(lmp));
-				clr = AGIDL_RGB(r,g,b,AGIDL_RGB_888);
-				u8 index = AGIDL_FindNearestColor(lmp->palette,clr,AGIDL_RGB_888);
-				AGIDL_WriteByte(file,index);
-			}
-			else{
-				COLOR clr = AGIDL_LMPGetClr(lmp,x,y);
-				u8 index = AGIDL_FindNearestColor(lmp->palette,clr,AGIDL_RGB_888);
-				AGIDL_WriteByte(file,index);
-			}
+			COLOR clr = AGIDL_LMPGetClr(lmp,x,y);
+			u8 index = AGIDL_FindNearestColor(lmp->palette,clr,AGIDL_RGB_888);
+			AGIDL_WriteByte(file,index);
 		}
 	}
 }
@@ -440,41 +455,65 @@ void AGIDL_ExportLMP(AGIDL_LMP *lmp){
 	
 	AGIDL_LMPEncodeHeader(lmp,file);
 	
-	if(lmp->fmt == AGIDL_BGR_888){
-		AGIDL_LMPBGR2RGB(lmp);
-		AGIDL_LMPEncodeICP(lmp,file);
-		AGIDL_LMPRGB2BGR(lmp);
-	}
-	else if(lmp->fmt == AGIDL_BGR_555){
-		AGIDL_LMPBGR2RGB(lmp);
-		AGIDL_LMPConvert16BPPTO24BPP(lmp);
-		AGIDL_LMPEncodeICP(lmp,file);
-		AGIDL_LMPRGB2BGR(lmp);
-		AGIDL_LMPConvert24BPPTO16BPP(lmp);
-	}
-	else if(lmp->fmt == AGIDL_RGB_555){
-		AGIDL_LMPConvert16BPPTO24BPP(lmp);
-		AGIDL_LMPEncodeICP(lmp,file);
-		AGIDL_LMPConvert24BPPTO16BPP(lmp);
-	}
-	else if(lmp->fmt == AGIDL_BGR_565){
-		AGIDL_LMPConvert565TO555(lmp);
-		AGIDL_LMPBGR2RGB(lmp);
-		AGIDL_LMPConvert16BPPTO24BPP(lmp);
-		AGIDL_LMPEncodeICP(lmp,file);
-		AGIDL_LMPRGB2BGR(lmp);
-		AGIDL_LMPConvert24BPPTO16BPP(lmp);
-		AGIDL_LMPConvert555TO565(lmp);
-	}
-	else if(lmp->fmt == AGIDL_RGB_565){
-		AGIDL_LMPConvert565TO555(lmp);
-		AGIDL_LMPConvert16BPPTO24BPP(lmp);
-		AGIDL_LMPEncodeICP(lmp,file);
-		AGIDL_LMPConvert24BPPTO16BPP(lmp);
-		AGIDL_LMPConvert555TO565(lmp);
-	}
-	else{
-		AGIDL_LMPEncodeICP(lmp,file);
+	switch(AGIDL_LMPGetClrFmt(lmp)){
+		case AGIDL_RGB_888:{
+			AGIDL_LMPEncodeICP(lmp,file);
+		}break;
+		case AGIDL_BGR_888:{
+			AGIDL_LMPBGR2RGB(lmp);
+			AGIDL_LMPEncodeICP(lmp,file);
+			AGIDL_LMPRGB2BGR(lmp);
+		}break;
+		case AGIDL_RGB_555:{
+			AGIDL_LMPConvert16BPPTO24BPP(lmp);
+			AGIDL_LMPEncodeICP(lmp,file);
+			AGIDL_LMPConvert24BPPTO16BPP(lmp);
+		}break;
+		case AGIDL_RGB_565:{
+			AGIDL_LMPConvert565TO555(lmp);
+			AGIDL_LMPConvert16BPPTO24BPP(lmp);
+			AGIDL_LMPEncodeICP(lmp,file);
+			AGIDL_LMPConvert24BPPTO16BPP(lmp);
+			AGIDL_LMPConvert555TO565(lmp);
+		}break;
+		case AGIDL_BGR_555:{
+			AGIDL_LMPBGR2RGB(lmp);
+			AGIDL_LMPConvert16BPPTO24BPP(lmp);
+			AGIDL_LMPEncodeICP(lmp,file);
+			AGIDL_LMPRGB2BGR(lmp);
+			AGIDL_LMPConvert24BPPTO16BPP(lmp);
+		}break;
+		case AGIDL_BGR_565:{
+			AGIDL_LMPConvert565TO555(lmp);
+			AGIDL_LMPBGR2RGB(lmp);
+			AGIDL_LMPConvert16BPPTO24BPP(lmp);
+			AGIDL_LMPEncodeICP(lmp,file);
+			AGIDL_LMPRGB2BGR(lmp);
+			AGIDL_LMPConvert24BPPTO16BPP(lmp);
+			AGIDL_LMPConvert555TO565(lmp);
+		}break;
+		case AGIDL_RGBA_8888:{
+			COLOR* buf = (COLOR*)AGIDL_AllocImgDataMMU(AGIDL_LMPGetWidth(lmp),AGIDL_LMPGetHeight(lmp),AGIDL_LMPGetClrFmt(lmp));
+			AGIDL_ClrMemcpy(buf,lmp->pixels.pix32,AGIDL_LMPGetSize(lmp));
+			AGIDL_CLR_FMT src = AGIDL_LMPGetClrFmt(lmp);
+			AGIDL_ColorConvertLMP(lmp,AGIDL_RGB_888);
+			AGIDL_LMPEncodeICP(lmp,file);
+			AGIDL_ColorConvertLMP(lmp,src);
+			AGIDL_ClrMemcpy(lmp->pixels.pix32,buf,AGIDL_LMPGetSize(lmp));
+			AGIDL_LMPSetClrFmt(lmp,src);
+			free(buf);
+		}break;
+		case AGIDL_ARGB_8888:{
+			COLOR* buf = (COLOR*)AGIDL_AllocImgDataMMU(AGIDL_LMPGetWidth(lmp),AGIDL_LMPGetHeight(lmp),AGIDL_LMPGetClrFmt(lmp));
+			AGIDL_ClrMemcpy(buf,lmp->pixels.pix32,AGIDL_LMPGetSize(lmp));
+			AGIDL_CLR_FMT src = AGIDL_LMPGetClrFmt(lmp);
+			AGIDL_ColorConvertLMP(lmp,AGIDL_RGB_888);
+			AGIDL_LMPEncodeICP(lmp,file);
+			AGIDL_ColorConvertLMP(lmp,src);
+			AGIDL_ClrMemcpy(lmp->pixels.pix32,buf,AGIDL_LMPGetSize(lmp));
+			AGIDL_LMPSetClrFmt(lmp,src);
+			free(buf);
+		}break;
 	}
 	
 	fclose(file);

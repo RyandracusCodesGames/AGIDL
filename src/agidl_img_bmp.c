@@ -7,6 +7,7 @@
 #include "agidl_img_compression.h"
 #include "agidl_img_error.h"
 #include "agidl_file_utils.h"
+#include "agidl_mmu_utils.h"
 
 /********************************************
 *   Adaptive Graphics Image Display Library
@@ -17,7 +18,7 @@
 *   File: agidl_img_bmp.c
 *   Date: 9/12/2023
 *   Version: 0.1b
-*   Updated: 2/6/2024
+*   Updated: 2/21/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -169,6 +170,30 @@ void AGIDL_BMP555TO565(AGIDL_BMP* bmp){
 
 void AGIDL_BMP565TO555(AGIDL_BMP* bmp){
 	AGIDL_565TO555(bmp->pixels.pix16,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp),&bmp->fmt);
+}
+
+void AGIDL_ColorConvertBMP(AGIDL_BMP* bmp, AGIDL_CLR_FMT dest){
+	u8 sbits = AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)), dbits = AGIDL_GetBitCount(dest);
+	if(sbits == 16 && dbits == 16){
+		AGIDL_ColorConvertImgData(bmp->pixels.pix16,NULL,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp),AGIDL_BMPGetClrFmt(bmp),dest);
+		AGIDL_BMPSetClrFmt(bmp,dest);
+	}
+	else if((sbits == 24 || sbits == 32) && (dbits == 24 || dbits == 32)){
+		AGIDL_ColorConvertImgData(bmp->pixels.pix32,NULL,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp),AGIDL_BMPGetClrFmt(bmp),dest);
+		AGIDL_BMPSetClrFmt(bmp,dest);
+	}
+	else if(sbits == 16 && (dbits == 24 || dbits == 32)){
+		bmp->pixels.pix32 = (COLOR*)AGIDL_AllocImgDataMMU(AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp),dest);
+		AGIDL_ColorConvertImgData(bmp->pixels.pix16,bmp->pixels.pix32,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp),AGIDL_BMPGetClrFmt(bmp),dest);
+		AGIDL_BMPSetClrFmt(bmp,dest);
+		free(bmp->pixels.pix16);
+	}
+	else{
+		bmp->pixels.pix16 = (COLOR16*)AGIDL_AllocImgDataMMU(AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp),dest);
+		AGIDL_ColorConvertImgData(bmp->pixels.pix32,bmp->pixels.pix16,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp),AGIDL_BMPGetClrFmt(bmp),dest);
+		AGIDL_BMPSetClrFmt(bmp,dest);
+		free(bmp->pixels.pix32);
+	}
 }
 
 COLOR AGIDL_BMPGetClr(AGIDL_BMP *bmp, int x, int y){
@@ -1116,7 +1141,7 @@ void AGIDL_ExportBMP(AGIDL_BMP *bmp){
 		}
 	}
 	else{
-		switch(bmp->fmt){
+		switch(AGIDL_BMPGetClrFmt(bmp)){
 			case AGIDL_RGB_888:{
 				AGIDL_BMPRGB2BGR(bmp);
 				AGIDL_BMPEncodeICP(bmp,file);

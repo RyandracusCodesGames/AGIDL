@@ -15,7 +15,7 @@
 *   File: agidl_img_search.c
 *   Date: 11/11/2023
 *   Version: 0.1b
-*   Updated: 2/15/2024
+*   Updated: 2/19/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -160,6 +160,18 @@ void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type, int fl
 					}
 					AGIDL_Export3DF(glide);
 					AGIDL_Free3DF(glide);
+				}break;
+				case AGIDL_IMG_PPM:{
+					char file_name[25] = {0};
+					sprintf(file_name,"tim_%ld.tim",img_count);
+					tim->filename = (char*)malloc(strlen(file_name)+1);
+					AGIDL_FilenameCpy(tim->filename,file_name);
+					AGIDL_PPM* ppm = AGIDL_ConvertTIM2PPM(tim);
+					if(flip == 1){
+						AGIDL_FlipHorzPPM(ppm);
+					}
+					AGIDL_ExportPPM(ppm);
+					AGIDL_FreePPM(ppm);
 				}break;
 				
 			}
@@ -343,6 +355,18 @@ int AGIDL_3DFSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE img_type, int
 				glide->filename = (char*)malloc(strlen(filename)+1);
 				AGIDL_FilenameCpy(glide->filename,filename);
 				AGIDL_Export3DF(glide);
+			}break;
+			case AGIDL_IMG_PPM:{
+				char filename[25];
+				sprintf(filename,"3df_%ld.3df",img_count);
+				glide->filename = (char*)malloc(strlen(filename)+1);
+				AGIDL_FilenameCpy(glide->filename,filename);
+				AGIDL_PPM* ppm = AGIDL_Convert3DF2PPM(glide);
+				if(flip == TRUE){
+					AGIDL_FlipHorzPPM(ppm);
+				}
+				AGIDL_ExportPPM(ppm);
+				AGIDL_FreePPM(ppm);
 			}break;
 		}
 		

@@ -10,7 +10,7 @@
 *   File: agidl_img_quake.h
 *   Date: 10/3/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 2/21/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -85,7 +85,8 @@ void AGIDL_LMPBGR2RGB(AGIDL_LMP *lmp);
 void AGIDL_LMPConvert16BPPTO24BPP(AGIDL_LMP *lmp);
 void AGIDL_LMPConvert24BPPTO16BPP(AGIDL_LMP *lmp);
 void AGIDL_LMPConvert555TO565(AGIDL_LMP *lmp);
-void AGIDL_LMPCOnvert565TO555(AGIDL_LMP *lmp);
+void AGIDL_LMPConvert565TO555(AGIDL_LMP *lmp);
+void AGIDL_ColorConvertLMP(AGIDL_LMP* lmp, AGIDL_CLR_FMT dest);
 void AGIDL_LMPSyncPix(AGIDL_LMP *lmp, COLOR *clrs);
 void AGIDL_LMPSyncPix16(AGIDL_LMP *lmp, COLOR16 *clrs);
 void AGIDL_LMPCopyPix(AGIDL_LMP* lmp, COLOR* clrs, u32 count);

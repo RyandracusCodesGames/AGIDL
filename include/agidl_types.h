@@ -36,8 +36,6 @@ typedef signed long long s64;
 /*Float/Fixed Point Types*/
 typedef float f32;
 typedef double f64;
-typedef s16 FIXED16;
-typedef s32 FIXED;
 
 #define FIX_SHIFT 8
 #define FIX_SCALE (1<<FIX_SHIFT)

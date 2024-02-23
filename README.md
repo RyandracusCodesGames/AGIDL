@@ -30,6 +30,7 @@ and the adaptive tile refresh algorithm, the namesake of this library. I have al
 | Playstation Vita GXT        | .GXT      | PS Vita      | PARTIAL R/W|
 | BTI                         | .BTI      | GameCube/Wii | FULL R/W   |
 | 3dfx Interactive Texture    | .3DF      |3dfx Glide SDK| FULL R/W   |
+| Portable Pixmap             | .PPM      | ANY			 | FULL R/W   |
 
 
 ## Features

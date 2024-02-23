@@ -14,7 +14,7 @@
 *   File: agidl_img_types.c
 *   Date: 9/16/2023
 *   Version: 0.1b
-*   Updated: 2/13/2024
+*   Updated: 2/19/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -82,6 +82,9 @@ char* AGIDL_GetImgExtension(AGIDL_IMG_TYPE img){
 		}break;
 		case AGIDL_IMG_3DF:{
 			strcpy(ext,".3df");
+		}break;
+		case AGIDL_IMG_PPM:{
+			strcpy(ext,".ppm");
 		}break;
 	}
 	ext[4] = '\0';
@@ -1013,19 +1016,37 @@ void AGIDL_565TO555(COLOR16* src, int width, int height, AGIDL_CLR_FMT *fmt){
 	}
 }
 
-u8* AGIDL_GenerateRGBBuffer(COLOR* clrs, int width, int height, AGIDL_CLR_FMT fmt){
-	u8* rgbbuf = (u8*)malloc(sizeof(u8)*(width*height*3));
-	int i,j;
-	for(i = 0; i < width * height; i++){
-		COLOR clr = clrs[i];
-		u8 r = AGIDL_GetR(clr,fmt);
-		u8 g = AGIDL_GetG(clr,fmt);
-		u8 b = AGIDL_GetB(clr,fmt);
-		for(j = i * 3; j < (i * 3) + 1; j++){
-			rgbbuf[j] = r; rgbbuf[j+1] = g; rgbbuf[j+2] = b;
+u8* AGIDL_GenerateRGBBuffer(void* data, int width, int height, AGIDL_CLR_FMT fmt){
+	if(AGIDL_GetBitCount(fmt) != 16){
+		COLOR* clr_data = (COLOR*)data;
+		u8* rgbbuf = (u8*)malloc(sizeof(u8)*(width*height*3));
+		int i,j;
+		for(i = 0; i < width * height; i++){
+			COLOR clr = clr_data[i];
+			u8 r = AGIDL_GetR(clr,fmt);
+			u8 g = AGIDL_GetG(clr,fmt);
+			u8 b = AGIDL_GetB(clr,fmt);
+			for(j = i * 3; j < (i * 3) + 1; j++){
+				rgbbuf[j] = r; rgbbuf[j+1] = g; rgbbuf[j+2] = b;
+			}
 		}
+		return rgbbuf;
 	}
-	return rgbbuf;
+	else{
+		COLOR16* clr_data = (COLOR16*)data;
+		u8* rgbbuf = (u8*)malloc(sizeof(u8)*(width*height*3));
+		int i,j;
+		for(i = 0; i < width * height; i++){
+			COLOR16 clr = clr_data[i];
+			u8 r = AGIDL_GetR(clr,fmt);
+			u8 g = AGIDL_GetG(clr,fmt);
+			u8 b = AGIDL_GetB(clr,fmt);
+			for(j = i * 3; j < (i * 3) + 1; j++){
+				rgbbuf[j] = r; rgbbuf[j+1] = g; rgbbuf[j+2] = b;
+			}
+		}
+		return rgbbuf;
+	}
 }
 
 u8* AGIDL_GenerateBGRBuffer(COLOR* clrs, int width, int height, AGIDL_CLR_FMT fmt){

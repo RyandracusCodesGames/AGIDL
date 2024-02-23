@@ -10,7 +10,7 @@
 *   File: agidl_img_pcx.h
 *   Date: 9/25/2023
 *   Version: 0.1b
-*   Updated: 2/5/2024
+*   Updated: 2/21/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -85,6 +85,7 @@ void AGIDL_PCXConvert16BPPTO24BPP(AGIDL_PCX *pcx);
 void AGIDL_PCXConvert24BPPTO16BPP(AGIDL_PCX *pcx);
 void AGIDL_PCXConvert555TO565(AGIDL_PCX *pcx);
 void AGIDL_PCXConvert565TO555(AGIDL_PCX *pcx);
+void AGIDL_ColorConvertPCX(AGIDL_PCX* pcx, AGIDL_CLR_FMT dest);
 AGIDL_PCX * AGIDL_LoadPCX(char *filename);
 AGIDL_PCX * AGIDL_CreatePCX(const char *filename, int width, int height, AGIDL_CLR_FMT fmt);
 void AGIDL_ExportPCX(AGIDL_PCX *pcx);

@@ -10,7 +10,7 @@
 *   File: agidl_img_tga.h
 *   Date: 9/13/2023
 *   Version: 0.1b
-*   Updated: 2/5/2024
+*   Updated: 2/21/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -92,6 +92,7 @@ void AGIDL_TGAConvert16BPPTO24BPP(AGIDL_TGA *tga);
 void AGIDL_TGAConvert24BPPTO16BPP(AGIDL_TGA *tga);
 void AGIDL_TGAConvert555TO565(AGIDL_TGA *tga);
 void AGIDL_TGAConvert565TO555(AGIDL_TGA *tga);
+void AGIDL_ColorConvertTGA(AGIDL_TGA* tga, AGIDL_CLR_FMT dest);
 void AGIDL_TGASyncPix(AGIDL_TGA *tga, COLOR *clrs);
 void AGIDL_TGASyncPix16(AGIDL_TGA *tga, COLOR16 *clrs);
 void AGIDL_TGACopyPix(AGIDL_TGA* tga, COLOR* clrs, u32 count);

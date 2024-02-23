@@ -92,6 +92,7 @@ void AGIDL_TIMConvert16BPPTO24BPP(AGIDL_TIM *tim);
 void AGIDL_TIMConvert24BPPTO16BPP(AGIDL_TIM *tim);
 void AGIDL_TIMConvert555TO565(AGIDL_TIM *tim);
 void AGIDL_TIMConvert565TO555(AGIDL_TIM *tim);
+void AGIDL_ColorConvertTIM(AGIDL_TIM* tim, AGIDL_CLR_FMT dest);
 void AGIDL_TIMSyncPix(AGIDL_TIM *tim, COLOR *clrs);
 void AGIDL_TIMSyncPix16(AGIDL_TIM *tim, COLOR16 *clrs);
 void AGIDL_TIMCopyPix(AGIDL_TIM* tim, COLOR* clrs, u32 count);

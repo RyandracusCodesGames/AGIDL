@@ -10,7 +10,7 @@
 *   File: agidl_img_bti.h
 *   Date: 11/22/2023
 *   Version: 0.1b
-*   Updated: 2/11/2024
+*   Updated: 2/21/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -103,6 +103,7 @@ void AGIDL_BTIConvert16BPPTO24BPP(AGIDL_BTI* bti);
 void AGIDL_BTIRGBATORGB(AGIDL_BTI* bti);
 void AGIDL_BTI555TO565(AGIDL_BTI* bti);
 void AGIDL_BTI565TO555(AGIDL_BTI* bti);
+void AGIDL_ColorConvertBTI(AGIDL_BTI* bti, AGIDL_CLR_FMT dest);
 void AGIDL_BTISyncPix(AGIDL_BTI *bti, COLOR *clrs);
 void AGIDL_BTISyncPix16(AGIDL_BTI *bti, COLOR16 *clrs);
 void AGIDL_BTICopyPix(AGIDL_BTI* bti, COLOR* clrs, u32 count);

@@ -10,7 +10,7 @@
 *   File: agidl_img_types.h
 *   Date: 9/15/2023
 *   Version: 0.1b
-*   Updated: 2/13/2024
+*   Updated: 2/19/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -36,6 +36,7 @@ typedef enum AGIDL_IMG_TYPE{
 	AGIDL_IMG_GXT = 0x7,
 	AGIDL_IMG_BTI = 0x8,
 	AGIDL_IMG_3DF = 0x9,
+	AGIDL_IMG_PPM = 0x0A,
 }AGIDL_IMG_TYPE;
 
 typedef enum AGIDL_FILE_TYPE{
@@ -81,7 +82,7 @@ void AGIDL_16BPPTO24BPP(COLOR16* src, COLOR* dest, int width, int height, AGIDL_
 void AGIDL_RGBA2RGB(COLOR* rgba, int width, int height, AGIDL_CLR_FMT* fmt);
 void AGIDL_555TO565(COLOR16* src, int width, int height, AGIDL_CLR_FMT *fmt);
 void AGIDL_565TO555(COLOR16* src, int width, int height, AGIDL_CLR_FMT *fmt);
-u8* AGIDL_GenerateRGBBuffer(COLOR* src, int width, int height, AGIDL_CLR_FMT fmt);
+u8* AGIDL_GenerateRGBBuffer(void* data, int width, int height, AGIDL_CLR_FMT fmt);
 u8* AGIDL_GenerateRGBABuffer(COLOR* src, int width, int height, AGIDL_CLR_FMT fmt);
 u8* AGIDL_GenerateBGRBuffer(COLOR* src, int width, int height, AGIDL_CLR_FMT fmt);
 COLOR* AGIDL_RGBSyncClrs(u8* rgbbuff, int width, int height, AGIDL_CLR_FMT fmt);

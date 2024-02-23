@@ -7,7 +7,7 @@
 *   File: agidl_img_3df.c
 *   Date: 2/12/2024
 *   Version: 0.3b
-*   Updated: 2/15/2024
+*   Updated: 2/21/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -275,6 +275,30 @@ void AGIDL_3DFConvertRGBA2RGB(AGIDL_3DF* glide){
 		AGIDL_ConvertRGBA2RGB(cpy,glide->pixels.pix32,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),AGIDL_3DFGetClrFmt(glide),AGIDL_RGB_888);
 		AGIDL_3DFSetClrFmt(glide,AGIDL_RGB_888);
 		free(cpy);
+	}
+}
+
+void AGIDL_ColorConvert3DF(AGIDL_3DF* glide, AGIDL_CLR_FMT dest){
+	u8 sbits = AGIDL_GetBitCount(AGIDL_3DFGetClrFmt(glide)), dbits = AGIDL_GetBitCount(dest);
+	if(sbits == 16 && dbits == 16){
+		AGIDL_ColorConvertImgData(glide->pixels.pix16,NULL,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),AGIDL_3DFGetClrFmt(glide),dest);
+		AGIDL_3DFSetClrFmt(glide,dest);
+	}
+	else if((sbits == 24 || sbits == 32) && (dbits == 24 || dbits == 32)){
+		AGIDL_ColorConvertImgData(glide->pixels.pix32,NULL,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),AGIDL_3DFGetClrFmt(glide),dest);
+		AGIDL_3DFSetClrFmt(glide,dest);
+	}
+	else if(sbits == 16 && (dbits == 24 || dbits == 32)){
+		glide->pixels.pix32 = (COLOR*)AGIDL_AllocImgDataMMU(AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),dest);
+		AGIDL_ColorConvertImgData(glide->pixels.pix16,glide->pixels.pix32,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),AGIDL_3DFGetClrFmt(glide),dest);
+		AGIDL_3DFSetClrFmt(glide,dest);
+		free(glide->pixels.pix16);
+	}
+	else{
+		glide->pixels.pix16 = (COLOR16*)AGIDL_AllocImgDataMMU(AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),dest);
+		AGIDL_ColorConvertImgData(glide->pixels.pix32,glide->pixels.pix16,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),AGIDL_3DFGetClrFmt(glide),dest);
+		AGIDL_3DFSetClrFmt(glide,dest);
+		free(glide->pixels.pix32);
 	}
 }
 

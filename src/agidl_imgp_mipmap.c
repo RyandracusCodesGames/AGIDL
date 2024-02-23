@@ -7,7 +7,7 @@
 *   File: agidl_imgp_mipmap.c
 *   Date: 1/23/2024
 *   Version: 0.3b
-*   Updated: 2/13/2024
+*   Updated: 2/19/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -356,6 +356,23 @@ void AGIDL_ExportMipmap(AGIDL_MIPMAP* mipmap, AGIDL_IMG_TYPE img_type, AGIDL_Boo
 				}
 				AGIDL_Export3DF(glide);
 				AGIDL_Free3DF(glide);
+			}break;
+			case AGIDL_IMG_PPM:{
+				sprintf(filename,"mipmap_%d.3df",i+1);
+				AGIDL_PPM* ppm = AGIDL_CreatePPM(filename,w,h,mipmap->fmt);
+				if(AGIDL_GetBitCount(mipmap->fmt) == 16){
+					COLOR16* img = (COLOR16*)mipmap->mipmap[i].img_data;
+					AGIDL_PPMSyncPix16(ppm,img);
+				}
+				else{
+					COLOR* img = (COLOR*)mipmap->mipmap[i].img_data;
+					AGIDL_PPMSyncPix(ppm,img);
+				}
+				if(flip == TRUE){
+					AGIDL_FlipHorzPPM(ppm);
+				}
+				AGIDL_ExportPPM(ppm);
+				AGIDL_FreePPM(ppm);
 			}break;
 		}
 	}

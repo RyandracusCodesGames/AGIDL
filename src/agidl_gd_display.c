@@ -7,7 +7,7 @@
 *   File: agidl_gd_display.c
 *   Date: 2/1/2024
 *   Version: 0.3b
-*   Updated: 2/2/2024
+*   Updated: 2/20/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -666,6 +666,24 @@ void AGIDL_DispBTI(void* vram, u32 width, u32 height, AGIDL_ATTR table, AGIDL_BT
 	}
 }
 
+void AGIDL_Disp3DF(void* vram, u32 width, u32 height, AGIDL_ATTR table, AGIDL_3DF* glide){
+	if(AGIDL_GetBitCount(AGIDL_3DFGetClrFmt(glide)) == 16){
+		AGIDL_DispImgData(vram,width,height,table,glide->pixels.pix16,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),AGIDL_3DFGetClrFmt(glide));
+	}
+	else{
+		AGIDL_DispImgData(vram,width,height,table,glide->pixels.pix32,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),AGIDL_3DFGetClrFmt(glide));
+	}
+}
+
+void AGIDL_DispPPM(void* vram, u32 width, u32 height, AGIDL_ATTR table, AGIDL_PPM* ppm){
+	if(AGIDL_GetBitCount(AGIDL_PPMGetClrFmt(ppm)) == 16){
+		AGIDL_DispImgData(vram,width,height,table,ppm->pixels.pix16,AGIDL_PPMGetWidth(ppm),AGIDL_PPMGetHeight(ppm),AGIDL_PPMGetClrFmt(ppm));
+	}
+	else{
+		AGIDL_DispImgData(vram,width,height,table,ppm->pixels.pix32,AGIDL_PPMGetWidth(ppm),AGIDL_PPMGetHeight(ppm),AGIDL_PPMGetClrFmt(ppm));
+	}
+}
+
 void AGIDL_DrawBMP(void* vram, u32 width, u32 height, int tx, int ty, AGIDL_BMP* bmp){
 	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
 		AGIDL_DrawImgData(vram,width,height,tx,ty,bmp->pixels.pix16,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp),AGIDL_BMPGetClrFmt(bmp));
@@ -738,6 +756,24 @@ void AGIDL_DrawBTI(void* vram, u32 width, u32 height, int tx, int ty, AGIDL_BTI*
 	}
 }
 
+void AGIDL_Draw3DF(void* vram, u32 width, u32 height, int tx, int ty, AGIDL_3DF* glide){
+	if(AGIDL_GetBitCount(AGIDL_3DFGetClrFmt(glide)) == 16){
+		AGIDL_DrawImgData(vram,width,height,tx,ty,glide->pixels.pix16,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),AGIDL_3DFGetClrFmt(glide));
+	}
+	else{
+		AGIDL_DrawImgData(vram,width,height,tx,ty,glide->pixels.pix32,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),AGIDL_3DFGetClrFmt(glide));
+	}
+}
+
+void AGIDL_DrawPPM(void* vram, u32 width, u32 height, int tx, int ty, AGIDL_PPM* ppm){
+	if(AGIDL_GetBitCount(AGIDL_PPMGetClrFmt(ppm)) == 16){
+		AGIDL_DrawImgData(vram,width,height,tx,ty,ppm->pixels.pix16,AGIDL_PPMGetWidth(ppm),AGIDL_PPMGetHeight(ppm),AGIDL_PPMGetClrFmt(ppm));
+	}
+	else{
+		AGIDL_DrawImgData(vram,width,height,tx,ty,ppm->pixels.pix32,AGIDL_PPMGetWidth(ppm),AGIDL_PPMGetHeight(ppm),AGIDL_PPMGetClrFmt(ppm));
+	}
+}
+
 void AGIDL_DispScaleBMP(void* vram, u32 width, u32 height, f32 sx, f32 sy, int tx, int ty, AGIDL_BMP* bmp){
 	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
 		AGIDL_DispScaleImgData(vram,width,height,sx,sy,tx,ty,bmp->pixels.pix16,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp),AGIDL_BMPGetClrFmt(bmp));
@@ -807,6 +843,24 @@ void AGIDL_DispScaleBTI(void* vram, u32 width, u32 height, f32 sx, f32 sy, int t
 	}
 	else{
 		AGIDL_DispScaleImgData(vram,width,height,sx,sy,tx,ty,bti->pixels.pix32,AGIDL_BTIGetWidth(bti),AGIDL_BTIGetHeight(bti),AGIDL_BTIGetClrFmt(bti));
+	}
+}
+
+void AGIDL_DispScale3DF(void* vram, u32 width, u32 height, f32 sx, f32 sy, int tx, int ty, AGIDL_3DF* glide){
+	if(AGIDL_GetBitCount(AGIDL_3DFGetClrFmt(glide)) == 16){
+		AGIDL_DispScaleImgData(vram,width,height,sx,sy,tx,ty,glide->pixels.pix16,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),AGIDL_3DFGetClrFmt(glide));
+	}
+	else{
+		AGIDL_DispScaleImgData(vram,width,height,sx,sy,tx,ty,glide->pixels.pix32,AGIDL_3DFGetWidth(glide),AGIDL_3DFGetHeight(glide),AGIDL_3DFGetClrFmt(glide));
+	}
+}
+
+void AGIDL_DispScalePPM(void* vram, u32 width, u32 height, f32 sx, f32 sy, int tx, int ty, AGIDL_PPM* ppm){
+	if(AGIDL_GetBitCount(AGIDL_PPMGetClrFmt(ppm)) == 16){
+		AGIDL_DispScaleImgData(vram,width,height,sx,sy,tx,ty,ppm->pixels.pix16,AGIDL_PPMGetWidth(ppm),AGIDL_PPMGetHeight(ppm),AGIDL_PPMGetClrFmt(ppm));
+	}
+	else{
+		AGIDL_DispScaleImgData(vram,width,height,sx,sy,tx,ty,ppm->pixels.pix32,AGIDL_PPMGetWidth(ppm),AGIDL_PPMGetHeight(ppm),AGIDL_PPMGetClrFmt(ppm));
 	}
 }
 

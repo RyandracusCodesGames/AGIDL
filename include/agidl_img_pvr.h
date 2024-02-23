@@ -10,7 +10,7 @@
 *   File: agidl_img_pvr.h
 *   Date: 10/28/2023
 *   Version: 0.1b
-*   Updated: 2/6/2024
+*   Updated: 2/21/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -143,6 +143,7 @@ void AGIDL_PVRConvert16BPPTO24BPP(AGIDL_PVR* pvr);
 void AGIDL_PVRConvertRGBA2RGB(AGIDL_PVR* pvr);
 void AGIDL_PVR555TO565(AGIDL_PVR* pvr);
 void AGIDL_PVR565TO555(AGIDL_PVR* pvr);
+void AGIDL_ColorConvertPVR(AGIDL_PVR* pvr, AGIDL_CLR_FMT dest);
 AGIDL_PVR * AGIDL_LoadPVR(char *filename);
 AGIDL_PVR * AGIDL_CreatePVR(const char *filename, int width, int height, AGIDL_CLR_FMT fmt);
 AGIDL_PVR* AGIDL_PVRCpyImg(AGIDL_PVR* pvr);

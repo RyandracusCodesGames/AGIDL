@@ -10,7 +10,7 @@
 *   File: agidl_img_gxt.h
 *   Date: 11/19/2023
 *   Version: 0.1b
-*   Updated: 1/22/2024
+*   Updated: 2/21/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -105,6 +105,7 @@ void AGIDL_GXTConvert24BPPTO16BPP(AGIDL_GXT* gxt);
 void AGIDL_GXTConvert16BPPTO24BPP(AGIDL_GXT* gxt);
 void AGIDL_GXT555TO565(AGIDL_GXT* gxt);
 void AGIDL_GXT565TO555(AGIDL_GXT* gxt);
+void AGIDL_ColorConvertGXT(AGIDL_GXT* gxt, AGIDL_CLR_FMT dest);
 void AGIDL_GXTSyncPix(AGIDL_GXT *gxt, COLOR *clrs);
 void AGIDL_GXTSyncPix16(AGIDL_GXT *gxt, COLOR16 *clrs);
 void AGIDL_GXTCopyPix(AGIDL_GXT* gxt, COLOR* clrs, u32 count);
