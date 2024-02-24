@@ -129,9 +129,7 @@ all: $(TARGET)
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS) $(LDFLAGS)
 	
-all: $(ARCHIVE)
-	
-$(ARCHIVE): $(OBJSFILES)
+archive:
 	ar rcs $(ARCHIVE) $(OBJFILES)
 	
 clean:
