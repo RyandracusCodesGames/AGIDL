@@ -124,6 +124,17 @@ void AGIDL_GrayscalePPM(AGIDL_PPM* ppm){
 	}
 }
 
+void AGIDL_GrayscaleLBM(AGIDL_LBM* lbm){
+	if(AGIDL_GetBitCount(AGIDL_LBMGetClrFmt(lbm)) == 16){
+		AGIDL_GrayscaleImgData(lbm->pixels.pix16,AGIDL_LBMGetWidth(lbm),AGIDL_LBMGetHeight(lbm),
+		AGIDL_LBMGetClrFmt(lbm));
+	}
+	else{
+		AGIDL_GrayscaleImgData(lbm->pixels.pix32,AGIDL_LBMGetWidth(lbm),AGIDL_LBMGetHeight(lbm),
+		AGIDL_LBMGetClrFmt(lbm));
+	}
+}
+
 void AGIDL_FlipHorzBMP(AGIDL_BMP* bmp){
 	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
 		AGIDL_FlipImgDataHorz(bmp->pixels.pix16,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp),
@@ -231,6 +242,17 @@ void AGIDL_FlipHorzPPM(AGIDL_PPM* ppm){
 	else{
 		AGIDL_FlipImgDataHorz(ppm->pixels.pix32,AGIDL_PPMGetWidth(ppm),AGIDL_PPMGetHeight(ppm),
 		AGIDL_PPMGetClrFmt(ppm));
+	}
+}
+
+void AGIDL_FlipHorzLBM(AGIDL_LBM* lbm){
+	if(AGIDL_GetBitCount(AGIDL_LBMGetClrFmt(lbm)) == 16){
+		AGIDL_FlipImgDataHorz(lbm->pixels.pix16,AGIDL_LBMGetWidth(lbm),AGIDL_LBMGetHeight(lbm),
+		AGIDL_LBMGetClrFmt(lbm));
+	}
+	else{
+		AGIDL_FlipImgDataHorz(lbm->pixels.pix32,AGIDL_LBMGetWidth(lbm),AGIDL_LBMGetHeight(lbm),
+		AGIDL_LBMGetClrFmt(lbm));
 	}
 }
 
@@ -344,6 +366,17 @@ void AGIDL_FlipVertPPM(AGIDL_PPM* ppm){
 	}
 }
 
+void AGIDL_FlipVertLBM(AGIDL_LBM* lbm){
+	if(AGIDL_GetBitCount(AGIDL_LBMGetClrFmt(lbm)) == 16){
+		AGIDL_FlipImgDataVert(lbm->pixels.pix16,AGIDL_LBMGetWidth(lbm),AGIDL_LBMGetHeight(lbm),
+		AGIDL_LBMGetClrFmt(lbm));
+	}
+	else{
+		AGIDL_FlipImgDataVert(lbm->pixels.pix32,AGIDL_LBMGetWidth(lbm),AGIDL_LBMGetHeight(lbm),
+		AGIDL_LBMGetClrFmt(lbm));
+	}
+}
+
 void AGIDL_FlipHorzAndVertBMP(AGIDL_BMP* bmp){
 	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
 		AGIDL_FlipImgDataHorzAndVert(bmp->pixels.pix16,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp),
@@ -451,6 +484,17 @@ void AGIDL_FlipHorzAndVertPPM(AGIDL_PPM* ppm){
 	else{
 		AGIDL_FlipImgDataHorzAndVert(ppm->pixels.pix32,AGIDL_PPMGetWidth(ppm),AGIDL_PPMGetHeight(ppm),
 		AGIDL_PPMGetClrFmt(ppm));
+	}
+}
+
+void AGIDL_FlipHorzAndVertLBM(AGIDL_LBM* lbm){
+	if(AGIDL_GetBitCount(AGIDL_LBMGetClrFmt(lbm)) == 16){
+		AGIDL_FlipImgDataHorzAndVert(lbm->pixels.pix16,AGIDL_LBMGetWidth(lbm),AGIDL_LBMGetHeight(lbm),
+		AGIDL_LBMGetClrFmt(lbm));
+	}
+	else{
+		AGIDL_FlipImgDataHorzAndVert(lbm->pixels.pix32,AGIDL_LBMGetWidth(lbm),AGIDL_LBMGetHeight(lbm),
+		AGIDL_LBMGetClrFmt(lbm));
 	}
 }
 
@@ -564,6 +608,17 @@ void AGIDL_RotatePPM(AGIDL_PPM* ppm, AGIDL_ANGLE angle){
 	}
 }
 
+void AGIDL_RotateLBM(AGIDL_LBM* lbm, AGIDL_ANGLE angle){
+	if(AGIDL_GetBitCount(AGIDL_LBMGetClrFmt(lbm)) == 16){
+		AGIDL_RotateImgData(lbm->pixels.pix16,&lbm->header.bmhd.width,&lbm->header.bmhd.height,
+		AGIDL_LBMGetClrFmt(lbm),angle);
+	}
+	else{
+		AGIDL_RotateImgData(lbm->pixels.pix32,&lbm->header.bmhd.width,&lbm->header.bmhd.height,
+		AGIDL_LBMGetClrFmt(lbm),angle);
+	}
+}
+
 void AGIDL_ScaleBMP(AGIDL_BMP* bmp, float sx, float sy, AGIDL_SCALE scale){
 	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
 		bmp->pixels.pix16 = (COLOR16*)AGIDL_ScaleImgData(bmp->pixels.pix16,&bmp->header.width,&bmp->header.height,
@@ -671,6 +726,17 @@ void AGIDL_ScalePPM(AGIDL_PPM* ppm, float sx, float sy, AGIDL_SCALE scale){
 	else{
 		ppm->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(ppm->pixels.pix32,&ppm->width,&ppm->height,
 		sx,sy,scale,AGIDL_PPMGetClrFmt(ppm));
+	}
+}
+
+void AGIDL_ScaleLBM(AGIDL_LBM* lbm, float sx, float sy, AGIDL_SCALE scale){
+	if(AGIDL_GetBitCount(AGIDL_LBMGetClrFmt(lbm)) == 16){
+		lbm->pixels.pix16 = (COLOR16*)AGIDL_ScaleImgData(lbm->pixels.pix16,&lbm->header.bmhd.width,&lbm->header.bmhd.height,
+		sx,sy,scale,AGIDL_LBMGetClrFmt(lbm));
+	}
+	else{
+		lbm->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(lbm->pixels.pix32,&lbm->header.bmhd.width,&lbm->header.bmhd.height,
+		sx,sy,scale,AGIDL_LBMGetClrFmt(lbm));
 	}
 }
 
@@ -784,6 +850,17 @@ void AGIDL_FastScalePPM(AGIDL_PPM* ppm, float sx, float sy, AGIDL_SCALE scale){
 	}
 }
 
+void AGIDL_FastScaleLBM(AGIDL_LBM* lbm, float sx, float sy, AGIDL_SCALE scale){
+	if(AGIDL_GetBitCount(AGIDL_LBMGetClrFmt(lbm)) == 16){
+		lbm->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(lbm->pixels.pix16,&lbm->header.bmhd.width,&lbm->header.bmhd.height,
+		sx,sy,scale,AGIDL_LBMGetClrFmt(lbm));
+	}
+	else{
+		lbm->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(lbm->pixels.pix32,&lbm->header.bmhd.width,&lbm->header.bmhd.height,
+		sx,sy,scale,AGIDL_LBMGetClrFmt(lbm));
+	}
+}
+
 void AGIDL_FilterBilerpBMP(AGIDL_BMP* bmp){
 	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
 		AGIDL_FilterImgDataBilerp(bmp->pixels.pix16,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp),
@@ -891,6 +968,17 @@ void AGIDL_FilterBilerpPPM(AGIDL_PPM* ppm){
 	else{
 		AGIDL_FilterImgDataBilerp(ppm->pixels.pix32,AGIDL_PPMGetWidth(ppm),AGIDL_PPMGetHeight(ppm),
 		AGIDL_PPMGetClrFmt(ppm));
+	}
+}
+
+void AGIDL_FilterBilerpLBM(AGIDL_LBM* lbm){
+	if(AGIDL_GetBitCount(AGIDL_LBMGetClrFmt(lbm)) == 16){
+		AGIDL_FilterImgDataBilerp(lbm->pixels.pix16,AGIDL_LBMGetWidth(lbm),AGIDL_LBMGetHeight(lbm),
+		AGIDL_LBMGetClrFmt(lbm));
+	}
+	else{
+		AGIDL_FilterImgDataBilerp(lbm->pixels.pix32,AGIDL_LBMGetWidth(lbm),AGIDL_LBMGetHeight(lbm),
+		AGIDL_LBMGetClrFmt(lbm));
 	}
 }
 
@@ -1004,6 +1092,17 @@ void AGIDL_FilterTrilerpPPM(AGIDL_PPM* ppm){
 	}
 }
 
+void AGIDL_FilterTrilerpLBM(AGIDL_LBM* lbm){
+	if(AGIDL_GetBitCount(AGIDL_LBMGetClrFmt(lbm)) == 16){
+		AGIDL_FilterImgDataTrilerp(lbm->pixels.pix16,AGIDL_LBMGetWidth(lbm),AGIDL_LBMGetHeight(lbm),
+		AGIDL_LBMGetClrFmt(lbm));
+	}
+	else{
+		AGIDL_FilterImgDataTrilerp(lbm->pixels.pix32,AGIDL_LBMGetWidth(lbm),AGIDL_LBMGetHeight(lbm),
+		AGIDL_LBMGetClrFmt(lbm));
+	}
+}
+
 void AGIDL_MirrorBMP(AGIDL_BMP* bmp, AGIDL_MIRROR mirror){
 	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
 		bmp->pixels.pix16 = (COLOR16*)AGIDL_MirrorImgData(bmp->pixels.pix16,&bmp->header.width,&bmp->header.height,AGIDL_BMPGetClrFmt(bmp),mirror);
@@ -1091,6 +1190,15 @@ void AGIDL_MirrorPPM(AGIDL_PPM* ppm, AGIDL_MIRROR mirror){
 	}
 	else{
 		ppm->pixels.pix32 = (COLOR*)AGIDL_MirrorImgData(ppm->pixels.pix32,&ppm->width,&ppm->height,AGIDL_PPMGetClrFmt(ppm),mirror);
+	}
+}
+
+void AGIDL_MirrorLBM(AGIDL_LBM* lbm, AGIDL_MIRROR mirror){
+	if(AGIDL_GetBitCount(AGIDL_LBMGetClrFmt(lbm)) == 16){
+		lbm->pixels.pix16 = (COLOR16*)AGIDL_MirrorImgData(lbm->pixels.pix16,&lbm->header.bmhd.width,&lbm->header.bmhd.height,AGIDL_LBMGetClrFmt(lbm),mirror);
+	}
+	else{
+		lbm->pixels.pix32 = (COLOR*)AGIDL_MirrorImgData(lbm->pixels.pix32,&lbm->header.bmhd.width,&lbm->header.bmhd.height,AGIDL_LBMGetClrFmt(lbm),mirror);
 	}
 }
 
@@ -1184,6 +1292,15 @@ void AGIDL_WrapPPM(AGIDL_PPM* ppm, u8 num_of_wraps){
 	}
 }
 
+void AGIDL_WrapLBM(AGIDL_LBM* lbm, u8 num_of_wraps){
+	if(AGIDL_GetBitCount(AGIDL_LBMGetClrFmt(lbm)) == 16){
+		lbm->pixels.pix16 = (COLOR16*)AGIDL_WrapImgData(lbm->pixels.pix16,&lbm->header.bmhd.width,AGIDL_LBMGetHeight(lbm),AGIDL_LBMGetClrFmt(lbm),num_of_wraps);
+	}
+	else{
+		lbm->pixels.pix32 = (COLOR*)AGIDL_WrapImgData(lbm->pixels.pix32,&lbm->header.bmhd.width,AGIDL_LBMGetHeight(lbm),AGIDL_LBMGetClrFmt(lbm),num_of_wraps);
+	}
+}
+
 void AGIDL_WrapAndMirrorBMP(AGIDL_BMP* bmp, u8 num_of_wraps, AGIDL_MIRROR mirror){
 	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
 		bmp->pixels.pix16 = (COLOR16*)AGIDL_WrapAndMirrorImgData(bmp->pixels.pix16,&bmp->header.width,&bmp->header.height,AGIDL_BMPGetClrFmt(bmp),num_of_wraps, mirror);
@@ -1274,6 +1391,15 @@ void AGIDL_WrapAndMirrorPPM(AGIDL_PPM* ppm, u8 num_of_wraps, AGIDL_MIRROR mirror
 	}
 }
 
+void AGIDL_WrapAndMirrorLBM(AGIDL_LBM* lbm, u8 num_of_wraps, AGIDL_MIRROR mirror){
+	if(AGIDL_GetBitCount(AGIDL_LBMGetClrFmt(lbm)) == 16){
+		lbm->pixels.pix16 = (COLOR16*)AGIDL_WrapAndMirrorImgData(lbm->pixels.pix16,&lbm->header.bmhd.width,&lbm->header.bmhd.height,AGIDL_LBMGetClrFmt(lbm),num_of_wraps, mirror);
+	}
+	else{
+		lbm->pixels.pix32 = (COLOR*)AGIDL_WrapAndMirrorImgData(lbm->pixels.pix32,&lbm->header.bmhd.width,&lbm->header.bmhd.height,AGIDL_LBMGetClrFmt(lbm),num_of_wraps, mirror);
+	}
+}
+
 void AGIDL_HalftoneBMP(AGIDL_BMP* bmp){
 	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
 		AGIDL_HalftoneImgData(bmp->pixels.pix16,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp),AGIDL_BMPGetClrFmt(bmp),AGIDL_BMPGetMaxDiff(bmp));
@@ -1361,5 +1487,14 @@ void AGIDL_HalftonePPM(AGIDL_PPM* ppm){
 	}
 	else{
 		AGIDL_HalftoneImgData(ppm->pixels.pix32,AGIDL_PPMGetWidth(ppm),AGIDL_PPMGetHeight(ppm),AGIDL_PPMGetClrFmt(ppm),AGIDL_PPMGetMaxDiff(ppm));
+	}
+}
+
+void AGIDL_HalftoneLBM(AGIDL_LBM* lbm){
+	if(AGIDL_GetBitCount(AGIDL_LBMGetClrFmt(lbm)) == 16){
+		AGIDL_HalftoneImgData(lbm->pixels.pix16,AGIDL_LBMGetWidth(lbm),AGIDL_LBMGetHeight(lbm),AGIDL_LBMGetClrFmt(lbm),AGIDL_LBMGetMaxDiff(lbm));
+	}
+	else{
+		AGIDL_HalftoneImgData(lbm->pixels.pix32,AGIDL_LBMGetWidth(lbm),AGIDL_LBMGetHeight(lbm),AGIDL_LBMGetClrFmt(lbm),AGIDL_LBMGetMaxDiff(lbm));
 	}
 }

@@ -10,7 +10,7 @@
 *   File: agidl_img_types.h
 *   Date: 9/15/2023
 *   Version: 0.1b
-*   Updated: 2/19/2024
+*   Updated: 2/25/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -37,6 +37,7 @@ typedef enum AGIDL_IMG_TYPE{
 	AGIDL_IMG_BTI = 0x8,
 	AGIDL_IMG_3DF = 0x9,
 	AGIDL_IMG_PPM = 0x0A,
+	AGIDL_IMG_LBM = 0x0B,
 }AGIDL_IMG_TYPE;
 
 typedef enum AGIDL_FILE_TYPE{

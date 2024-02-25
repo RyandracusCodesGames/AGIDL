@@ -30,6 +30,7 @@ OBJFILES = src/agidl_math_utils.o \
 		src/agidl_img_bti.o \
 		src/agidl_img_3df.o \
 		src/agidl_img_ppm.o \
+		src/agidl_img_lbm.o \
 		src/agidl_img_converter.o \
 		src/agidl_img_search.o \
 		src/agidl_img_compression.o \
@@ -66,6 +67,7 @@ OBJS = src/agidl_math_utils.o \
 		src/agidl_img_bti.o \
 		src/agidl_img_3df.o \
 		src/agidl_img_ppm.o \
+		src/agidl_img_lbm.o \
 		src/agidl_img_converter.o \
 		src/agidl_img_search.o \
 		src/agidl_img_compression.o \
@@ -108,6 +110,7 @@ DEPS = \
 	include/agidl_img_bti.h \
 	include/agidl_img_3df.h \
 	include/agidl_img_ppm.h \
+	include/agidl_img_lbm.h \
 	include/agidl_img_converter.h \
 	include/agidl_img_search.h \
 	include/agidl_img_compression.h \

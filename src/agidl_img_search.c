@@ -15,7 +15,7 @@
 *   File: agidl_img_search.c
 *   Date: 11/11/2023
 *   Version: 0.1b
-*   Updated: 2/19/2024
+*   Updated: 2/25/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -172,6 +172,21 @@ void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type, int fl
 					}
 					AGIDL_ExportPPM(ppm);
 					AGIDL_FreePPM(ppm);
+				}break;
+				case AGIDL_IMG_LBM:{
+					char file_name[25] = {0};
+					sprintf(file_name,"tim_%ld.tim",img_count);
+					tim->filename = (char*)malloc(strlen(file_name)+1);
+					AGIDL_FilenameCpy(tim->filename,file_name);
+					AGIDL_ColorConvertTIM(tim,AGIDL_RGB_888);
+					AGIDL_LBM* lbm = AGIDL_ConvertTIM2LBM(tim);
+					AGIDL_LBMSetICPEncoding(lbm,ICP_ENCODE_THRESHOLD);
+					AGIDL_LBMSetMaxDiff(lbm,19);
+					if(flip == 1){
+						AGIDL_FlipHorzLBM(lbm);
+					}
+					AGIDL_ExportLBM(lbm);
+					AGIDL_FreeLBM(lbm);
 				}break;
 				
 			}
@@ -367,6 +382,21 @@ int AGIDL_3DFSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE img_type, int
 				}
 				AGIDL_ExportPPM(ppm);
 				AGIDL_FreePPM(ppm);
+			}break;
+			case AGIDL_IMG_LBM:{
+				char filename[25];
+				sprintf(filename,"3df_%ld.3df",img_count);
+				glide->filename = (char*)malloc(strlen(filename)+1);
+				AGIDL_FilenameCpy(glide->filename,filename);
+				AGIDL_ColorConvert3DF(glide,AGIDL_RGB_888);
+				AGIDL_LBM* lbm = AGIDL_Convert3DF2LBM(glide);
+				AGIDL_LBMSetMaxDiff(lbm,19);
+				AGIDL_LBMSetICPEncoding(lbm,ICP_ENCODE_THRESHOLD);
+				if(flip == TRUE){
+					AGIDL_FlipHorzLBM(lbm);
+				}
+				AGIDL_ExportLBM(lbm);
+				AGIDL_FreeLBM(lbm);
 			}break;
 		}
 		

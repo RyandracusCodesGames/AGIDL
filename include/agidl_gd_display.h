@@ -10,7 +10,7 @@
 *   File: agidl_gd_display.h
 *   Date: 2/1/2024
 *   Version: 0.3b
-*   Updated: 2/20/2024
+*   Updated: 2/25/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -47,6 +47,7 @@ void AGIDL_DispGXT(void* vram, u32 width, u32 height, AGIDL_ATTR table, AGIDL_GX
 void AGIDL_DispBTI(void* vram, u32 width, u32 height, AGIDL_ATTR table, AGIDL_BTI* bti);
 void AGIDL_Disp3DF(void* vram, u32 width, u32 height, AGIDL_ATTR table, AGIDL_3DF* glide);
 void AGIDL_DispPPM(void* vram, u32 width, u32 height, AGIDL_ATTR table, AGIDL_PPM* ppm);
+void AGIDL_DispLBM(void* vram, u32 width, u32 height, AGIDL_ATTR table, AGIDL_LBM* lbm);
 
 void AGIDL_DrawBMP(void* vram, u32 width, u32 height, int tx, int ty, AGIDL_BMP* bmp);
 void AGIDL_DrawTGA(void* vram, u32 width, u32 height, int tx, int ty, AGIDL_TGA* tga);
@@ -58,6 +59,7 @@ void AGIDL_DrawGXT(void* vram, u32 width, u32 height, int tx, int ty, AGIDL_GXT*
 void AGIDL_DrawBTI(void* vram, u32 width, u32 height, int tx, int ty, AGIDL_BTI* bti);
 void AGIDL_Draw3DF(void* vram, u32 width, u32 height, int tx, int ty, AGIDL_3DF* glide);
 void AGIDL_DrawPPM(void* vram, u32 width, u32 height, int tx, int ty, AGIDL_PPM* ppm);
+void AGIDL_DrawLBM(void* vram, u32 width, u32 height, int tx, int ty, AGIDL_LBM* lbm);
 
 void AGIDL_DispScaleBMP(void* vram, u32 width, u32 height, f32 sx, f32 sy, int tx, int ty, AGIDL_BMP* bmp);
 void AGIDL_DispScaleTGA(void* vram, u32 width, u32 height, f32 sx, f32 sy, int tx, int ty, AGIDL_TGA* tga);
@@ -69,5 +71,6 @@ void AGIDL_DispScaleGXT(void* vram, u32 width, u32 height, f32 sx, f32 sy, int t
 void AGIDL_DispScaleBTI(void* vram, u32 width, u32 height, f32 sx, f32 sy, int tx, int ty, AGIDL_BTI* bti);
 void AGIDL_DispScale3DF(void* vram, u32 width, u32 height, f32 sx, f32 sy, int tx, int ty, AGIDL_3DF* glide);
 void AGIDL_DispScalePPM(void* vram, u32 width, u32 height, f32 sx, f32 sy, int tx, int ty, AGIDL_PPM* ppm);
+void AGIDL_DispScaleLBM(void* vram, u32 width, u32 height, f32 sx, f32 sy, int tx, int ty, AGIDL_LBM* lbm);
 
 #endif

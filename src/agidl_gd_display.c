@@ -7,7 +7,7 @@
 *   File: agidl_gd_display.c
 *   Date: 2/1/2024
 *   Version: 0.3b
-*   Updated: 2/20/2024
+*   Updated: 2/25/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -684,6 +684,15 @@ void AGIDL_DispPPM(void* vram, u32 width, u32 height, AGIDL_ATTR table, AGIDL_PP
 	}
 }
 
+void AGIDL_DispLBM(void* vram, u32 width, u32 height, AGIDL_ATTR table, AGIDL_LBM* lbm){
+	if(AGIDL_GetBitCount(AGIDL_LBMGetClrFmt(lbm)) == 16){
+		AGIDL_DispImgData(vram,width,height,table,lbm->pixels.pix16,AGIDL_LBMGetWidth(lbm),AGIDL_LBMGetHeight(lbm),AGIDL_LBMGetClrFmt(lbm));
+	}
+	else{
+		AGIDL_DispImgData(vram,width,height,table,lbm->pixels.pix32,AGIDL_LBMGetWidth(lbm),AGIDL_LBMGetHeight(lbm),AGIDL_LBMGetClrFmt(lbm));
+	}
+}
+
 void AGIDL_DrawBMP(void* vram, u32 width, u32 height, int tx, int ty, AGIDL_BMP* bmp){
 	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
 		AGIDL_DrawImgData(vram,width,height,tx,ty,bmp->pixels.pix16,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp),AGIDL_BMPGetClrFmt(bmp));
@@ -774,6 +783,15 @@ void AGIDL_DrawPPM(void* vram, u32 width, u32 height, int tx, int ty, AGIDL_PPM*
 	}
 }
 
+void AGIDL_DrawLBM(void* vram, u32 width, u32 height, int tx, int ty, AGIDL_LBM* lbm){
+	if(AGIDL_GetBitCount(AGIDL_LBMGetClrFmt(lbm)) == 16){
+		AGIDL_DrawImgData(vram,width,height,tx,ty,lbm->pixels.pix16,AGIDL_LBMGetWidth(lbm),AGIDL_LBMGetHeight(lbm),AGIDL_LBMGetClrFmt(lbm));
+	}
+	else{
+		AGIDL_DrawImgData(vram,width,height,tx,ty,lbm->pixels.pix32,AGIDL_LBMGetWidth(lbm),AGIDL_LBMGetHeight(lbm),AGIDL_LBMGetClrFmt(lbm));
+	}
+}
+
 void AGIDL_DispScaleBMP(void* vram, u32 width, u32 height, f32 sx, f32 sy, int tx, int ty, AGIDL_BMP* bmp){
 	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
 		AGIDL_DispScaleImgData(vram,width,height,sx,sy,tx,ty,bmp->pixels.pix16,AGIDL_BMPGetWidth(bmp),AGIDL_BMPGetHeight(bmp),AGIDL_BMPGetClrFmt(bmp));
@@ -861,6 +879,15 @@ void AGIDL_DispScalePPM(void* vram, u32 width, u32 height, f32 sx, f32 sy, int t
 	}
 	else{
 		AGIDL_DispScaleImgData(vram,width,height,sx,sy,tx,ty,ppm->pixels.pix32,AGIDL_PPMGetWidth(ppm),AGIDL_PPMGetHeight(ppm),AGIDL_PPMGetClrFmt(ppm));
+	}
+}
+
+void AGIDL_DispScaleLBM(void* vram, u32 width, u32 height, f32 sx, f32 sy, int tx, int ty, AGIDL_LBM* lbm){
+	if(AGIDL_GetBitCount(AGIDL_LBMGetClrFmt(lbm)) == 16){
+		AGIDL_DispScaleImgData(vram,width,height,sx,sy,tx,ty,lbm->pixels.pix16,AGIDL_LBMGetWidth(lbm),AGIDL_LBMGetHeight(lbm),AGIDL_LBMGetClrFmt(lbm));
+	}
+	else{
+		AGIDL_DispScaleImgData(vram,width,height,sx,sy,tx,ty,lbm->pixels.pix32,AGIDL_LBMGetWidth(lbm),AGIDL_LBMGetHeight(lbm),AGIDL_LBMGetClrFmt(lbm));
 	}
 }
 

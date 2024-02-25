@@ -10,7 +10,7 @@
 *   File: agidl_img_compression.c
 *   Date: 11/25/2023
 *   Version: 0.1b
-*   Updated: 1/19/2024
+*   Updated: 2/24/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -38,4 +38,31 @@ u32 AGIDL_EncodeRLE(void* data, u32 bit_count, u32 x, u32 y, u32 width, u32 heig
 	}
 
 	return count;
+}
+
+void AGIDL_PackBits(u8* src, u8 *dest, u32 max_rle){
+	u32 count = 0;
+	
+	do{
+		u8 byte = *src++;
+		
+		if(byte > 128){
+			u8 nextbyte = *src++;
+			
+			int i;
+			for(i = 0; i < 257 - byte; i++, count++){
+				*dest++ = nextbyte;
+			}
+		}
+		else if(byte < 128){
+			int i;
+			for(i = 0; i < byte + 1; i++, count++){
+				*dest++ = *src++;
+			}
+		}
+		else{
+			count = max_rle;
+		}
+		
+	}while(count < max_rle);
 }
