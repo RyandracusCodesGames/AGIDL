@@ -56,6 +56,15 @@ typedef struct AGIDL_CMAP{
 	AGIDL_ICP palette;
 }AGIDL_CMAP;
 
+typedef struct AGIDL_CLUT{
+	char clutid[4];
+	u32 size;
+	u8 rlut[256];
+	u8 glut[256];
+	u8 blut[256];
+	u8 ilut[256];
+}AGIDL_CLUT;
+
 typedef struct AGIDL_CRNG{
 	char crngid[4];
 	u32 size;
@@ -89,6 +98,7 @@ typedef struct LBM_HEADER{
 	AGIDL_FORM form;
 	AGIDL_BMHD bmhd;
 	AGIDL_CMAP cmap;
+	AGIDL_CLUT clut;
 	AGIDL_CRNG crng;
 	AGIDL_CMAG cmag;
 	AGIDL_BODY body;
@@ -102,6 +112,7 @@ typedef struct AGIDL_LBM{
 	AGIDL_Bool compress;
 	AGIDL_ICP_ENCODE encode;
 	AGIDL_ILBM_TYPE type;
+	AGIDL_Bool clut;
 	u16 max_diff;
 	Pixels pixels;
 	char* filename;

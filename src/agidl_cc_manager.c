@@ -5,6 +5,7 @@
 #include "agidl_cc_converter.h"
 #include "agidl_file_utils.h"
 #include "agidl_img_error.h"
+#include <time.h>
 
 /********************************************
 *   Adaptive Graphics Image Display Library
@@ -15,7 +16,7 @@
 *   File: agidl_cc_manager.c
 *   Date: 9/8/2023
 *   Version: 0.1b
-*   Updated: 2/21/2024
+*   Updated: 2/26/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -515,6 +516,7 @@ COLOR AGIDL_Color4f(float r, float g, float b, float a, AGIDL_CLR_FMT fmt){
 	r = AGIDL_Clampf(0.0f,r,1.0f);
 	g = AGIDL_Clampf(0.0f,g,1.0f);
 	b = AGIDL_Clampf(0.0f,b,1.0f);
+	a = AGIDL_Clampf(0.0f,a,1.0f);
 	
 	if(AGIDL_GetBitCount(fmt) == 32){
 		return AGIDL_RGBA(r*255.0f,g*255.0f,b*255.0f,a*255.0f,fmt);
@@ -1258,92 +1260,34 @@ void AGIDL_InitICP(AGIDL_ICP *palette, int mode){
 	}
 }
 
-AGIDL_Bool AGIDL_IsClrInHistogram(AGIDL_Hist hist, COLOR clr){
-	int i;
-	for(i = 0; i < hist.num_of_clrs; i++){
-		int histr = AGIDL_GetR(hist.table[i].clr,hist.fmt);
-		int histg = AGIDL_GetG(hist.table[i].clr,hist.fmt);
-		int histb = AGIDL_GetB(hist.table[i].clr,hist.fmt);
-		
-		int r = AGIDL_GetR(clr,hist.fmt);
-		int g = AGIDL_GetG(clr,hist.fmt);
-		int b = AGIDL_GetB(clr,hist.fmt);
-		
-		int diffr = AGIDL_Abs(r-histr), diffg = AGIDL_Abs(g-histg), diffb = AGIDL_Abs(b-histb);
-		
-		if(AGIDL_GetBitCount(hist.fmt) != 16){
-			if(diffr <= 5 && diffg <= 5 && diffb <= 5){
-				return TRUE;
-			}
-		}
-		else{
-			if(diffr <= 2 && diffg <= 2 && diffb <= 2){
-				return TRUE;
-			}
-		}
-	}
-	return FALSE;
-}
-
-u32 AGIDL_FindColorIndexInHistogram(AGIDL_Hist hist, COLOR clr){
-	int i;
-	for(i = 0; i < hist.num_of_clrs; i++){
-		int histr = AGIDL_GetR(hist.table[i].clr,hist.fmt);
-		int histg = AGIDL_GetG(hist.table[i].clr,hist.fmt);
-		int histb = AGIDL_GetB(hist.table[i].clr,hist.fmt);
-		
-		int r = AGIDL_GetR(clr,hist.fmt);
-		int g = AGIDL_GetG(clr,hist.fmt);
-		int b = AGIDL_GetB(clr,hist.fmt);
-		
-		int diffr = AGIDL_Abs(r-histr), diffg = AGIDL_Abs(g-histg), diffb = AGIDL_Abs(b-histb);
-		
-		if(AGIDL_GetBitCount(hist.fmt) != 16){
-			if(diffr <= 5 && diffg <= 5 && diffb <= 5){
-				return i;
-			}
-		}
-		else{
-			if(diffr <= 2 && diffg <= 2 && diffb <= 2){
-				return i;
-			}
-		}
-	}
-	return 0;
-}
-
 void AGIDL_EncodeHistogramICP(AGIDL_ICP* palette, void* data, u32 width, u32 height, AGIDL_CLR_FMT fmt){
-	AGIDL_Hist hist;
-	hist.num_of_clrs = 0;
-	hist.fmt = fmt;
 	
 	if(AGIDL_GetBitCount(fmt) == 16){
+		AGIDL_Hist hist[MAX_HIGH_CLR];
+	
+		int ii;
+		for(ii = 0; ii < MAX_HIGH_CLR; ii++){
+			hist[ii].color = ii;
+			hist[ii].occurence = 1;
+		}
+		
 		u16* clr_data = (u16*)data;
 		
 		//ITERATE THROUGH ENTIRE BUFFER OF IMAGE DATA AND TRACK ITS NUMBER OF OCCURENCES IN A HISTOGRAM
 		int i;
 		for(i = 0; i < width*height; i++){
 			u16 color = clr_data[i];
-			
-			if(AGIDL_IsClrInHistogram(hist,color) != TRUE && hist.num_of_clrs < 12000){
-				hist.table[hist.num_of_clrs].clr = color;
-				hist.table[hist.num_of_clrs].occurence = 1;
-				hist.num_of_clrs++;
-			}
-			else{
-				u32 index = AGIDL_FindColorIndexInHistogram(hist,color);
-				hist.table[index].occurence++;
-			}
+			hist[color].occurence = hist[color].occurence + 1;
 		}
 		
 		//PERFORM BUBBLE SORT TO LIST THE 256 MOST IMPORTANT COLORS IN ORDER OF LEAST TO MOST FREQUENTLY OCCURING COLORS
 		int j;
-		for(j = 0; j < hist.num_of_clrs; j++){
-			for(i = 0; i < hist.num_of_clrs; i++){
-				if(hist.table[i].occurence > hist.table[i+1].occurence){
-					AGIDL_HistEntry temp = hist.table[i];
-					hist.table[i] = hist.table[i+1];
-					hist.table[i+1] = temp;
+		for(j = 0; j < MAX_HIGH_CLR; j++){
+			for(i = 0; i < MAX_HIGH_CLR; i++){
+				if(hist[i].occurence > hist[i+1].occurence){
+					AGIDL_Hist temp = hist[i];
+					hist[i] = hist[i+1];
+					hist[i+1] = temp;
 				}
 			}
 		}
@@ -1351,9 +1295,35 @@ void AGIDL_EncodeHistogramICP(AGIDL_ICP* palette, void* data, u32 width, u32 hei
 		AGIDL_InitICP(palette,AGIDL_ICP_16b_256);
 		
 		int count = 0;
-		for(i = hist.num_of_clrs; i > 0; i--){
-			palette->icp.palette_16b_256[count] = hist.table[i].clr;
-			count++;
+		for(i = MAX_HIGH_CLR; i > 0; i--){
+			AGIDL_Bool skip = FALSE;
+			
+			u16 clr = hist[i].color;
+			
+			int r = AGIDL_GetR(clr,fmt);
+			int g = AGIDL_GetG(clr,fmt);
+			int b = AGIDL_GetB(clr,fmt);
+			
+			for(j = 0; j < 256; j++){
+				u16 palclr = palette->icp.palette_16b_256[j];
+				
+				int palr = AGIDL_GetR(palclr,fmt);
+				int palg = AGIDL_GetG(palclr,fmt);
+				int palb = AGIDL_GetB(palclr,fmt);
+				
+				int rdiff = AGIDL_Abs(r-palr);
+				int gdiff = AGIDL_Abs(g-palg);
+				int bdiff = AGIDL_Abs(b-palb);
+				
+				if(rdiff <= 1 && gdiff <= 1 && bdiff <= 1){
+					skip = TRUE;
+				}
+			}
+			
+			if(skip == FALSE){
+				palette->icp.palette_16b_256[count] = clr;
+				count++;
+			}
 			
 			if(count >= 255){
 				break;
@@ -1364,30 +1334,29 @@ void AGIDL_EncodeHistogramICP(AGIDL_ICP* palette, void* data, u32 width, u32 hei
 	else{
 		u32* clr_data = (u32*)data;
 		
-		//ITERATE THROUGH ENTIRE BUFFER OF IMAGE DATA AND TRACK ITS NUMBER OF OCCURENCES IN A HISTOGRAM
+		AGIDL_Hist histc[MAX_HIGH_CLR];
+		
 		int i;
+		for(i = 0; i < MAX_HIGH_CLR; i++){
+			histc[i].color = i;
+			histc[i].occurence = 1;
+		}
+		
+		//ITERATE THROUGH ENTIRE BUFFER OF IMAGE DATA AND TRACK ITS NUMBER OF OCCURENCES IN A HISTOGRAM
 		for(i = 0; i < width*height; i++){
 			u32 color = clr_data[i];
-			
-			if(AGIDL_IsClrInHistogram(hist,color) != TRUE && hist.num_of_clrs < 12000){
-				hist.table[hist.num_of_clrs].clr = color;
-				hist.table[hist.num_of_clrs].occurence = 1;
-				hist.num_of_clrs++; 
-			}
-			else{
-				u32 index = AGIDL_FindColorIndexInHistogram(hist,color);
-				hist.table[index].occurence++;
-			}
+			u16 color16 = AGIDL_CLR_TO_CLR16(color,fmt,AGIDL_RGB_555);
+			histc[color16].occurence = histc[color16].occurence + 1;
 		}  
 
 		//PERFORM BUBBLE SORT TO LIST THE 256 MOST IMPORTANT COLORS IN ORDER OF LEAST TO MOST FREQUENTLY OCCURING COLORS
 		int j;
-		for(j = 0; j < hist.num_of_clrs; j++){
-			for(i = 0; i < hist.num_of_clrs; i++){
-				if(hist.table[i].occurence > hist.table[i+1].occurence){
-					AGIDL_HistEntry temp = hist.table[i];
-					hist.table[i] = hist.table[i+1];
-					hist.table[i+1] = temp;
+		for(j = 0; j < MAX_HIGH_CLR; j++){
+			for(i = 0; i < MAX_HIGH_CLR; i++){
+				if(histc[i].occurence > histc[i+1].occurence){
+					AGIDL_Hist temp = histc[i];
+					histc[i] = histc[i+1];
+					histc[i+1] = temp;
 				}
 			}
 		}
@@ -1395,13 +1364,43 @@ void AGIDL_EncodeHistogramICP(AGIDL_ICP* palette, void* data, u32 width, u32 hei
 		AGIDL_InitICP(palette,AGIDL_ICP_256);
 		
 		int count = 0;
-		for(i = hist.num_of_clrs; i > 0; i--){
-			palette->icp.palette_256[count] = hist.table[i].clr;
-			count++;
+		for(i = MAX_HIGH_CLR; i > 0; i--){
+			AGIDL_Bool skip = FALSE;
+			
+			u16 clr = histc[i].color;
+			
+			int r = AGIDL_GetR(clr,AGIDL_RGB_555);
+			int g = AGIDL_GetG(clr,AGIDL_RGB_555);
+			int b = AGIDL_GetB(clr,AGIDL_RGB_555);
+			
+			for(j = 0; j < 256; j++){
+				u16 palclr = palette->icp.palette_256[j];
+				
+				int palr = AGIDL_GetR(palclr,AGIDL_RGB_555);
+				int palg = AGIDL_GetG(palclr,AGIDL_RGB_555);
+				int palb = AGIDL_GetB(palclr,AGIDL_RGB_555);
+				
+				int rdiff = AGIDL_Abs(r-palr);
+				int gdiff = AGIDL_Abs(g-palg);
+				int bdiff = AGIDL_Abs(b-palb);
+				
+				if(rdiff <= 1 && gdiff <= 1 && bdiff <= 1){
+					skip = TRUE;
+				}
+			}
+			
+			if(skip == FALSE){
+				palette->icp.palette_256[count] = clr;
+				count++;
+			}
 			
 			if(count >= 255){
 				break;
 			}
+		}
+		
+		for(j = 0; j < 256; j++){
+			palette->icp.palette_256[j] = AGIDL_CLR16_TO_CLR(palette->icp.palette_256[j],AGIDL_RGB_555,fmt);
 		}
 	}
 	

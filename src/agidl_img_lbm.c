@@ -369,6 +369,39 @@ int AGIDL_LBMDecodeHeader(AGIDL_LBM* lbm, FILE* file){
 					lbm->header.cmap.palette.icp.palette_256[i] = AGIDL_RGB(r,g,b,AGIDL_RGB_888);
 				}
 			}
+			else if(fourcc[0] == 'C' && fourcc[1] == 'L' && fourcc[2] == 'U' && fourcc[3] == 'T'){
+				u32 cluttype = AGIDL_ReadLong(file);
+				u32 reserved = AGIDL_ReadLong(file);
+				
+				lbm->clut = TRUE;
+				
+				switch(cluttype){
+					case 0:{
+						int i;
+						for(i = 0; i < 256; i++){
+							lbm->header.clut.ilut[i] = AGIDL_ReadByte(file);
+						}
+					}break;
+					case 1:{
+						int i;
+						for(i = 0; i < 256; i++){
+							lbm->header.clut.rlut[i] = AGIDL_ReadByte(file);
+						}
+					}break;
+					case 2:{
+						int i;
+						for(i = 0; i < 256; i++){
+							lbm->header.clut.glut[i] = AGIDL_ReadByte(file);
+						}
+					}break;
+					case 3:{
+						int i;
+						for(i = 0; i < 256; i++){
+							lbm->header.clut.blut[i] = AGIDL_ReadByte(file);
+						}
+					}break;
+				}
+			}
 			else{
 				size = Align(size);
 				fseek(file,size,SEEK_CUR);

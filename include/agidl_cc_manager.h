@@ -4,7 +4,7 @@
 #include "agidl_types.h"
 #include "agidl_cc_types.h"
 
-#define MAX_TABLE_CLRS 12000
+#define MAX_HIGH_CLR 65535
 
 /********************************************
 *   Adaptive Graphics Image Display Library
@@ -15,7 +15,7 @@
 *   File: agidl_cc_manager.h
 *   Date: 9/8/2023
 *   Version: 0.1b
-*   Updated: 2/5/2024
+*   Updated: 2/26/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -54,15 +54,9 @@ typedef enum AGIDL_ICP_ENCODE{
 	ICP_ENCODE_THRESHOLD = 0x2,
 }AGIDL_ICP_ENCODE;
 
-typedef struct AGIDL_HistEntry{
-	COLOR clr;
-	u32 occurence;
-}AGIDL_HistEntry;
-
 typedef struct AGIDL_Hist{
-	AGIDL_HistEntry table[MAX_TABLE_CLRS];
-	u32 num_of_clrs;
-	AGIDL_CLR_FMT fmt;
+	u16 color;
+	u32 occurence;
 }AGIDL_Hist;
 
 AGIDL_Bool AGIDL_IsClrInHistogram(AGIDL_Hist hist, COLOR clr);
