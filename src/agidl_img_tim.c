@@ -5,7 +5,7 @@
 #include "agidl_img_tim.h"
 #include "agidl_img_error.h"
 #include "agidl_file_utils.h"
-
+#include "agidl_imgp_scale.h"
 /********************************************
 *   Adaptive Graphics Image Display Library
 *
@@ -15,7 +15,7 @@
 *   File: agidl_img_tim.c
 *   Date: 9/19/2023
 *   Version: 0.1b
-*   Updated: 2/21/2024
+*   Updated: 2/26/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -79,6 +79,17 @@ void AGIDL_TIMSetICPEncoding(AGIDL_TIM* tim, AGIDL_ICP_ENCODE encode){
 
 void AGIDL_TIMSetMaxDiff(AGIDL_TIM* tim, int max_diff){
 	tim->max_diff = max_diff;
+}
+
+void AGIDL_TIMForce4BPPEncoding(AGIDL_TIM* tim, AGIDL_Bool force4bpp){
+	tim->force4bpp = force4bpp;
+}
+
+void AGIDL_TIMInitAttributes(AGIDL_TIM* tim, u16 pal_mem_add_x, u16 pal_mem_add_y, u16 img_mem_add_x, u16 img_mem_add_y){
+	tim->clut_header.pal_mem_add_x = pal_mem_add_x;
+	tim->clut_header.pal_mem_add_y = pal_mem_add_y;
+	tim->img_header.img_mem_add_x = img_mem_add_x;
+	tim->img_header.img_mem_add_y = img_mem_add_y;
 }
 
 void AGIDL_ClearTIM(AGIDL_TIM *tim, COLOR clr){
@@ -289,6 +300,8 @@ AGIDL_TIM * AGIDL_CreateTIM(const char *filename, int width, int height, AGIDL_C
 	AGIDL_TIMSetClrFmt(tim,fmt);
 	AGIDL_TIMSetMaxDiff(tim,7);
 	AGIDL_TIMSetICPEncoding(tim,ICP_ENCODE_HISTOGRAM);
+	AGIDL_TIMForce4BPPEncoding(tim,FALSE);
+	AGIDL_TIMInitAttributes(tim,0,0,0,0);
 	
 	if(fmt == AGIDL_RGB_888 || fmt == AGIDL_BGR_888 || fmt == AGIDL_RGBA_8888 || fmt == AGIDL_ARGB_8888){
 		tim->pixels.pix32 = (COLOR*)malloc(sizeof(COLOR)*(width*height));
@@ -555,37 +568,69 @@ void AGIDL_TIMEncodeNearestICP(AGIDL_TIM* tim, AGIDL_ICP palette, FILE* file){
 void AGIDL_TIMEncodeHeader(AGIDL_TIM* tim, FILE* file){
 	if(tim->icp == 1){
 		tim->header.magic = TIM_MAGIC;
-		tim->header.version = TIM_8BPP;
-		tim->clut_header.clut_size = (2*256)+12;
-		tim->clut_header.pal_mem_add_x = 0;
-		tim->clut_header.pal_mem_add_y = 0;
-		tim->clut_header.num_clrs = 256;
-		tim->clut_header.num_icps = 1;
 		
-		AGIDL_WriteLong(file,tim->header.magic);
-		AGIDL_WriteLong(file,tim->header.version);
-		AGIDL_WriteLong(file,tim->clut_header.clut_size);
-		AGIDL_WriteShort(file,tim->clut_header.pal_mem_add_x);
-		AGIDL_WriteShort(file,tim->clut_header.pal_mem_add_y);
-		AGIDL_WriteShort(file,tim->clut_header.num_clrs);
-		AGIDL_WriteShort(file,tim->clut_header.num_icps);
-		
-		int i;
-		for(i = 0; i < 256; i++){
-			AGIDL_WriteShort(file,tim->palette.icp.palette_16b_256[i]);
+		if(tim->force4bpp != TRUE){
+			tim->header.version = TIM_8BPP;
+			tim->clut_header.clut_size = (2*256)+12;
+			tim->clut_header.num_clrs = 256;
+			tim->clut_header.num_icps = 1;
+			
+			AGIDL_WriteLong(file,tim->header.magic);
+			AGIDL_WriteLong(file,tim->header.version);
+			AGIDL_WriteLong(file,tim->clut_header.clut_size);
+			AGIDL_WriteShort(file,tim->clut_header.pal_mem_add_x);
+			AGIDL_WriteShort(file,tim->clut_header.pal_mem_add_y);
+			AGIDL_WriteShort(file,tim->clut_header.num_clrs);
+			AGIDL_WriteShort(file,tim->clut_header.num_icps);
+			
+			int i;
+			for(i = 0; i < 256; i++){
+				AGIDL_WriteShort(file,tim->palette.icp.palette_16b_256[i]);
+			}
+		}
+		else{
+			tim->header.version = TIM_4BPP;
+			tim->clut_header.clut_size = (2*16)+12;
+			tim->clut_header.num_clrs = 16;
+			tim->clut_header.num_icps = 1;
+			
+			AGIDL_WriteLong(file,tim->header.magic);
+			AGIDL_WriteLong(file,tim->header.version);
+			AGIDL_WriteLong(file,tim->clut_header.clut_size);
+			AGIDL_WriteShort(file,tim->clut_header.pal_mem_add_x);
+			AGIDL_WriteShort(file,tim->clut_header.pal_mem_add_y);
+			AGIDL_WriteShort(file,tim->clut_header.num_clrs);
+			AGIDL_WriteShort(file,tim->clut_header.num_icps);
+			
+			int i;
+			for(i = 0; i < 16; i++){
+				AGIDL_WriteShort(file,tim->palette.icp.palette_16b_256[i]);
+			}
 		}
 		
 		tim->img_header.img_size = (AGIDL_TIMGetWidth(tim)*2)*(AGIDL_TIMGetHeight(tim))+12;
-		tim->img_header.img_mem_add_x = 0;
-		tim->img_header.img_mem_add_y = 0;
 		
-		u16 width = tim->img_header.width / 2;
+		u16 width = AGIDL_TIMGetWidth(tim);
+		u16 height = AGIDL_TIMGetHeight(tim);
+		
+		if(tim->force4bpp != TRUE){
+			while((width % 2) != 0){
+				width++;
+			}
+			width /= 2;
+		}
+		else{
+			while((width % 4) != 0){
+				width++;
+			}
+			width /= 4;
+		}
 		
 		AGIDL_WriteLong(file,tim->img_header.img_size);
 		AGIDL_WriteShort(file,tim->img_header.img_mem_add_x);
 		AGIDL_WriteShort(file,tim->img_header.img_mem_add_y);
 		AGIDL_WriteShort(file,width);
-		AGIDL_WriteShort(file,tim->img_header.height);
+		AGIDL_WriteShort(file,height);
 	}
 	else{
 		tim->header.magic = TIM_MAGIC;
@@ -606,12 +651,65 @@ void AGIDL_TIMEncodeHeader(AGIDL_TIM* tim, FILE* file){
 
 void AGIDL_TIMEncodeIMG(AGIDL_TIM* tim, FILE* file){
 	if(tim->icp == TRUE){
-		int x,y;
-		for(y = 0; y < AGIDL_TIMGetHeight(tim); y++){
-			for(x = 0; x < AGIDL_TIMGetWidth(tim); x++){
-				COLOR16 clr = AGIDL_TIMGetClr16(tim,x,y);
-				u8 index = AGIDL_FindNearestColor(tim->palette,clr,AGIDL_TIMGetClrFmt(tim));
-				AGIDL_WriteByte(file,index);
+		if(tim->force4bpp != TRUE){
+			u16 w = AGIDL_TIMGetWidth(tim);
+			
+			while(w % 2 != 0){
+				w++;
+			}
+			
+			float scale = (float)w/AGIDL_TIMGetWidth(tim);
+			
+			int x,y;
+			for(y = 0; y < AGIDL_TIMGetHeight(tim); y++){
+				for(x = 0; x < w; x++){
+					u16 x2 = (scale*x);
+					COLOR16 clr = AGIDL_TIMGetClr16(tim,x2,y);
+					u8 index = AGIDL_FindNearestColor(tim->palette,clr,AGIDL_TIMGetClrFmt(tim));
+					AGIDL_WriteByte(file,index);
+				}
+			}
+		}
+		else{
+			AGIDL_ICP fourbpp;
+			fourbpp.fmt = AGIDL_TIMGetClrFmt(tim);
+			AGIDL_InitICP(&fourbpp,AGIDL_ICP_16b_16);
+			
+			int i;
+			for(i = 0; i < 16; i++){
+				fourbpp.icp.palette_16b_16[i] = tim->palette.icp.palette_16b_256[i];
+			}
+			
+			u16 w = AGIDL_TIMGetWidth(tim);
+			
+			while(w % 4 != 0){
+				w++;
+			}
+			
+			float scale = (float)w/AGIDL_TIMGetWidth(tim);
+
+			int x,y;
+			for(y = 0; y < AGIDL_TIMGetHeight(tim); y++){
+				for(x = 0; x < w; x += 4){
+					
+					u16 x2 = (scale*x);
+					
+					COLOR16 clr1 = AGIDL_TIMGetClr16(tim,x2,y);
+					COLOR16 clr2 = AGIDL_TIMGetClr16(tim,x2+1,y);
+					COLOR16 clr3 = AGIDL_TIMGetClr16(tim,x2+2,y);
+					COLOR16 clr4 = AGIDL_TIMGetClr16(tim,x2+3,y);
+					
+					u8 index1 = AGIDL_FindNearestColor(fourbpp,clr1,AGIDL_TIMGetClrFmt(tim));
+					u8 index2 = AGIDL_FindNearestColor(fourbpp,clr2,AGIDL_TIMGetClrFmt(tim));
+					u8 index3 = AGIDL_FindNearestColor(fourbpp,clr3,AGIDL_TIMGetClrFmt(tim));
+					u8 index4 = AGIDL_FindNearestColor(fourbpp,clr4,AGIDL_TIMGetClrFmt(tim));
+					
+					u8 byte1 = index1 << 4 | index2;
+					u8 byte2 = index3 << 4 | index4;
+					
+					AGIDL_WriteByte(file,byte1);
+					AGIDL_WriteByte(file,byte2);
+				}
 			}
 		}
 	}
@@ -631,6 +729,7 @@ AGIDL_TIM * AGIDL_LoadTIM(char *filename){
 	AGIDL_TIM *tim = (AGIDL_TIM*)malloc(sizeof(AGIDL_TIM));
 	tim->filename = (char*)malloc(strlen(filename)+1);
 	AGIDL_TIMSetICPEncoding(tim,ICP_ENCODE_HISTOGRAM);
+	AGIDL_TIMInitAttributes(tim,0,0,0,0);
 	
 	if(tim == NULL || tim->filename == NULL){
 		printf("%s\n",AGIDL_Error2Str(MEMORY_IMG_ERROR));

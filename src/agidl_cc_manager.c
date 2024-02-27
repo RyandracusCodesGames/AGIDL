@@ -1,11 +1,12 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include "agidl_cc_manager.h"
 #include "agidl_math_utils.h"
 #include "agidl_img_types.h"
 #include "agidl_cc_converter.h"
 #include "agidl_file_utils.h"
 #include "agidl_img_error.h"
-#include <time.h>
 
 /********************************************
 *   Adaptive Graphics Image Display Library
@@ -1261,7 +1262,6 @@ void AGIDL_InitICP(AGIDL_ICP *palette, int mode){
 }
 
 void AGIDL_EncodeHistogramICP(AGIDL_ICP* palette, void* data, u32 width, u32 height, AGIDL_CLR_FMT fmt){
-	
 	if(AGIDL_GetBitCount(fmt) == 16){
 		AGIDL_Hist hist[MAX_HIGH_CLR];
 	
@@ -1282,8 +1282,8 @@ void AGIDL_EncodeHistogramICP(AGIDL_ICP* palette, void* data, u32 width, u32 hei
 		
 		//PERFORM BUBBLE SORT TO LIST THE 256 MOST IMPORTANT COLORS IN ORDER OF LEAST TO MOST FREQUENTLY OCCURING COLORS
 		int j;
-		for(j = 0; j < MAX_HIGH_CLR; j++){
-			for(i = 0; i < MAX_HIGH_CLR; i++){
+		for(j = 0; j < MAX_HIGH_CLR - 1; j++){
+			for(i = 0; i < MAX_HIGH_CLR - 1; i++){
 				if(hist[i].occurence > hist[i+1].occurence){
 					AGIDL_Hist temp = hist[i];
 					hist[i] = hist[i+1];
@@ -1351,8 +1351,8 @@ void AGIDL_EncodeHistogramICP(AGIDL_ICP* palette, void* data, u32 width, u32 hei
 
 		//PERFORM BUBBLE SORT TO LIST THE 256 MOST IMPORTANT COLORS IN ORDER OF LEAST TO MOST FREQUENTLY OCCURING COLORS
 		int j;
-		for(j = 0; j < MAX_HIGH_CLR; j++){
-			for(i = 0; i < MAX_HIGH_CLR; i++){
+		for(j = 0; j < MAX_HIGH_CLR - 1; j++){
+			for(i = 0; i < MAX_HIGH_CLR - 1; i++){
 				if(histc[i].occurence > histc[i+1].occurence){
 					AGIDL_Hist temp = histc[i];
 					histc[i] = histc[i+1];
@@ -1706,7 +1706,7 @@ u8 AGIDL_FindNearestColor(AGIDL_ICP palette, COLOR clr, AGIDL_CLR_FMT fmt){
 			
 			int i;
 			for(i = 0; i < 16; i++){
-				COLOR palclr = palette.icp.palette_16b_16[i];
+				COLOR16 palclr = palette.icp.palette_16b_16[i];
 				
 				int palr = AGIDL_GetR(palclr,fmt);
 				int palg = AGIDL_GetG(palclr,fmt);
@@ -1727,6 +1727,8 @@ u8 AGIDL_FindNearestColor(AGIDL_ICP palette, COLOR clr, AGIDL_CLR_FMT fmt){
 			return index;
 		}break;
 	}
+	
+	return 0;
 }
 
 AGIDL_ICP AGIDL_GenerateVGAICP(){

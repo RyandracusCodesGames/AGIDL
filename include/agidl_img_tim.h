@@ -10,7 +10,7 @@
 *   File: agidl_img_tim.h
 *   Date: 9/19/2023
 *   Version: 0.1b
-*   Updated: 2/5/2024
+*   Updated: 2/26/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -61,6 +61,7 @@ typedef struct AGIDL_TIM{
 	IMG_HEADER img_header;
 	Pixels pixels;
 	AGIDL_ICP_ENCODE encode;
+	AGIDL_Bool force4bpp;
 	char *filename;
 }AGIDL_TIM;
 
@@ -73,6 +74,8 @@ void AGIDL_TIMSetClr16(AGIDL_TIM *tim, int x, int y, COLOR16 clr);
 void AGIDL_TIMSetRGB(AGIDL_TIM *tim, int x, int y, u8 r, u8 g, u8 b);
 void AGIDL_TIMSetICPMode(AGIDL_TIM *tim, int mode);
 void AGIDL_TIMSetICPEncoding(AGIDL_TIM* tim, AGIDL_ICP_ENCODE encode);
+void AGIDL_TIMForce4BPPEncoding(AGIDL_TIM* tim, AGIDL_Bool force4bpp);
+void AGIDL_TIMInitAttributes(AGIDL_TIM* tim, u16 pal_mem_add_x, u16 pal_mem_add_y, u16 img_mem_add_x, u16 img_mem_add_y);
 void AGIDL_TIMSetMaxDiff(AGIDL_TIM *tim, int max_diff);
 void AGIDL_ClearTIM(AGIDL_TIM *tim, COLOR clr);
 void AGIDL_ClearTIM16(AGIDL_TIM *tim, COLOR16 clr);
