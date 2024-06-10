@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
-#include "agidl_math_utils.h"
-#include "agidl_math_trig_tables.h"
+#include <agidl_math_utils.h>
+#include <agidl_math_trig_tables.h>
 
 #include <stdio.h>
 
@@ -13,8 +13,8 @@
 *   Library: libagidl
 *   File: agidl_math_utils.c
 *   Date: 10/22/2023
-*   Version: 0.1b
-*   Updated: 2/6/2024
+*   Version: 0.4b
+*   Updated: 6/9/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -145,6 +145,21 @@ char* AGIDL_Dec2Bin(u32 num){
 	else if(num <= 4095){
 		num_of_bits = 12;
 	}
+	else if(num <= 8191){
+		num_of_bits = 13;
+	}
+	else if(num <= 16383){
+		num_of_bits = 14;
+	}
+	else if(num <= 32767){
+		num_of_bits = 15;
+	}
+	else if(num <= 65535){
+		num_of_bits = 16;
+	}
+	else if(num <= 131071){
+		num_of_bits = 17;
+	}
 	
 	char* bin = (char*)malloc((sizeof(char)*num_of_bits)+1);
 	
@@ -163,6 +178,76 @@ char* AGIDL_Dec2Bin(u32 num){
 	
 	return bin;
 }
+
+void AGIDL_PrintBin(u32 num){
+	u8 num_of_bits = 0;
+	
+	if(num <= 1){
+		num_of_bits = 1;
+	}
+	else if(num <= 3){
+		num_of_bits = 2;
+	}
+	else if(num <= 7){
+		num_of_bits = 3;
+	}
+	else if(num <= 15){
+		num_of_bits = 4;
+	}
+	else if(num <= 31){
+		num_of_bits = 5;
+	}
+	else if(num <= 63){
+		num_of_bits = 6;
+	}
+	else if(num <= 127){
+		num_of_bits = 7;
+	}
+	else if(num <= 255){
+		num_of_bits = 8;
+	}
+	else if(num <= 511){
+		num_of_bits = 9;
+	}
+	else if(num <= 1023){
+		num_of_bits = 10;
+	}
+	else if(num <= 2047){
+		num_of_bits = 11;
+	}
+	else if(num <= 4095){
+		num_of_bits = 12;
+	}
+	else if(num <= 8191){
+		num_of_bits = 13;
+	}
+	else if(num <= 16383){
+		num_of_bits = 14;
+	}
+	else if(num <= 32767){
+		num_of_bits = 15;
+	}
+	else if(num <= 65535){
+		num_of_bits = 16;
+	}
+	else if(num <= 131071){
+		num_of_bits = 17;
+	}
+	
+	int i;
+	for(i = num_of_bits; i >= 0; i--){
+		int k = num >> i;
+		if(k & 1){
+			printf("1");
+		}
+		else{
+			printf("0");
+		}
+	}
+	
+	printf("\n");
+}
+
 
 u32 AGIDL_Bin2Dec(char* bin){
 	u32 accumulation = 0;
@@ -190,9 +275,6 @@ u32 AGIDL_BitReverse(char* bin){
 	}
 	
 	u32 bitreverse = AGIDL_Bin2Dec(reverse);
-	
-	printf("%s\n",bin);
-	printf("%s\n",reverse);
 
 	free(reverse);
 	
@@ -266,4 +348,12 @@ u8 AGIDL_GetPow2Index(u32 num){
 	}
 	
 	return 0;
+}
+
+f32 AGIDL_Deg2Rad(f32 degrees){
+	return degrees * (AGIDL_PI/180.00f);
+}
+
+f32 AGIDL_Rad2Deg(f32 rad){
+	return rad * (180.00f/AGIDL_PI);
 }

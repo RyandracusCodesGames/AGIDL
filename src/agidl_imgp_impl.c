@@ -6,13 +6,14 @@
 *   Library: libagidl
 *   File: agidl_imgp_impl.c
 *   Date: 12/17/2023
-*   Version: 0.2b
-*   Updated: 2/19/2024
+*   Version: 0.4b
+*   Updated: 6/9/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
 
-#include "agidl_imgp_impl.h"
+#include <agidl_imgp_impl.h>
+#include <stdlib.h>
 
 void AGIDL_GrayscaleBMP(AGIDL_BMP* bmp){
 	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
@@ -621,242 +622,374 @@ void AGIDL_RotateLBM(AGIDL_LBM* lbm, AGIDL_ANGLE angle){
 
 void AGIDL_ScaleBMP(AGIDL_BMP* bmp, float sx, float sy, AGIDL_SCALE scale){
 	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
-		bmp->pixels.pix16 = (COLOR16*)AGIDL_ScaleImgData(bmp->pixels.pix16,&bmp->header.width,&bmp->header.height,
+		u16* img_data = (u16*)malloc(sizeof(u16)*AGIDL_BMPGetSize(bmp));
+		AGIDL_ClrMemcpy16(img_data,bmp->pixels.pix16,AGIDL_BMPGetSize(bmp));
+		free(bmp->pixels.pix16);
+		bmp->pixels.pix16 = (COLOR16*)AGIDL_ScaleImgData(img_data,&bmp->header.width,&bmp->header.height,
 		sx,sy,scale,AGIDL_BMPGetClrFmt(bmp));
 	}
 	else{
-		bmp->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(bmp->pixels.pix32,&bmp->header.width,&bmp->header.height,
+		u32* img_data = (u32*)malloc(sizeof(u32)*AGIDL_BMPGetSize(bmp));
+		AGIDL_ClrMemcpy(img_data,bmp->pixels.pix32,AGIDL_BMPGetSize(bmp));
+		free(bmp->pixels.pix32);
+		bmp->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(img_data,&bmp->header.width,&bmp->header.height,
 		sx,sy,scale,AGIDL_BMPGetClrFmt(bmp));
 	}
 }
 
 void AGIDL_ScaleTGA(AGIDL_TGA* tga, float sx, float sy, AGIDL_SCALE scale){
 	if(AGIDL_GetBitCount(AGIDL_TGAGetClrFmt(tga)) == 16){
-		tga->pixels.pix16 = (COLOR16*)AGIDL_ScaleImgData(tga->pixels.pix16,&tga->header.width,&tga->header.height,
+		u16* img_data = (u16*)malloc(sizeof(u16)*AGIDL_TGAGetSize(tga));
+		AGIDL_ClrMemcpy16(img_data,tga->pixels.pix16,AGIDL_TGAGetSize(tga));
+		free(tga->pixels.pix16);
+		tga->pixels.pix16 = (COLOR16*)AGIDL_ScaleImgData(img_data,&tga->header.width,&tga->header.height,
 		sx,sy,scale,AGIDL_TGAGetClrFmt(tga));
 	}
 	else{
-		tga->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(tga->pixels.pix32,&tga->header.width,&tga->header.height,
+		u32* img_data = (u32*)malloc(sizeof(u32)*AGIDL_TGAGetSize(tga));
+		AGIDL_ClrMemcpy(img_data,tga->pixels.pix32,AGIDL_TGAGetSize(tga));
+		free(tga->pixels.pix32);
+		tga->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(img_data,&tga->header.width,&tga->header.height,
 		sx,sy,scale,AGIDL_TGAGetClrFmt(tga));
 	}
 }
 
 void AGIDL_ScaleTIM(AGIDL_TIM* tim, float sx, float sy, AGIDL_SCALE scale){
 	if(AGIDL_GetBitCount(AGIDL_TIMGetClrFmt(tim)) == 16){
-		tim->pixels.pix16 = (COLOR16*)AGIDL_ScaleImgData(tim->pixels.pix16,&tim->img_header.width,&tim->img_header.height,
+		u16* img_data = (u16*)malloc(sizeof(u16)*AGIDL_TIMGetSize(tim));
+		AGIDL_ClrMemcpy16(img_data,tim->pixels.pix16,AGIDL_TIMGetSize(tim));
+		free(tim->pixels.pix16);
+		tim->pixels.pix16 = (COLOR16*)AGIDL_ScaleImgData(img_data,&tim->img_header.width,&tim->img_header.height,
 		sx,sy,scale,AGIDL_TIMGetClrFmt(tim));
 	}
 	else{
-		tim->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(tim->pixels.pix32,&tim->img_header.width,&tim->img_header.height,
+		u32* img_data = (u32*)malloc(sizeof(u32)*AGIDL_TIMGetSize(tim));
+		AGIDL_ClrMemcpy(img_data,tim->pixels.pix32,AGIDL_TIMGetSize(tim));
+		free(tim->pixels.pix32);
+		tim->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(img_data,&tim->img_header.width,&tim->img_header.height,
 		sx,sy,scale,AGIDL_TIMGetClrFmt(tim));
 	}
 }
 
 void AGIDL_ScalePCX(AGIDL_PCX* pcx, float sx, float sy, AGIDL_SCALE scale){
 	if(AGIDL_GetBitCount(AGIDL_PCXGetClrFmt(pcx)) == 16){
-		pcx->pixels.pix16 = (COLOR16*)AGIDL_ScaleImgData(pcx->pixels.pix16,&pcx->header.width,&pcx->header.height,
+		u16* img_data = (u16*)malloc(sizeof(u16)*AGIDL_PCXGetSize(pcx));
+		AGIDL_ClrMemcpy16(img_data,pcx->pixels.pix16,AGIDL_PCXGetSize(pcx));
+		free(pcx->pixels.pix16);
+		pcx->pixels.pix16 = (COLOR16*)AGIDL_ScaleImgData(img_data,&pcx->header.width,&pcx->header.height,
 		sx,sy,scale,AGIDL_PCXGetClrFmt(pcx));
 	}
 	else{
-		pcx->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(pcx->pixels.pix32,&pcx->header.width,&pcx->header.height,
+		u32* img_data = (u32*)malloc(sizeof(u32)*AGIDL_PCXGetSize(pcx));
+		AGIDL_ClrMemcpy(img_data,pcx->pixels.pix32,AGIDL_PCXGetSize(pcx));
+		free(pcx->pixels.pix32);
+		pcx->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(img_data,&pcx->header.width,&pcx->header.height,
 		sx,sy,scale,AGIDL_PCXGetClrFmt(pcx));
 	}
 }
 
 void AGIDL_ScaleLMP(AGIDL_LMP* lmp, float sx, float sy, AGIDL_SCALE scale){
 	if(AGIDL_GetBitCount(AGIDL_LMPGetClrFmt(lmp)) == 16){
-		lmp->pixels.pix16 = (COLOR16*)AGIDL_ScaleImgData(lmp->pixels.pix16,&lmp->width,&lmp->height,
+		u16* img_data = (u16*)malloc(sizeof(u16)*AGIDL_LMPGetSize(lmp));
+		AGIDL_ClrMemcpy16(img_data,lmp->pixels.pix16,AGIDL_LMPGetSize(lmp));
+		free(lmp->pixels.pix16);
+		lmp->pixels.pix16 = (COLOR16*)AGIDL_ScaleImgData(img_data,&lmp->width,&lmp->height,
 		sx,sy,scale,AGIDL_LMPGetClrFmt(lmp));
 	}
 	else{
-		lmp->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(lmp->pixels.pix32,&lmp->width,&lmp->height,
+		u32* img_data = (u32*)malloc(sizeof(u32)*AGIDL_LMPGetSize(lmp));
+		AGIDL_ClrMemcpy(img_data,lmp->pixels.pix32,AGIDL_LMPGetSize(lmp));
+		free(lmp->pixels.pix32);
+		lmp->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(img_data,&lmp->width,&lmp->height,
 		sx,sy,scale,AGIDL_LMPGetClrFmt(lmp));
 	}
 }
 
 void AGIDL_ScalePVR(AGIDL_PVR* pvr, float sx, float sy, AGIDL_SCALE scale){
 	if(AGIDL_GetBitCount(AGIDL_PVRGetClrFmt(pvr)) == 16){
-		pvr->pixels.pix16 = (COLOR16*)AGIDL_ScaleImgData(pvr->pixels.pix16,&pvr->header.width,&pvr->header.height,
+		u16* img_data = (u16*)malloc(sizeof(u16)*AGIDL_PVRGetSize(pvr));
+		AGIDL_ClrMemcpy16(img_data,pvr->pixels.pix16,AGIDL_PVRGetSize(pvr));
+		free(pvr->pixels.pix16);
+		pvr->pixels.pix16 = (COLOR16*)AGIDL_ScaleImgData(img_data,&pvr->header.width,&pvr->header.height,
 		sx,sy,scale,AGIDL_PVRGetClrFmt(pvr));
 	}
 	else{
-		pvr->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(pvr->pixels.pix32,&pvr->header.width,&pvr->header.height,
+		u32* img_data = (u32*)malloc(sizeof(u32)*AGIDL_PVRGetSize(pvr));
+		AGIDL_ClrMemcpy(img_data,pvr->pixels.pix32,AGIDL_PVRGetSize(pvr));
+		free(pvr->pixels.pix32);
+		pvr->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(img_data,&pvr->header.width,&pvr->header.height,
 		sx,sy,scale,AGIDL_PVRGetClrFmt(pvr));
 	}
 }
 
 void AGIDL_ScaleGXT(AGIDL_GXT* gxt, float sx, float sy, AGIDL_SCALE scale){
 	if(AGIDL_GetBitCount(AGIDL_GXTGetClrFmt(gxt)) == 16){
-		gxt->pixels.pix16 = (COLOR16*)AGIDL_ScaleImgData(gxt->pixels.pix16,&gxt->header.header.width,&gxt->header.header.height,
+		u16* img_data = (u16*)malloc(sizeof(u16)*AGIDL_GXTGetSize(gxt));
+		AGIDL_ClrMemcpy16(img_data,gxt->pixels.pix16,AGIDL_GXTGetSize(gxt));
+		free(gxt->pixels.pix16);
+		gxt->pixels.pix16 = (COLOR16*)AGIDL_ScaleImgData(img_data,&gxt->header.header.width,&gxt->header.header.height,
 		sx,sy,scale,AGIDL_GXTGetClrFmt(gxt));
 	}
 	else{
-		gxt->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(gxt->pixels.pix32,&gxt->header.header.width,&gxt->header.header.height,
+		u32* img_data = (u32*)malloc(sizeof(u32)*AGIDL_GXTGetSize(gxt));
+		AGIDL_ClrMemcpy(img_data,gxt->pixels.pix32,AGIDL_GXTGetSize(gxt));
+		free(gxt->pixels.pix32);
+		gxt->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(img_data,&gxt->header.header.width,&gxt->header.header.height,
 		sx,sy,scale,AGIDL_GXTGetClrFmt(gxt));
 	}
 }
 
 void AGIDL_ScaleBTI(AGIDL_BTI* bti, float sx, float sy, AGIDL_SCALE scale){
 	if(AGIDL_GetBitCount(AGIDL_BTIGetClrFmt(bti)) == 16){
-		bti->pixels.pix16 = (COLOR16*)AGIDL_ScaleImgData(bti->pixels.pix16,&bti->header.width,&bti->header.height,
+		u16* img_data = (u16*)malloc(sizeof(u16)*AGIDL_BTIGetSize(bti));
+		AGIDL_ClrMemcpy16(img_data,bti->pixels.pix16,AGIDL_BTIGetSize(bti));
+		free(bti->pixels.pix16);
+		bti->pixels.pix16 = (COLOR16*)AGIDL_ScaleImgData(img_data,&bti->header.width,&bti->header.height,
 		sx,sy,scale,AGIDL_BTIGetClrFmt(bti));
 	}
 	else{
-		bti->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(bti->pixels.pix32,&bti->header.width,&bti->header.height,
+		u32* img_data = (u32*)malloc(sizeof(u32)*AGIDL_BTIGetSize(bti));
+		AGIDL_ClrMemcpy(img_data,bti->pixels.pix32,AGIDL_BTIGetSize(bti));
+		free(bti->pixels.pix32);
+		bti->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(img_data,&bti->header.width,&bti->header.height,
 		sx,sy,scale,AGIDL_BTIGetClrFmt(bti));
 	}
 }
 
 void AGIDL_Scale3DF(AGIDL_3DF* glide, float sx, float sy, AGIDL_SCALE scale){
 	if(AGIDL_GetBitCount(AGIDL_3DFGetClrFmt(glide)) == 16){
-		glide->pixels.pix16 = (COLOR16*)AGIDL_ScaleImgData(glide->pixels.pix16,&glide->width,&glide->height,
+		u16* img_data = (u16*)malloc(sizeof(u16)*AGIDL_3DFGetSize(glide));
+		AGIDL_ClrMemcpy16(img_data,glide->pixels.pix16,AGIDL_3DFGetSize(glide));
+		free(glide->pixels.pix16);
+		glide->pixels.pix16 = (COLOR16*)AGIDL_ScaleImgData(img_data,&glide->width,&glide->height,
 		sx,sy,scale,AGIDL_3DFGetClrFmt(glide));
 	}
 	else{
-		glide->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(glide->pixels.pix32,&glide->width,&glide->height,
+		u32* img_data = (u32*)malloc(sizeof(u32)*AGIDL_3DFGetSize(glide));
+		AGIDL_ClrMemcpy(img_data,glide->pixels.pix32,AGIDL_3DFGetSize(glide));
+		free(glide->pixels.pix32);
+		glide->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(img_data,&glide->width,&glide->height,
 		sx,sy,scale,AGIDL_3DFGetClrFmt(glide));
 	}
 }
 
 void AGIDL_ScalePPM(AGIDL_PPM* ppm, float sx, float sy, AGIDL_SCALE scale){
 	if(AGIDL_GetBitCount(AGIDL_PPMGetClrFmt(ppm)) == 16){
-		ppm->pixels.pix16 = (COLOR16*)AGIDL_ScaleImgData(ppm->pixels.pix16,&ppm->width,&ppm->height,
+		u16* img_data = (u16*)malloc(sizeof(u16)*AGIDL_PPMGetSize(ppm));
+		AGIDL_ClrMemcpy16(img_data,ppm->pixels.pix16,AGIDL_PPMGetSize(ppm));
+		free(ppm->pixels.pix16);
+		ppm->pixels.pix16 = (COLOR16*)AGIDL_ScaleImgData(img_data,&ppm->width,&ppm->height,
 		sx,sy,scale,AGIDL_PPMGetClrFmt(ppm));
 	}
 	else{
-		ppm->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(ppm->pixels.pix32,&ppm->width,&ppm->height,
+		u32* img_data = (u32*)malloc(sizeof(u32)*AGIDL_PPMGetSize(ppm));
+		AGIDL_ClrMemcpy(img_data,ppm->pixels.pix32,AGIDL_PPMGetSize(ppm));
+		free(ppm->pixels.pix32);
+		ppm->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(img_data,&ppm->width,&ppm->height,
 		sx,sy,scale,AGIDL_PPMGetClrFmt(ppm));
 	}
 }
 
 void AGIDL_ScaleLBM(AGIDL_LBM* lbm, float sx, float sy, AGIDL_SCALE scale){
 	if(AGIDL_GetBitCount(AGIDL_LBMGetClrFmt(lbm)) == 16){
-		lbm->pixels.pix16 = (COLOR16*)AGIDL_ScaleImgData(lbm->pixels.pix16,&lbm->header.bmhd.width,&lbm->header.bmhd.height,
+		u16* img_data = (u16*)malloc(sizeof(u16)*AGIDL_LBMGetSize(lbm));
+		AGIDL_ClrMemcpy16(img_data,lbm->pixels.pix16,AGIDL_LBMGetSize(lbm));
+		free(lbm->pixels.pix16);
+		lbm->pixels.pix16 = (COLOR16*)AGIDL_ScaleImgData(img_data,&lbm->header.bmhd.width,&lbm->header.bmhd.height,
 		sx,sy,scale,AGIDL_LBMGetClrFmt(lbm));
 	}
 	else{
-		lbm->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(lbm->pixels.pix32,&lbm->header.bmhd.width,&lbm->header.bmhd.height,
+		u32* img_data = (u32*)malloc(sizeof(u32)*AGIDL_LBMGetSize(lbm));
+		AGIDL_ClrMemcpy(img_data,lbm->pixels.pix32,AGIDL_LBMGetSize(lbm));
+		free(lbm->pixels.pix32);
+		lbm->pixels.pix32 = (COLOR*)AGIDL_ScaleImgData(img_data,&lbm->header.bmhd.width,&lbm->header.bmhd.height,
 		sx,sy,scale,AGIDL_LBMGetClrFmt(lbm));
 	}
 }
 
 void AGIDL_FastScaleBMP(AGIDL_BMP* bmp, float sx, float sy, AGIDL_SCALE scale){
 	if(AGIDL_GetBitCount(AGIDL_BMPGetClrFmt(bmp)) == 16){
-		bmp->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(bmp->pixels.pix16,&bmp->header.width,&bmp->header.height,
+		u16* img_data = (u16*)malloc(sizeof(u16)*AGIDL_BMPGetSize(bmp));
+		AGIDL_ClrMemcpy16(img_data,bmp->pixels.pix16,AGIDL_BMPGetSize(bmp));
+		free(bmp->pixels.pix16);
+		bmp->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(img_data,&bmp->header.width,&bmp->header.height,
 		sx,sy,scale,AGIDL_BMPGetClrFmt(bmp));
 	}
 	else{
-		bmp->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(bmp->pixels.pix32,&bmp->header.width,&bmp->header.height,
+		u32* img_data = (u32*)malloc(sizeof(u32)*AGIDL_BMPGetSize(bmp));
+		AGIDL_ClrMemcpy(img_data,bmp->pixels.pix32,AGIDL_BMPGetSize(bmp));
+		free(bmp->pixels.pix32);
+		bmp->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(img_data,&bmp->header.width,&bmp->header.height,
 		sx,sy,scale,AGIDL_BMPGetClrFmt(bmp));
 	}
 }
 
 void AGIDL_FastScaleTGA(AGIDL_TGA* tga, float sx, float sy, AGIDL_SCALE scale){
 	if(AGIDL_GetBitCount(AGIDL_TGAGetClrFmt(tga)) == 16){
-		tga->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(tga->pixels.pix16,&tga->header.width,&tga->header.height,
+		u16* img_data = (u16*)malloc(sizeof(u16)*AGIDL_TGAGetSize(tga));
+		AGIDL_ClrMemcpy16(img_data,tga->pixels.pix16,AGIDL_TGAGetSize(tga));
+		free(tga->pixels.pix16);
+		tga->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(img_data,&tga->header.width,&tga->header.height,
 		sx,sy,scale,AGIDL_TGAGetClrFmt(tga));
 	}
 	else{
-		tga->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(tga->pixels.pix32,&tga->header.width,&tga->header.height,
+		u32* img_data = (u32*)malloc(sizeof(u32)*AGIDL_TGAGetSize(tga));
+		AGIDL_ClrMemcpy(img_data,tga->pixels.pix32,AGIDL_TGAGetSize(tga));
+		free(tga->pixels.pix32);
+		tga->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(img_data,&tga->header.width,&tga->header.height,
 		sx,sy,scale,AGIDL_TGAGetClrFmt(tga));
 	}
 }
 
 void AGIDL_FastScaleTIM(AGIDL_TIM* tim, float sx, float sy, AGIDL_SCALE scale){
 	if(AGIDL_GetBitCount(AGIDL_TIMGetClrFmt(tim)) == 16){
-		tim->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(tim->pixels.pix16,&tim->img_header.width,&tim->img_header.height,
+		u16* img_data = (u16*)malloc(sizeof(u16)*AGIDL_TIMGetSize(tim));
+		AGIDL_ClrMemcpy16(img_data,tim->pixels.pix16,AGIDL_TIMGetSize(tim));
+		free(tim->pixels.pix16);
+		tim->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(img_data,&tim->img_header.width,&tim->img_header.height,
 		sx,sy,scale,AGIDL_TIMGetClrFmt(tim));
 	}
 	else{
-		tim->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(tim->pixels.pix32,&tim->img_header.width,&tim->img_header.height,
+		u32* img_data = (u32*)malloc(sizeof(u32)*AGIDL_TIMGetSize(tim));
+		AGIDL_ClrMemcpy(img_data,tim->pixels.pix32,AGIDL_TIMGetSize(tim));
+		free(tim->pixels.pix32);
+		tim->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(img_data,&tim->img_header.width,&tim->img_header.height,
 		sx,sy,scale,AGIDL_TIMGetClrFmt(tim));
 	}
 }
 
 void AGIDL_FastScalePCX(AGIDL_PCX* pcx, float sx, float sy, AGIDL_SCALE scale){
 	if(AGIDL_GetBitCount(AGIDL_PCXGetClrFmt(pcx)) == 16){
-		pcx->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(pcx->pixels.pix16,&pcx->header.width,&pcx->header.height,
+		u16* img_data = (u16*)malloc(sizeof(u16)*AGIDL_PCXGetSize(pcx));
+		AGIDL_ClrMemcpy16(img_data,pcx->pixels.pix16,AGIDL_PCXGetSize(pcx));
+		free(pcx->pixels.pix16);
+		pcx->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(img_data,&pcx->header.width,&pcx->header.height,
 		sx,sy,scale,AGIDL_PCXGetClrFmt(pcx));
 	}
 	else{
-		pcx->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(pcx->pixels.pix32,&pcx->header.width,&pcx->header.height,
+		u32* img_data = (u32*)malloc(sizeof(u32)*AGIDL_PCXGetSize(pcx));
+		AGIDL_ClrMemcpy(img_data,pcx->pixels.pix32,AGIDL_PCXGetSize(pcx));
+		free(pcx->pixels.pix32);
+		pcx->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(img_data,&pcx->header.width,&pcx->header.height,
 		sx,sy,scale,AGIDL_PCXGetClrFmt(pcx));
 	}
 }
 
 void AGIDL_FastScaleLMP(AGIDL_LMP* lmp, float sx, float sy, AGIDL_SCALE scale){
 	if(AGIDL_GetBitCount(AGIDL_LMPGetClrFmt(lmp)) == 16){
-		lmp->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(lmp->pixels.pix16,&lmp->width,&lmp->height,
+		u16* img_data = (u16*)malloc(sizeof(u16)*AGIDL_LMPGetSize(lmp));
+		AGIDL_ClrMemcpy16(img_data,lmp->pixels.pix16,AGIDL_LMPGetSize(lmp));
+		free(lmp->pixels.pix16);
+		lmp->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(img_data,&lmp->width,&lmp->height,
 		sx,sy,scale,AGIDL_LMPGetClrFmt(lmp));
 	}
 	else{
-		lmp->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(lmp->pixels.pix32,&lmp->width,&lmp->height,
+		u32* img_data = (u32*)malloc(sizeof(u32)*AGIDL_LMPGetSize(lmp));
+		AGIDL_ClrMemcpy(img_data,lmp->pixels.pix32,AGIDL_LMPGetSize(lmp));
+		free(lmp->pixels.pix32);
+		lmp->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(img_data,&lmp->width,&lmp->height,
 		sx,sy,scale,AGIDL_LMPGetClrFmt(lmp));
 	}
 }
 
 void AGIDL_FastScalePVR(AGIDL_PVR* pvr, float sx, float sy, AGIDL_SCALE scale){
 	if(AGIDL_GetBitCount(AGIDL_PVRGetClrFmt(pvr)) == 16){
-		pvr->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(pvr->pixels.pix16,&pvr->header.width,&pvr->header.height,
+		u16* img_data = (u16*)malloc(sizeof(u16)*AGIDL_PVRGetSize(pvr));
+		AGIDL_ClrMemcpy16(img_data,pvr->pixels.pix16,AGIDL_PVRGetSize(pvr));
+		free(pvr->pixels.pix16);
+		pvr->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(img_data,&pvr->header.width,&pvr->header.height,
 		sx,sy,scale,AGIDL_PVRGetClrFmt(pvr));
 	}
 	else{
-		pvr->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(pvr->pixels.pix32,&pvr->header.width,&pvr->header.height,
+		u32* img_data = (u32*)malloc(sizeof(u32)*AGIDL_PVRGetSize(pvr));
+		AGIDL_ClrMemcpy(img_data,pvr->pixels.pix32,AGIDL_PVRGetSize(pvr));
+		free(pvr->pixels.pix32);
+		pvr->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(img_data,&pvr->header.width,&pvr->header.height,
 		sx,sy,scale,AGIDL_PVRGetClrFmt(pvr));
 	}
 }
 
 void AGIDL_FastScaleGXT(AGIDL_GXT* gxt, float sx, float sy, AGIDL_SCALE scale){
 	if(AGIDL_GetBitCount(AGIDL_GXTGetClrFmt(gxt)) == 16){
-		gxt->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(gxt->pixels.pix16,&gxt->header.header.width,&gxt->header.header.height,
+		u16* img_data = (u16*)malloc(sizeof(u16)*AGIDL_GXTGetSize(gxt));
+		AGIDL_ClrMemcpy16(img_data,gxt->pixels.pix16,AGIDL_GXTGetSize(gxt));
+		free(gxt->pixels.pix16);
+		gxt->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(img_data,&gxt->header.header.width,&gxt->header.header.height,
 		sx,sy,scale,AGIDL_GXTGetClrFmt(gxt));
 	}
 	else{
-		gxt->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(gxt->pixels.pix32,&gxt->header.header.width,&gxt->header.header.height,
+		u32* img_data = (u32*)malloc(sizeof(u32)*AGIDL_GXTGetSize(gxt));
+		AGIDL_ClrMemcpy(img_data,gxt->pixels.pix32,AGIDL_GXTGetSize(gxt));
+		free(gxt->pixels.pix32);
+		gxt->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(img_data,&gxt->header.header.width,&gxt->header.header.height,
 		sx,sy,scale,AGIDL_GXTGetClrFmt(gxt));
 	}
 }
 
 void AGIDL_FastScaleBTI(AGIDL_BTI* bti, float sx, float sy, AGIDL_SCALE scale){
 	if(AGIDL_GetBitCount(AGIDL_BTIGetClrFmt(bti)) == 16){
-		bti->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(bti->pixels.pix16,&bti->header.width,&bti->header.height,
+		u16* img_data = (u16*)malloc(sizeof(u16)*AGIDL_BTIGetSize(bti));
+		AGIDL_ClrMemcpy16(img_data,bti->pixels.pix16,AGIDL_BTIGetSize(bti));
+		free(bti->pixels.pix16);
+		bti->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(img_data,&bti->header.width,&bti->header.height,
 		sx,sy,scale,AGIDL_BTIGetClrFmt(bti));
 	}
 	else{
-		bti->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(bti->pixels.pix32,&bti->header.width,&bti->header.height,
+		u32* img_data = (u32*)malloc(sizeof(u32)*AGIDL_BTIGetSize(bti));
+		AGIDL_ClrMemcpy(img_data,bti->pixels.pix32,AGIDL_BTIGetSize(bti));
+		free(bti->pixels.pix32);
+		bti->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(img_data,&bti->header.width,&bti->header.height,
 		sx,sy,scale,AGIDL_BTIGetClrFmt(bti));
 	}
 }
 
 void AGIDL_FastScale3DF(AGIDL_3DF* glide, float sx, float sy, AGIDL_SCALE scale){
 	if(AGIDL_GetBitCount(AGIDL_3DFGetClrFmt(glide)) == 16){
-		glide->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(glide->pixels.pix16,&glide->width,&glide->height,
+		u16* img_data = (u16*)malloc(sizeof(u16)*AGIDL_3DFGetSize(glide));
+		AGIDL_ClrMemcpy16(img_data,glide->pixels.pix16,AGIDL_3DFGetSize(glide));
+		free(glide->pixels.pix16);
+		glide->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(img_data,&glide->width,&glide->height,
 		sx,sy,scale,AGIDL_3DFGetClrFmt(glide));
 	}
 	else{
-		glide->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(glide->pixels.pix32,&glide->width,&glide->height,
+		u32* img_data = (u32*)malloc(sizeof(u32)*AGIDL_3DFGetSize(glide));
+		AGIDL_ClrMemcpy(img_data,glide->pixels.pix32,AGIDL_3DFGetSize(glide));
+		free(glide->pixels.pix32);
+		glide->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(img_data,&glide->width,&glide->height,
 		sx,sy,scale,AGIDL_3DFGetClrFmt(glide));
 	}
 }
 
 void AGIDL_FastScalePPM(AGIDL_PPM* ppm, float sx, float sy, AGIDL_SCALE scale){
 	if(AGIDL_GetBitCount(AGIDL_PPMGetClrFmt(ppm)) == 16){
-		ppm->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(ppm->pixels.pix16,&ppm->width,&ppm->height,
+		u16* img_data = (u16*)malloc(sizeof(u16)*AGIDL_PPMGetSize(ppm));
+		AGIDL_ClrMemcpy16(img_data,ppm->pixels.pix16,AGIDL_PPMGetSize(ppm));
+		free(ppm->pixels.pix16);
+		ppm->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(img_data,&ppm->width,&ppm->height,
 		sx,sy,scale,AGIDL_PPMGetClrFmt(ppm));
 	}
 	else{
-		ppm->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(ppm->pixels.pix32,&ppm->width,&ppm->height,
+		u32* img_data = (u32*)malloc(sizeof(u32)*AGIDL_PPMGetSize(ppm));
+		AGIDL_ClrMemcpy(img_data,ppm->pixels.pix32,AGIDL_PPMGetSize(ppm));
+		free(ppm->pixels.pix32);
+		ppm->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(img_data,&ppm->width,&ppm->height,
 		sx,sy,scale,AGIDL_PPMGetClrFmt(ppm));
 	}
 }
 
 void AGIDL_FastScaleLBM(AGIDL_LBM* lbm, float sx, float sy, AGIDL_SCALE scale){
 	if(AGIDL_GetBitCount(AGIDL_LBMGetClrFmt(lbm)) == 16){
-		lbm->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(lbm->pixels.pix16,&lbm->header.bmhd.width,&lbm->header.bmhd.height,
+		u16* img_data = (u16*)malloc(sizeof(u16)*AGIDL_LBMGetSize(lbm));
+		AGIDL_ClrMemcpy16(img_data,lbm->pixels.pix16,AGIDL_LBMGetSize(lbm));
+		free(lbm->pixels.pix16);
+		lbm->pixels.pix16 = (COLOR16*)AGIDL_FastScaleImgData(img_data,&lbm->header.bmhd.width,&lbm->header.bmhd.height,
 		sx,sy,scale,AGIDL_LBMGetClrFmt(lbm));
 	}
 	else{
-		lbm->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(lbm->pixels.pix32,&lbm->header.bmhd.width,&lbm->header.bmhd.height,
+		u32* img_data = (u32*)malloc(sizeof(u32)*AGIDL_LBMGetSize(lbm));
+		AGIDL_ClrMemcpy(img_data,lbm->pixels.pix32,AGIDL_LBMGetSize(lbm));
+		free(lbm->pixels.pix32);
+		lbm->pixels.pix32 = (COLOR*)AGIDL_FastScaleImgData(img_data,&lbm->header.bmhd.width,&lbm->header.bmhd.height,
 		sx,sy,scale,AGIDL_LBMGetClrFmt(lbm));
 	}
 }

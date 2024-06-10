@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "agidl_img_search.h"
-#include "agidl_img_error.h"
-#include "agidl_file_utils.h"
-#include "agidl_img_converter.h"
+#include <agidl_img_search.h>
+#include <agidl_imgp_impl.h>
+#include <agidl_img_error.h>
+#include <agidl_file_utils.h>
+#include <agidl_img_converter.h>
 
 /********************************************
 *   Adaptive Graphics Image Display Library
@@ -15,7 +16,7 @@
 *   File: agidl_img_search.c
 *   Date: 11/11/2023
 *   Version: 0.1b
-*   Updated: 2/25/2024
+*   Updated: 6/9/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -79,13 +80,18 @@ void AGIDL_TIMSearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE type, int fl
 				case AGIDL_IMG_TGA:{
 					char file_name[25] = {0};
 					sprintf(file_name,"tim_%ld.tim",img_count);
+					printf("%s\n",file_name);
 					tim->filename = (char*)malloc(strlen(file_name)+1);
 					AGIDL_FilenameCpy(tim->filename,file_name);
+					printf("tim = %s\n",tim->filename);
 					AGIDL_TGA* tga = AGIDL_ConvertTIM2TGA(tim);
+					printf("converted to tga...\n");
 					if(flip == 1){
 						AGIDL_FlipHorzTGA(tga);
+						printf("flipped tga...\n");
 					}
 					AGIDL_ExportTGA(tga);
+					printf("exported tga...\n");
 					AGIDL_FreeTGA(tga);
 				}break;
 				case AGIDL_IMG_PCX:{
@@ -412,7 +418,7 @@ void AGIDL_TGASearchFileOnDisk(const char* filename, AGIDL_IMG_TYPE img_type){
 	FILE* file = fopen(filename,"rb");
 	
 	if(file == NULL){
-		printf("Could not locate/open file - %s!\n");
+		printf("Could not locate/open file - %s!\n",filename);
 		return;
 	}	
 	

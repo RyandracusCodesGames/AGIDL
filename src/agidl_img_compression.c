@@ -1,5 +1,5 @@
-#include "agidl_img_compression.h"
-#include "agidl_img_types.h"
+#include <agidl_img_compression.h>
+#include <agidl_img_types.h>
 
 /********************************************
 *   Adaptive Graphics Image Display Library
@@ -9,8 +9,8 @@
 *   Library: libagidl
 *   File: agidl_img_compression.c
 *   Date: 11/25/2023
-*   Version: 0.1b
-*   Updated: 2/24/2024
+*   Version: 0.4b
+*   Updated: 6/10/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -37,6 +37,17 @@ u32 AGIDL_EncodeRLE(void* data, u32 bit_count, u32 x, u32 y, u32 width, u32 heig
 		}
 	}
 
+	return count;
+}
+
+u32 AGIDL_EncodeByteRLE(u8* data, u32 i, u32 max_rle){
+	u32 count = 1, inext = i + 1;
+	
+	while(data[i] == data[inext] && count < max_rle){
+		inext++;
+		count++;
+	}
+	
 	return count;
 }
 

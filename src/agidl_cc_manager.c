@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "agidl_cc_manager.h"
-#include "agidl_math_utils.h"
-#include "agidl_img_types.h"
-#include "agidl_cc_converter.h"
-#include "agidl_file_utils.h"
-#include "agidl_img_error.h"
+#include <agidl_cc_manager.h>
+#include <agidl_math_utils.h>
+#include <agidl_img_types.h>
+#include <agidl_cc_converter.h>
+#include <agidl_file_utils.h>
+#include <agidl_img_error.h>
 
 /********************************************
 *   Adaptive Graphics Image Display Library
@@ -16,8 +16,8 @@
 *   Library: libagidl
 *   File: agidl_cc_manager.c
 *   Date: 9/8/2023
-*   Version: 0.1b
-*   Updated: 2/26/2024
+*   Version: 0.4b
+*   Updated: 6/10/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
@@ -26,29 +26,29 @@ u32 AGIDL_AcquireRedMask(AGIDL_CLR_FMT fmt){
 	switch(fmt){
 		case AGIDL_RGBA_8888:{
 			return 0xff000000;
-		}break;
+		}
 		case AGIDL_ARGB_8888:{
 			return  0xff0000;
-		}break;
+		}
 		case AGIDL_RGB_888:{
 			return 0xff0000;
-		}break;
+		}
 		case AGIDL_BGR_888:{
 			return 0xff;
-		}break;
+		}
 		case AGIDL_RGB_555:{
 			return 0x7c00;
-		}break;
+		}
 		case AGIDL_BGR_555:{
 			return 0x1f;
-		}break;
+		}
 		case AGIDL_RGB_565:{
 			return 0xf800;
-		}break;
+		}
 		case AGIDL_BGR_565:{
 			return 0x1f;
-		}break;
-		default: return 0; break;
+		}
+		default: return 0; 
 	}
 }
 
@@ -56,29 +56,29 @@ u32 AGIDL_AcquireGreenMask(AGIDL_CLR_FMT fmt){
 	switch(fmt){
 		case AGIDL_RGBA_8888:{
 			return 0xff0000;
-		}break;
+		}
 		case AGIDL_ARGB_8888:{
 			return 0xff00;
-		}break;
+		}
 		case AGIDL_RGB_888:{
 			return 0xff00;
-		}break;
+		}
 		case AGIDL_BGR_888:{
 			return 0xff00;
-		}break;
+		}
 		case AGIDL_RGB_555:{
 			return 0x3e0;
-		}break;
+		}
 		case AGIDL_BGR_555:{
 			return 0x3e0;
-		}break;
+		}
 		case AGIDL_RGB_565:{
 			return 0x7e0;
-		}break;
+		}
 		case AGIDL_BGR_565:{
 			return 0x7e0;
-		}break;
-		default: return 0; break;
+		}
+		default: return 0; 
 	}
 }
 
@@ -86,29 +86,29 @@ u32 AGIDL_AcquireBlueMask(AGIDL_CLR_FMT fmt){
 	switch(fmt){
 		case AGIDL_RGBA_8888:{
 			return 0xff00;
-		}break;
+		}
 		case AGIDL_ARGB_8888:{
 			return 0xff000000;
-		}break;
+		}
 		case AGIDL_RGB_888:{
 			return 0xff;
-		}break;
+		}
 		case AGIDL_BGR_888:{
 			return 0xff0000;
-		}break;
+		}
 		case AGIDL_RGB_555:{
 			return 0x1f;
-		}break;
+		}
 		case AGIDL_BGR_555:{
 			return 0x7c00;
-		}break;
+		}
 		case AGIDL_RGB_565:{
 			return 0x1f;
-		}break;
+		}
 		case AGIDL_BGR_565:{
 			return 0xf800;
-		}break;
-		default: return 0; break;
+		}
+		default: return 0; 
 	}
 }
 
@@ -116,14 +116,14 @@ u32 AGIDL_AcquireColorMask(AGIDL_CLR_FMT fmt, AGIDL_CLR_COMPONENT component){
 	switch(component){
 		case CC_R:{
 			return AGIDL_AcquireRedMask(fmt);
-		}break;
+		}
 		case CC_G:{
 			return AGIDL_AcquireGreenMask(fmt);
-		}break;
+		}
 		case CC_B:{
 			return AGIDL_AcquireBlueMask(fmt);
-		}break;
-		default: return 0; break;
+		}
+		default: return 0; 
 	}
 }
 
@@ -131,29 +131,29 @@ u8 AGIDL_GetR(COLOR clr, AGIDL_CLR_FMT fmt){
 	switch(fmt){
 		case AGIDL_RGB_888:{
 			return ((clr & 0xff0000) >> 16);
-		}break;
+		}
 		case AGIDL_BGR_888:{
 			return ((clr & 0xff));
-		}break;
+		}
 		case AGIDL_RGBA_8888:{
 			return ((clr >> 24) & 0xff);
-		}break;
+		}
 		case AGIDL_ARGB_8888:{
 			return ((clr >> 16) & 0xff);
-		}break;
+		}
 		case AGIDL_RGB_555:{
 			return ((clr & 0x7C00) >> 10);
-		}break;
+		}
 		case AGIDL_BGR_555:{
 			return ((clr & 0x001F));
-		}break;
+		}
 		case AGIDL_RGB_565:{
 			return ((clr & 0xF800) >> 11);
-		}break;
+		}
 		case AGIDL_BGR_565:{
 			return ((clr & 0x001F));
-		}break;
-		default: return 0; break;
+		}
+		default: return 0; 
 	}
 }
 
@@ -161,29 +161,29 @@ u8 AGIDL_GetG(COLOR clr, AGIDL_CLR_FMT fmt){
 	switch(fmt){
 		case AGIDL_RGB_888:{
 			return ((clr & 0xff00) >> 8);
-		}break;
+		}
 		case AGIDL_BGR_888:{
 			return ((clr & 0xff00) >> 8);
-		}break;
+		}
 		case AGIDL_RGBA_8888:{
 			return ((clr & 0xff0000) >> 16);
-		}break;
+		}
 		case AGIDL_ARGB_8888:{
 			return ((clr & 0xff) >> 8);
-		}break;
+		}
 		case AGIDL_RGB_555:{
 			return ((clr & 0x3E0) >> 5);
-		}break;
+		}
 		case AGIDL_BGR_555:{
 			return((clr & 0x3E0) >> 5);
-		}break;
+		}
 		case AGIDL_RGB_565:{
 			return ((clr & 0x7E0) >> 5);
-		}break;
+		}
 		case AGIDL_BGR_565:{
 			return((clr & 0x7E0) >> 5);
-		}break;
-		default: return 0; break;
+		}
+		default: return 0; 
 	}
 }
 
@@ -191,29 +191,29 @@ u8 AGIDL_GetB(COLOR clr, AGIDL_CLR_FMT fmt){
 	switch(fmt){
 		case AGIDL_RGB_888:{
 			return ((clr & 0xff));
-		}break;
+		}
 		case AGIDL_BGR_888:{
 			return ((clr & 0xff0000) >> 16);
-		}break;
+		}
 		case AGIDL_RGBA_8888:{
 			return ((clr & 0xff00) >> 8);
-		}break;
+		}
 		case AGIDL_ARGB_8888:{
 			return ((clr & 0xff));
-		}break;
+		}
 		case AGIDL_RGB_555:{
 			return ((clr & 0x001F));
-		}break;
+		}
 		case AGIDL_BGR_555:{
 			return ((clr & 0x7C00) >> 10);
-		}break;
+		}
 		case AGIDL_RGB_565:{
 			return ((clr & 0x001F));
-		}break;
+		}
 		case AGIDL_BGR_565:{
 			return ((clr & 0xF800) >> 11);
-		}break;
-		default: return 0; break;
+		}
+		default: return 0; 
 	}
 }
 
@@ -234,52 +234,52 @@ COLOR AGIDL_SetR(COLOR clr, u8 newR, AGIDL_CLR_FMT fmt){
 			u8 g = AGIDL_GetG(clr,fmt);
 			u8 b = AGIDL_GetB(clr,fmt);
 			return AGIDL_RGB(r,g,b,fmt);
-		}break;
+		}
 		case AGIDL_BGR_888:{
 			u8 r = newR;
 			u8 g = AGIDL_GetG(clr,fmt);
 			u8 b = AGIDL_GetB(clr,fmt);
 			return AGIDL_RGB(r,g,b,fmt);
-		}break;
+		}
 		case AGIDL_RGBA_8888:{
 			u8 r = newR;
 			u8 g = AGIDL_GetG(clr,fmt);
 			u8 b = AGIDL_GetB(clr,fmt);
 			u8 a = AGIDL_GetA(clr,fmt);
 			return AGIDL_RGBA(r,g,b,a,fmt);
-		}break;
+		}
 		case AGIDL_ARGB_8888:{
 			u8 r = newR;
 			u8 g = AGIDL_GetG(clr,fmt);
 			u8 b = AGIDL_GetB(clr,fmt);
 			u8 a = AGIDL_GetA(clr,fmt);
 			return AGIDL_RGBA(r,g,b,a,fmt);
-		}break;
+		}
 		case AGIDL_RGB_555:{
 			u8 r = AGIDL_Clamp(0,newR,31);
 			u8 g = AGIDL_GetG(clr,fmt);
 			u8 b = AGIDL_GetB(clr,fmt);
 			return AGIDL_RGB(r,g,b,fmt);
-		}break;
+		}
 		case AGIDL_BGR_555:{
 			u8 r = AGIDL_Clamp(0,newR,31);
 			u8 g = AGIDL_GetG(clr,fmt);
 			u8 b = AGIDL_GetB(clr,fmt);
 			return AGIDL_RGB(r,g,b,fmt); 
-		}break;
+		}
 		case AGIDL_RGB_565:{
 			u8 r = AGIDL_Clamp(0,newR,31);
 			u8 g = AGIDL_GetG(clr,fmt);
 			u8 b = AGIDL_GetB(clr,fmt);
 			return AGIDL_RGB(r,g,b,fmt);
-		}break;
+		}
 		case AGIDL_BGR_565:{
 			u8 r = AGIDL_Clamp(0,newR,31);
 			u8 g = AGIDL_GetG(clr,fmt);
 			u8 b = AGIDL_GetB(clr,fmt);
 			return AGIDL_RGB(r,g,b,fmt);
-		}break;
-		default: return clr; break;
+		}
+		default: return clr; 
 	}
 }
 
@@ -290,52 +290,52 @@ COLOR AGIDL_SetG(COLOR clr, u8 newG, AGIDL_CLR_FMT fmt){
 			u8 g = newG;
 			u8 b = AGIDL_GetB(clr,fmt);
 			return AGIDL_RGB(r,g,b,fmt);
-		}break;
+		}
 		case AGIDL_BGR_888:{
 			u8 r = AGIDL_GetR(clr,fmt);
 			u8 g = newG;
 			u8 b = AGIDL_GetB(clr,fmt);
 			return AGIDL_RGB(r,g,b,fmt);
-		}break;
+		}
 		case AGIDL_RGBA_8888:{
 			u8 r = AGIDL_GetR(clr,fmt);
 			u8 g = newG;
 			u8 b = AGIDL_GetB(clr,fmt);
 			u8 a = AGIDL_GetA(clr,fmt);
 			return AGIDL_RGBA(r,g,b,a,fmt);
-		}break;
+		}
 		case AGIDL_ARGB_8888:{
 			u8 r = AGIDL_GetR(clr,fmt);
 			u8 g = newG;
 			u8 b = AGIDL_GetB(clr,fmt);
 			u8 a = AGIDL_GetA(clr,fmt);
 			return AGIDL_RGBA(r,g,b,a,fmt);
-		}break;
+		}
 		case AGIDL_RGB_555:{
 			u8 r = AGIDL_GetR(clr,fmt);
 			u8 g = AGIDL_Clamp(0,newG,31);
 			u8 b = AGIDL_GetB(clr,fmt);
 			return AGIDL_RGB(r,g,b,fmt);
-		}break;
+		}
 		case AGIDL_BGR_555:{
 			u8 r = AGIDL_GetR(clr,fmt);
 			u8 g = AGIDL_Clamp(0,newG,31);
 			u8 b = AGIDL_GetB(clr,fmt);
 			return AGIDL_RGB(r,g,b,fmt); 
-		}break;
+		}
 		case AGIDL_RGB_565:{
 			u8 r = AGIDL_GetR(clr,fmt);
 			u8 g = AGIDL_Clamp(0,newG,63);
 			u8 b = AGIDL_GetB(clr,fmt);
 			return AGIDL_RGB(r,g,b,fmt);
-		}break;
+		}
 		case AGIDL_BGR_565:{
 			u8 r = AGIDL_GetR(clr,fmt);
 			u8 g = AGIDL_Clamp(0,newG,63);
 			u8 b = AGIDL_GetB(clr,fmt);
 			return AGIDL_RGB(r,g,b,fmt); 
-		}break;
-		default: return clr; break;
+		}
+		default: return clr; 
 	}
 }
 
@@ -346,52 +346,52 @@ COLOR AGIDL_SetB(COLOR clr, u8 newB, AGIDL_CLR_FMT fmt){
 			u8 g = AGIDL_GetG(clr,fmt);
 			u8 b = newB;
 			return AGIDL_RGB(r,g,b,fmt);
-		}break;
+		}
 		case AGIDL_BGR_888:{
 			u8 r = AGIDL_GetR(clr,fmt);
 			u8 g = AGIDL_GetG(clr,fmt);
 			u8 b = newB;
 			return AGIDL_RGB(r,g,b,fmt);
-		}break;
+		}
 		case AGIDL_RGBA_8888:{
 			u8 r = AGIDL_GetR(clr,fmt);
 			u8 g = AGIDL_GetG(clr,fmt);
 			u8 b = newB;
 			u8 a = AGIDL_GetA(clr,fmt);
 			return AGIDL_RGBA(r,g,b,a,fmt);
-		}break;
+		}
 		case AGIDL_ARGB_8888:{
 			u8 r = AGIDL_GetR(clr,fmt);
 			u8 g = AGIDL_GetG(clr,fmt);
 			u8 b = newB;
 			u8 a = AGIDL_GetA(clr,fmt);
 			return AGIDL_RGBA(r,g,b,a,fmt);
-		}break;
+		}
 		case AGIDL_RGB_555:{
 			u8 r = AGIDL_GetR(clr,fmt);
 			u8 g = AGIDL_GetG(clr,fmt);
 			u8 b = AGIDL_Clamp(0,newB,31);
 			return AGIDL_RGB(r,g,b,fmt);
-		}break;
+		}
 		case AGIDL_BGR_555:{
 			u8 r = AGIDL_GetR(clr,fmt);
 			u8 g = AGIDL_GetG(clr,fmt);
 			u8 b = AGIDL_Clamp(0,newB,31);
 			return AGIDL_RGB(r,g,b,fmt); 
-		}break;
+		}
 		case AGIDL_RGB_565:{
 			u8 r = AGIDL_GetR(clr,fmt);
 			u8 g = AGIDL_GetG(clr,fmt);
 			u8 b = AGIDL_Clamp(0,newB,31);
 			return AGIDL_RGB(r,g,b,fmt); 
-		}break;
+		}
 		case AGIDL_BGR_565:{
 			u8 r = AGIDL_GetR(clr,fmt);
 			u8 g = AGIDL_GetG(clr,fmt);
 			u8 b = AGIDL_Clamp(0,newB,31);
 			return AGIDL_RGB(r,g,b,fmt); 
-		}break;
-		default: return clr; break;
+		}
+		default: return clr; 
 	}
 }
 
@@ -402,14 +402,14 @@ COLOR AGIDL_SetA(COLOR clr, u8 newA, AGIDL_CLR_FMT fmt){
 			u8 g = AGIDL_GetG(clr,fmt);
 			u8 b = AGIDL_GetB(clr,fmt);
 			return AGIDL_RGBA(r,g,b,newA,fmt); 
-		}break;
+		}
 		case AGIDL_ARGB_8888:{
 			u8 r = AGIDL_GetR(clr,fmt);
 			u8 g = AGIDL_GetG(clr,fmt);
 			u8 b = AGIDL_GetB(clr,fmt);
 			return AGIDL_RGBA(r,g,b,newA,fmt); 
-		}break;
-		default: return clr; break;
+		}
+		default: return clr; 
 	}
 }
 
@@ -417,41 +417,41 @@ COLOR AGIDL_RGB(u8 r, u8 g, u8 b, AGIDL_CLR_FMT fmt){
 	switch(fmt){
 		case AGIDL_RGB_888:{
 			return r << 16 | g << 8 | b;
-		}break;
+		}
 		case AGIDL_BGR_888:{
 			return b << 16 | g << 8 | r;
-		}break;
+		}
 		case AGIDL_RGB_555:{
 			r = AGIDL_Clamp(0,r,31);
 			g = AGIDL_Clamp(0,g,31);
 			b = AGIDL_Clamp(0,b,31);
 			return r << 10 | g << 5 | b;
-		}break;
+		}
 		case AGIDL_BGR_555:{
 			r = AGIDL_Clamp(0,r,31);
 			g = AGIDL_Clamp(0,g,31);
 			b = AGIDL_Clamp(0,b,31);
 			return b << 10 | g << 5 | r;
-		}break;
+		}
 		case AGIDL_RGB_565:{
 			r = AGIDL_Clamp(0,r,31);
 			g = AGIDL_Clamp(0,g,63);
 			b = AGIDL_Clamp(0,b,31);
 			return r << 11 | g << 5 | b;
-		}break;
+		}
 		case AGIDL_BGR_565:{
 			r = AGIDL_Clamp(0,r,31);
 			g = AGIDL_Clamp(0,g,63);
 			b = AGIDL_Clamp(0,b,31);
 			return b << 11 | g << 5 | r;
-		}break;
+		}
 		case AGIDL_RGBA_8888:{
 			return AGIDL_RGBA(r,g,b,0xff,fmt);
-		}break;
+		}
 		case AGIDL_ARGB_8888:{
 			return AGIDL_RGBA(r,g,b,0xff,fmt);
-		}break;
-		default: return 0; break;
+		}
+		default: return 0; 
 	}
 }
 
@@ -469,26 +469,26 @@ COLOR16 AGIDL_RGB16(u8 r, u8 g, u8 b, AGIDL_CLR_FMT fmt){
 			g = AGIDL_Clamp(0,g,31);
 			b = AGIDL_Clamp(0,b,31);
 			return r << 10 | g << 5 | b;
-		}break;
+		}
 		case AGIDL_BGR_555:{
 			r = AGIDL_Clamp(0,r,31);
 			g = AGIDL_Clamp(0,g,31);
 			b = AGIDL_Clamp(0,b,31);
 			return b << 10 | g << 5 | r;
-		}break;
+		}
 		case AGIDL_RGB_565:{
 			r = AGIDL_Clamp(0,r,31);
 			g = AGIDL_Clamp(0,g,63);
 			b = AGIDL_Clamp(0,b,31);
 			return r << 11 | g << 5 | b;
-		}break;
+		}
 		case AGIDL_BGR_565:{
 			r = AGIDL_Clamp(0,r,31);
 			g = AGIDL_Clamp(0,g,63);
 			b = AGIDL_Clamp(0,b,31);
 			return b << 11 | g << 5 | r;
-		}break;
-		default: return 0; break;
+		}
+		default: return 0; 
 	}
 }
 
@@ -533,310 +533,310 @@ COLOR AGIDL_GetColor(AGIDL_CLR clr, AGIDL_CLR_FMT fmt){
 			switch(fmt){
 				case AGIDL_RGB_888:{
 					return BLACK_RGB_888;
-				}break;
+				}
 				case AGIDL_BGR_888:{
 					return BLACK_BGR_888;
-				}break;
+				}
 				case AGIDL_RGBA_8888:{
 					return BLACK_RGBA_8888;
-				}break;
+				}
 				case AGIDL_ARGB_8888:{
 					return BLACK_ARGB_8888;
-				}break;
+				}
 				case AGIDL_RGB_555:{
 					return BLACK_RGB_555;
-				}break;
+				}
 				case AGIDL_BGR_555:{
 					return BLACK_BGR_555;
-				}break;
+				}
 				case AGIDL_RGB_565:{
 					return BLACK_RGB_565;
-				}break;
+				}
 				case AGIDL_BGR_565:{
 					return BLACK_BGR_565;
-				}break;
+				}
 			}
-		}break;
+		}
 		case WHITE:{
 			switch(fmt){
 				case AGIDL_RGB_888:{
 					return WHITE_RGB_888;
-				}break;
+				}
 				case AGIDL_BGR_888:{
 					return WHITE_BGR_888;
-				}break;
+				}
 				case AGIDL_RGBA_8888:{
 					return WHITE_RGBA_8888;
-				}break;
+				}
 				case AGIDL_ARGB_8888:{
 					return WHITE_ARGB_8888;
-				}break;
+				}
 				case AGIDL_RGB_555:{
 					return WHITE_RGB_555;
-				}break;
+				}
 				case AGIDL_BGR_555:{
 					return WHITE_BGR_555;
-				}break;
+				}
 				case AGIDL_RGB_565:{
 					return WHITE_RGB_565;
-				}break;
+				}
 				case AGIDL_BGR_565:{
 					return WHITE_BGR_565;
-				}break;
+				}
 			}
-		}break;
+		}
 		case GRAY:{
 			switch(fmt){
 				case AGIDL_RGB_888:{
 					return GRAY_RGB_888;
-				}break;
+				}
 				case AGIDL_BGR_888:{
 					return GRAY_BGR_888;
-				}break;
+				}
 				case AGIDL_RGBA_8888:{
 					return GRAY_RGBA_8888;
-				}break;
+				}
 				case AGIDL_ARGB_8888:{
 					return GRAY_ARGB_8888;
-				}break;
+				}
 				case AGIDL_RGB_555:{
 					return GRAY_RGB_555;
-				}break;
+				}
 				case AGIDL_BGR_555:{
 					return GRAY_BGR_555;
-				}break;
+				}
 				case AGIDL_RGB_565:{
 					return GRAY_RGB_565;
-				}break;
+				}
 				case AGIDL_BGR_565:{
 					return GRAY_BGR_565;
-				}break;
+				}
 			}
-		}break;
+		}
 		case RED:{
 			switch(fmt){
 				case AGIDL_RGB_888:{
 					return RED_RGB_888;
-				}break;
+				}
 				case AGIDL_BGR_888:{
 					return RED_BGR_888;
-				}break;
+				}
 				case AGIDL_RGBA_8888:{
 					return RED_RGBA_8888;
-				}break;
+				}
 				case AGIDL_ARGB_8888:{
 					return RED_ARGB_8888;
-				}break;
+				}
 				case AGIDL_RGB_555:{
 					return RED_RGB_555;
-				}break;
+				}
 				case AGIDL_BGR_555:{
 					return RED_BGR_555;
-				}break;
+				}
 				case AGIDL_RGB_565:{
 					return RED_RGB_565;
-				}break;
+				}
 				case AGIDL_BGR_565:{
 					return RED_BGR_565;
-				}break;
+				}
 			}
-		}break;
+		}
 		case GREEN:{
 			switch(fmt){
 				case AGIDL_RGB_888:{
 					return GREEN_RGB_888;
-				}break;
+				}
 				case AGIDL_BGR_888:{
 					return GREEN_BGR_888;
-				}break;
+				}
 				case AGIDL_RGBA_8888:{
 					return GREEN_RGBA_8888;
-				}break;
+				}
 				case AGIDL_ARGB_8888:{
 					return GREEN_ARGB_8888;
-				}break;
+				}
 				case AGIDL_RGB_555:{
 					return GREEN_RGB_555;
-				}break;
+				}
 				case AGIDL_BGR_555:{
 					return GREEN_BGR_555;
-				}break;
+				}
 				case AGIDL_RGB_565:{
 					return GREEN_RGB_565;
-				}break;
+				}
 				case AGIDL_BGR_565:{
 					return GREEN_BGR_565;
-				}break;
+				}
 			}
-		}break;
+		}
 		case BLUE:{
 			switch(fmt){
 				case AGIDL_RGB_888:{
 					return BLUE_RGB_888;
-				}break;
+				}
 				case AGIDL_BGR_888:{
 					return BLUE_BGR_888;
-				}break;
+				}
 				case AGIDL_RGBA_8888:{
 					return BLUE_RGBA_8888;
-				}break;
+				}
 				case AGIDL_ARGB_8888:{
 					return BLUE_ARGB_8888;
-				}break;
+				}
 				case AGIDL_RGB_555:{
 					return BLUE_RGB_555;
-				}break;
+				}
 				case AGIDL_BGR_555:{
 					return BLUE_BGR_555;
-				}break;
+				}
 				case AGIDL_RGB_565:{
 					return BLUE_RGB_565;
-				}break;
+				}
 				case AGIDL_BGR_565:{
 					return BLUE_BGR_565;
-				}break;
+				}
 			}
-		}break;
+		}
 		case YELLOW:{
 			switch(fmt){
 				case AGIDL_RGB_888:{
 					return YELLOW_RGB_888;
-				}break;
+				}
 				case AGIDL_BGR_888:{
 					return YELLOW_BGR_888;
-				}break;
+				}
 				case AGIDL_RGBA_8888:{
 					return YELLOW_RGBA_8888;
-				}break;
+				}
 				case AGIDL_ARGB_8888:{
 					return YELLOW_ARGB_8888;
-				}break;
+				}
 				case AGIDL_RGB_555:{
 					return YELLOW_RGB_555;
-				}break;
+				}
 				case AGIDL_BGR_555:{
 					return YELLOW_BGR_555;
-				}break;
+				}
 				case AGIDL_RGB_565:{
 					return YELLOW_RGB_565;
-				}break;
+				}
 				case AGIDL_BGR_565:{
 					return YELLOW_BGR_565;
-				}break;
+				}
 			}
-		}break;
+		}
 		case ORANGE:{
 			switch(fmt){
 				case AGIDL_RGB_888:{
 					return ORANGE_RGB_888;
-				}break;
+				}
 				case AGIDL_BGR_888:{
 					return ORANGE_BGR_888;
-				}break;
+				}
 				case AGIDL_RGBA_8888:{
 					return ORANGE_RGBA_8888;
-				}break;
+				}
 				case AGIDL_ARGB_8888:{
 					return ORANGE_ARGB_8888;
-				}break;
+				}
 				case AGIDL_RGB_555:{
 					return ORANGE_RGB_555;
-				}break;
+				}
 				case AGIDL_BGR_555:{
 					return ORANGE_BGR_555;
-				}break;
+				}
 				case AGIDL_RGB_565:{
 					return ORANGE_RGB_565;
-				}break;
+				}
 				case AGIDL_BGR_565:{
 					return ORANGE_BGR_565;
-				}break;
+				}
 			}
-		}break;
+		}
 		case PURPLE:{
 			switch(fmt){
 				case AGIDL_RGB_888:{
 					return PURPLE_RGB_888;
-				}break;
+				}
 				case AGIDL_BGR_888:{
 					return PURPLE_BGR_888;
-				}break;
+				}
 				case AGIDL_RGBA_8888:{
 					return PURPLE_RGBA_8888;
-				}break;
+				}
 				case AGIDL_ARGB_8888:{
 					return PURPLE_ARGB_8888;
-				}break;
+				}
 				case AGIDL_RGB_555:{
 					return PURPLE_RGB_555;
-				}break;
+				}
 				case AGIDL_BGR_555:{
 					return PURPLE_BGR_555;
-				}break;
+				}
 				case AGIDL_RGB_565:{
 					return PURPLE_RGB_565;
-				}break;
+				}
 				case AGIDL_BGR_565:{
 					return PURPLE_BGR_565;
-				}break;
+				}
 			}
-		}break;
+		}
 		case BROWN:{
 			switch(fmt){
 				case AGIDL_RGB_888:{
 					return BROWN_RGB_888;
-				}break;
+				}
 				case AGIDL_BGR_888:{
 					return BROWN_BGR_888;
-				}break;
+				}
 				case AGIDL_RGBA_8888:{
 					return BROWN_RGBA_8888;
-				}break;
+				}
 				case AGIDL_ARGB_8888:{
 					return BROWN_ARGB_8888;
-				}break;
+				}
 				case AGIDL_RGB_555:{
 					return BROWN_RGB_555;
-				}break;
+				}
 				case AGIDL_BGR_555:{
 					return BROWN_BGR_555;
-				}break;
+				}
 				case AGIDL_RGB_565:{
 					return BROWN_RGB_565;
-				}break;
+				}
 				case AGIDL_BGR_565:{
 					return BROWN_BGR_565;
-				}break;
+				}
 			}
-		}break;
+		}
 		case PINK:{
 			switch(fmt){
 				case AGIDL_RGB_888:{
 					return PINK_RGB_888;
-				}break;
+				}
 				case AGIDL_BGR_888:{
 					return PINK_BGR_888;
-				}break;
+				}
 				case AGIDL_RGBA_8888:{
 					return PINK_RGBA_8888;
-				}break;
+				}
 				case AGIDL_ARGB_8888:{
 					return PINK_ARGB_8888;
-				}break;
+				}
 				case AGIDL_RGB_555:{
 					return PINK_RGB_555;
-				}break;
+				}
 				case AGIDL_BGR_555:{
 					return PINK_BGR_555;
-				}break;
+				}
 				case AGIDL_RGB_565:{
 					return PINK_RGB_565;
-				}break;
+				}
 				case AGIDL_BGR_565:{
 					return PINK_BGR_565;
-				}break;
+				}
 			}
-		}break;
+		}
 	}
 	return 0;
 }
@@ -853,7 +853,7 @@ COLOR AGIDL_GammaCorrectColor(COLOR clr, f32 gamma, AGIDL_CLR_FMT fmt){
 			b = pow((b/255.0f),1/gamma)*255;
 			
 			return AGIDL_RGB(r,g,b,fmt);
-		}break;
+		}
 		case 16:{
 			u8 r = AGIDL_GetR(clr,fmt);
 			u8 g = AGIDL_GetG(clr,fmt);
@@ -864,7 +864,7 @@ COLOR AGIDL_GammaCorrectColor(COLOR clr, f32 gamma, AGIDL_CLR_FMT fmt){
 			b = pow((b/31.0f),1/gamma)*31;
 			
 			return AGIDL_RGB16(r,g,b,fmt);
-		}break;
+		}
 		case 32:{
 			u8 r = AGIDL_GetR(clr,fmt);
 			u8 g = AGIDL_GetG(clr,fmt);
@@ -876,7 +876,7 @@ COLOR AGIDL_GammaCorrectColor(COLOR clr, f32 gamma, AGIDL_CLR_FMT fmt){
 			b = pow((b/255.0f),1/gamma)*255;
 			
 			return AGIDL_RGBA(r,g,b,a,fmt);
-		}break;
+		}
 	}
 	return 0;
 }
@@ -1116,7 +1116,7 @@ AGIDL_CLR_FMT AGIDL_GetClrFmt(AGIDL_CLR_MDL mdl, AGIDL_BITS bits){
 	}
 }
 
-void AGIDL_ExportICP(const char* name, AGIDL_ICP icp){
+void AGIDL_ExportICP(char* name, AGIDL_ICP icp){
 	char* filename = AGIDL_StrCpy(name,".icp");
 	FILE* file = fopen(filename,"wb");
 	
@@ -1144,28 +1144,28 @@ void AGIDL_ExportICP(const char* name, AGIDL_ICP icp){
 				COLOR clr = icp.icp.palette_256[i];
 				AGIDL_WriteRGB(file,clr,icp.fmt,icp.fmt);
 			}
-		}break;
+		}
 		case AGIDL_ICP_16:{
 			int i;
 			for(i = 0; i < 16; i++){
 				COLOR clr = icp.icp.palette_256[i];
 				AGIDL_WriteRGB(file,clr,icp.fmt,icp.fmt);
 			}
-		}break;
+		}
 		case AGIDL_ICP_16b_256:{
 			int i;
 			for(i = 0; i < 256; i++){
 				COLOR16 clr = icp.icp.palette_16b_256[i];
 				AGIDL_WriteShort(file,clr);
 			}
-		}break;
+		}
 		case AGIDL_ICP_16b_16:{
 			int i;
 			for(i = 0; i < 16; i++){
 				COLOR16 clr = icp.icp.palette_16b_256[i];
 				AGIDL_WriteShort(file,clr);
 			}
-		}break;
+		}
 	}
 	fclose(file);
 	
@@ -1261,36 +1261,74 @@ void AGIDL_InitICP(AGIDL_ICP *palette, int mode){
 	}
 }
 
-void AGIDL_EncodeHistogramICP(AGIDL_ICP* palette, void* data, u32 width, u32 height, AGIDL_CLR_FMT fmt){
+void QSwap(u32* a, u32* b){
+	u32 temp = *a;
+	*a = *b;
+	*b = temp;
+}
+
+int partition(u32* data, u32* gram, int low, int high)
+{
+    // choose the pivot
+    int pivot = data[high];
+
+    // Index of smaller element and Indicate
+    // the right position of pivot found so far
+    int i = (low - 1);
+	int j;
+    for (j = low; j <= high; j++) {
+        // If current element is smaller than the pivot
+        if (data[j] < pivot) {
+            // Increment index of smaller element
+            i++;
+            QSwap(&data[i], &data[j]);
+			QSwap(&gram[i], &gram[j]);
+        }
+    }
+    QSwap(&data[i + 1], &data[high]);
+	QSwap(&gram[i + 1], &gram[high]);
+    return (i + 1);
+}
+
+void quickSort(u32* data, u32* gram, int low, int high)
+{
+    // when low is less than high
+    if (low < high) {
+        // pi is the partition return index of pivot
+
+        int pi = partition(data, gram, low, high);
+
+        // Recursion Call
+        // smaller element than pivot goes left and
+        // higher element goes right
+        quickSort(data, gram, low, pi - 1);
+        quickSort(data, gram, pi + 1, high);
+    }
+}
+
+void AGIDL_EncodeHistogramICP(AGIDL_ICP* palette, const void* data, u32 width, u32 height, AGIDL_CLR_FMT fmt){
 	if(AGIDL_GetBitCount(fmt) == 16){
-		AGIDL_Hist hist[MAX_HIGH_CLR];
-	
-		int ii;
-		for(ii = 0; ii < MAX_HIGH_CLR; ii++){
-			hist[ii].color = ii;
-			hist[ii].occurence = 1;
-		}
-		
 		u16* clr_data = (u16*)data;
 		
-		//ITERATE THROUGH ENTIRE BUFFER OF IMAGE DATA AND TRACK ITS NUMBER OF OCCURENCES IN A HISTOGRAM
+		u32 histogram[MAX_HIGH_CLR];
+		u32 colorgram[MAX_HIGH_CLR];
+		
 		int i;
-		for(i = 0; i < width*height; i++){
-			u16 color = clr_data[i];
-			hist[color].occurence = hist[color].occurence + 1;
+		for(i = 0; i < MAX_HIGH_CLR; i++){
+			histogram[i] = 1;
+			colorgram[i] = i;
 		}
 		
-		//PERFORM BUBBLE SORT TO LIST THE 256 MOST IMPORTANT COLORS IN ORDER OF LEAST TO MOST FREQUENTLY OCCURING COLORS
-		int j;
-		for(j = 0; j < MAX_HIGH_CLR - 1; j++){
-			for(i = 0; i < MAX_HIGH_CLR - 1; i++){
-				if(hist[i].occurence > hist[i+1].occurence){
-					AGIDL_Hist temp = hist[i];
-					hist[i] = hist[i+1];
-					hist[i+1] = temp;
-				}
-			}
-		}
+		//ITERATE THROUGH ENTIRE BUFFER OF IMAGE DATA AND TRACK ITS NUMBER OF OCCURENCES IN A HISTOGRAM
+		u32 size = width*height;
+		for(i = 0; i < size; i++){
+			u32 color16 = clr_data[i];
+			histogram[color16] = histogram[color16] + 1;
+		}  
+
+		//PERFORM QUICK SORT TO LIST THE 256 MOST IMPORTANT COLORS IN ORDER OF LEAST TO MOST FREQUENTLY OCCURING COLORS
+		quickSort(histogram,colorgram,0,MAX_HIGH_CLR);
+
 		
 		AGIDL_InitICP(palette,AGIDL_ICP_16b_256);
 		
@@ -1298,12 +1336,13 @@ void AGIDL_EncodeHistogramICP(AGIDL_ICP* palette, void* data, u32 width, u32 hei
 		for(i = MAX_HIGH_CLR; i > 0; i--){
 			AGIDL_Bool skip = FALSE;
 			
-			u16 clr = hist[i].color;
+			u16 clr = colorgram[i];
 			
 			int r = AGIDL_GetR(clr,fmt);
 			int g = AGIDL_GetG(clr,fmt);
 			int b = AGIDL_GetB(clr,fmt);
 			
+			int j;
 			for(j = 0; j < 256; j++){
 				u16 palclr = palette->icp.palette_16b_256[j];
 				
@@ -1311,9 +1350,21 @@ void AGIDL_EncodeHistogramICP(AGIDL_ICP* palette, void* data, u32 width, u32 hei
 				int palg = AGIDL_GetG(palclr,fmt);
 				int palb = AGIDL_GetB(palclr,fmt);
 				
-				int rdiff = AGIDL_Abs(r-palr);
-				int gdiff = AGIDL_Abs(g-palg);
-				int bdiff = AGIDL_Abs(b-palb);
+				int rdiff = r-palr;
+				int gdiff = g-palg;
+				int bdiff = b-palb;
+				
+				if(rdiff < 0){
+					rdiff = -rdiff;
+				}
+				
+				if(gdiff < 0){
+					gdiff = -gdiff;
+				}
+				
+				if(bdiff < 0){
+					bdiff = -bdiff;
+				}
 				
 				if(rdiff <= 1 && gdiff <= 1 && bdiff <= 1){
 					skip = TRUE;
@@ -1330,49 +1381,45 @@ void AGIDL_EncodeHistogramICP(AGIDL_ICP* palette, void* data, u32 width, u32 hei
 			}
 		}
 		
+		palette->fmt = fmt;
 	}
 	else{
 		u32* clr_data = (u32*)data;
 		
-		AGIDL_Hist histc[MAX_HIGH_CLR];
+		u32 histogram[32767];
+		u32 colorgram[32767];
 		
 		int i;
-		for(i = 0; i < MAX_HIGH_CLR; i++){
-			histc[i].color = i;
-			histc[i].occurence = 1;
+		for(i = 0; i < 32767; i++){
+			histogram[i] = 1;
+			colorgram[i] = i;
 		}
 		
 		//ITERATE THROUGH ENTIRE BUFFER OF IMAGE DATA AND TRACK ITS NUMBER OF OCCURENCES IN A HISTOGRAM
-		for(i = 0; i < width*height; i++){
+		u32 size = width*height;
+		for(i = 0; i < size; i++){
 			u32 color = clr_data[i];
 			u16 color16 = AGIDL_CLR_TO_CLR16(color,fmt,AGIDL_RGB_555);
-			histc[color16].occurence = histc[color16].occurence + 1;
+			histogram[color16] = histogram[color16] + 1;
 		}  
 
-		//PERFORM BUBBLE SORT TO LIST THE 256 MOST IMPORTANT COLORS IN ORDER OF LEAST TO MOST FREQUENTLY OCCURING COLORS
-		int j;
-		for(j = 0; j < MAX_HIGH_CLR - 1; j++){
-			for(i = 0; i < MAX_HIGH_CLR - 1; i++){
-				if(histc[i].occurence > histc[i+1].occurence){
-					AGIDL_Hist temp = histc[i];
-					histc[i] = histc[i+1];
-					histc[i+1] = temp;
-				}
-			}
-		}
+		//PERFORM QUICK SORT TO LIST THE 256 MOST IMPORTANT COLORS IN ORDER OF LEAST TO MOST FREQUENTLY OCCURING COLORS
+		quickSort(histogram,colorgram,0,32767);
+
 		
 		AGIDL_InitICP(palette,AGIDL_ICP_256);
 		
 		int count = 0;
-		for(i = MAX_HIGH_CLR; i > 0; i--){
+		for(i = 32767; i > 0; i--){
 			AGIDL_Bool skip = FALSE;
 			
-			u16 clr = histc[i].color;
+			u16 clr = colorgram[i];
 			
 			int r = AGIDL_GetR(clr,AGIDL_RGB_555);
 			int g = AGIDL_GetG(clr,AGIDL_RGB_555);
 			int b = AGIDL_GetB(clr,AGIDL_RGB_555);
 			
+			int j;
 			for(j = 0; j < 256; j++){
 				u16 palclr = palette->icp.palette_256[j];
 				
@@ -1380,9 +1427,21 @@ void AGIDL_EncodeHistogramICP(AGIDL_ICP* palette, void* data, u32 width, u32 hei
 				int palg = AGIDL_GetG(palclr,AGIDL_RGB_555);
 				int palb = AGIDL_GetB(palclr,AGIDL_RGB_555);
 				
-				int rdiff = AGIDL_Abs(r-palr);
-				int gdiff = AGIDL_Abs(g-palg);
-				int bdiff = AGIDL_Abs(b-palb);
+				int rdiff = r-palr;
+				int gdiff = g-palg;
+				int bdiff = b-palb;
+				
+				if(rdiff < 0){
+					rdiff = -rdiff;
+				}
+				
+				if(gdiff < 0){
+					gdiff = -gdiff;
+				}
+				
+				if(bdiff < 0){
+					bdiff = -bdiff;
+				}
 				
 				if(rdiff <= 1 && gdiff <= 1 && bdiff <= 1){
 					skip = TRUE;
@@ -1399,6 +1458,7 @@ void AGIDL_EncodeHistogramICP(AGIDL_ICP* palette, void* data, u32 width, u32 hei
 			}
 		}
 		
+		int j;
 		for(j = 0; j < 256; j++){
 			palette->icp.palette_256[j] = AGIDL_CLR16_TO_CLR(palette->icp.palette_256[j],AGIDL_RGB_555,fmt);
 		}
@@ -1616,8 +1676,10 @@ u8 AGIDL_FindClosestColor(AGIDL_ICP palette, COLOR clr, AGIDL_CLR_FMT fmt, int m
 				}
 			}
 		}break;
-		default: return 0; break;
+		default: return 0; 
 	}
+	
+	return 0;
 }
 
 u8 AGIDL_FindNearestColor(AGIDL_ICP palette, COLOR clr, AGIDL_CLR_FMT fmt){
@@ -1637,9 +1699,9 @@ u8 AGIDL_FindNearestColor(AGIDL_ICP palette, COLOR clr, AGIDL_CLR_FMT fmt){
 				int palg = AGIDL_GetG(palclr,fmt);
 				int palb = AGIDL_GetB(palclr,fmt);
 				
-				int rdiff = AGIDL_Abs(r-palr);
-				int gdiff = AGIDL_Abs(g-palg);
-				int bdiff = AGIDL_Abs(b-palb);
+				int rdiff = r-palr;
+				int gdiff = g-palg;
+				int bdiff = b-palb;
 				
 				u32 dist = rdiff*rdiff + gdiff*gdiff + bdiff*bdiff;
 				
@@ -1649,7 +1711,7 @@ u8 AGIDL_FindNearestColor(AGIDL_ICP palette, COLOR clr, AGIDL_CLR_FMT fmt){
 				}
 			}
 			return index;
-		}break;
+		}
 		case AGIDL_ICP_16:{
 			u32 min = 255*255 + 255*255 + 255*255 + 1;
 			u8 index = 0;
@@ -1662,9 +1724,9 @@ u8 AGIDL_FindNearestColor(AGIDL_ICP palette, COLOR clr, AGIDL_CLR_FMT fmt){
 				int palg = AGIDL_GetG(palclr,fmt);
 				int palb = AGIDL_GetB(palclr,fmt);
 				
-				int rdiff = AGIDL_Abs(r-palr);
-				int gdiff = AGIDL_Abs(g-palg);
-				int bdiff = AGIDL_Abs(b-palb);
+				int rdiff = r-palr;
+				int gdiff = g-palg;
+				int bdiff = b-palb;
 				
 				u32 dist = rdiff*rdiff + gdiff*gdiff + bdiff*bdiff;
 				
@@ -1674,7 +1736,7 @@ u8 AGIDL_FindNearestColor(AGIDL_ICP palette, COLOR clr, AGIDL_CLR_FMT fmt){
 				}
 			}
 			return index;
-		}break;
+		}
 		case AGIDL_ICP_16b_256:{
 			u32 min = 31*31 + 31*31 + 31*31 + 1;
 			u8 index = 0;
@@ -1687,9 +1749,9 @@ u8 AGIDL_FindNearestColor(AGIDL_ICP palette, COLOR clr, AGIDL_CLR_FMT fmt){
 				int palg = AGIDL_GetG(palclr,fmt);
 				int palb = AGIDL_GetB(palclr,fmt);
 				
-				int rdiff = AGIDL_Abs(r-palr);
-				int gdiff = AGIDL_Abs(g-palg);
-				int bdiff = AGIDL_Abs(b-palb);
+				int rdiff = r-palr;
+				int gdiff = g-palg;
+				int bdiff = b-palb;
 				
 				u32 dist = rdiff*rdiff + gdiff*gdiff + bdiff*bdiff;
 				
@@ -1699,7 +1761,7 @@ u8 AGIDL_FindNearestColor(AGIDL_ICP palette, COLOR clr, AGIDL_CLR_FMT fmt){
 				}
 			}
 			return index;
-		}break;
+		}
 		case AGIDL_ICP_16b_16:{
 			u32 min = 31*31 + 31*31 + 31*31 + 1;
 			u8 index = 0;
@@ -1712,9 +1774,9 @@ u8 AGIDL_FindNearestColor(AGIDL_ICP palette, COLOR clr, AGIDL_CLR_FMT fmt){
 				int palg = AGIDL_GetG(palclr,fmt);
 				int palb = AGIDL_GetB(palclr,fmt);
 				
-				int rdiff = AGIDL_Abs(r-palr);
-				int gdiff = AGIDL_Abs(g-palg);
-				int bdiff = AGIDL_Abs(b-palb);
+				int rdiff = r-palr;
+				int gdiff = g-palg;
+				int bdiff = b-palb;
 				
 				u32 dist = rdiff*rdiff + gdiff*gdiff + bdiff*bdiff;
 				
@@ -1725,7 +1787,7 @@ u8 AGIDL_FindNearestColor(AGIDL_ICP palette, COLOR clr, AGIDL_CLR_FMT fmt){
 			}
 			
 			return index;
-		}break;
+		}
 	}
 	
 	return 0;
@@ -1797,6 +1859,54 @@ AGIDL_ICP AGIDL_GenerateAloneInTheDarkICP(){
 	return pal;
 }
 
+AGIDL_ICP AGIDL_GenerateWin95ICP(){
+	COLOR icp[256];
+	
+	icp[0] = 0x000000; icp[1] = 0x800000; icp[2] = 0x008000; icp[3] = 0x808000; icp[4] = 0x000080; icp[5] = 0x800080; icp[6] = 0x008080; icp[7] = 0xc0c0c0; icp[8] = 0xc0dcc0; 
+	icp[9] = 0xa6caf0; icp[10] = 0x2a3faa; icp[11] = 0x2a3fff; icp[12] = 0x2a5f00; icp[13] = 0x2a5f55; icp[14] = 0x2a5faa; icp[15] = 0x2a5fff; icp[16] = 0x2a7f00; 
+	icp[17] = 0x2a7f55; icp[18] = 0x2a7faa; icp[19] = 0x2a7fff; icp[20] = 0x2a9f00; icp[21] = 0x2a9f55; icp[22] = 0x2a9faa; icp[23] = 0x2a9fff; icp[24] = 0x2abf00; 
+	icp[25] = 0x2abf55; icp[26] = 0x2abfaa; icp[27] = 0x2abfff; icp[28] = 0x2adf00; icp[29] = 0x2adf55; icp[30] = 0x2adfaa; icp[31] = 0x2adfff; icp[32] = 0x2aff00; 
+	icp[33] = 0x2aff55; icp[34] = 0x2affaa; icp[35] = 0x2affff; icp[36] = 0x550000; icp[37] = 0x550055; icp[38] = 0x5500aa; icp[39] = 0x5500ff; icp[40] = 0x551f00; 
+	icp[41] = 0x551f55; icp[42] = 0x551faa; icp[43] = 0x551fff; icp[44] = 0x553f00; icp[45] = 0x553f55; icp[46] = 0x553faa; icp[47] = 0x553fff; icp[48] = 0x555f00; 
+	icp[49] = 0x555f55; icp[50] = 0x555faa; icp[51] = 0x555fff; icp[52] = 0x557f00; icp[53] = 0x557f55; icp[54] = 0x557faa; icp[55] = 0x557fff; icp[56] = 0x559f00; 
+	icp[57] = 0x559f55; icp[58] = 0x559faa; icp[59] = 0x559fff; icp[60] = 0x55bf00; icp[61] = 0x55bf55; icp[62] = 0x55bfaa; icp[63] = 0x55bfff; icp[64] = 0x55df00; 
+	icp[65] = 0x55df55; icp[66] = 0x55dfaa; icp[67] = 0x55dfff; icp[68] = 0x55ff00; icp[69] = 0x55ff55; icp[70] = 0x55ffaa; icp[71] = 0x55ffff; icp[72] = 0x7f0000; 
+	icp[73] = 0x7f0055; icp[74] = 0x7f00aa; icp[75] = 0x7f00ff; icp[76] = 0x7f1f00; icp[77] = 0x7f1f55; icp[78] = 0x7f1faa; icp[79] = 0x7f1fff; icp[80] = 0x7f3f00; 
+	icp[81] = 0x7f3f55; icp[82] = 0x7f3faa; icp[83] = 0x7f3fff; icp[84] = 0x7f5f00; icp[85] = 0x7f5f55; icp[86] = 0x7f5faa; icp[87] = 0x7f5fff; icp[88] = 0x7f7f00; 
+	icp[89] = 0x7f7f55; icp[90] = 0x7f7faa; icp[91] = 0x7f7fff; icp[92] = 0x7f9f00; icp[93] = 0x7f9f55; icp[94] = 0x7f9faa; icp[95] = 0x7f9fff; icp[96] = 0x7fbf00; 
+	icp[97] = 0x7fbf55; icp[98] = 0x7fbfaa; icp[99] = 0x7fbfff; icp[100] = 0x7fdf00; icp[101] = 0x7fdf55; icp[102] = 0x7fdfaa; icp[103] = 0x7fdfff; icp[104] = 0x7fff00; 
+	icp[105] = 0x7fff55; icp[106] = 0x7fffaa; icp[107] = 0x7fffff; icp[108] = 0xaa0000; icp[109] = 0xaa0055; icp[110] = 0xaa00aa; icp[111] = 0xaa00ff; icp[112] = 0xaa1f00; 
+	icp[113] = 0xaa1f55; icp[114] = 0xaa1faa; icp[115] = 0xaa1fff; icp[116] = 0xaa3f00; icp[117] = 0xaa3f55; icp[118] = 0xaa3faa; icp[119] = 0xaa3fff; icp[120] = 0xaa5f00; 
+	icp[121] = 0xaa5f55; icp[122] = 0xaa5faa; icp[123] = 0xaa5fff; icp[124] = 0xaa7f00; icp[125] = 0xaa7f55; icp[126] = 0xaa7faa; icp[127] = 0xaa7fff; icp[128] = 0xaa9f00; 
+	icp[129] = 0xaa9f55; icp[130] = 0xaa9faa; icp[131] = 0xaa9fff; icp[132] = 0xaabf00; icp[133] = 0xaabf55; icp[134] = 0xaabfaa; icp[135] = 0xaabfff; icp[136] = 0xaadf00; 
+	icp[137] = 0xaadf55; icp[138] = 0xaadfaa; icp[139] = 0xaadfff; icp[140] = 0xaaff00; icp[141] = 0xaaff55; icp[142] = 0xaaffaa; icp[143] = 0xaaffff; icp[144] = 0xd40000; 
+	icp[145] = 0xd40055; icp[146] = 0xd400aa; icp[147] = 0xd400ff; icp[148] = 0xd41f00; icp[149] = 0xd41f55; icp[150] = 0xd41faa; icp[151] = 0xd41fff; icp[152] = 0xd43f00; 
+	icp[153] = 0xd43f55; icp[154] = 0xd43faa; icp[155] = 0xd43fff; icp[156] = 0xd45f00; icp[157] = 0xd45f55; icp[158] = 0xd45faa; icp[159] = 0xd45fff; icp[160] = 0xd47f00; 
+	icp[161] = 0xd47f55; icp[162] = 0xd47faa; icp[163] = 0xd47fff; icp[164] = 0xd49f00; icp[165] = 0xd49f55; icp[166] = 0xd49faa; icp[167] = 0xd49fff; icp[168] = 0xd4bf00; 
+	icp[169] = 0xd4bf55; icp[170] = 0xd4bfaa; icp[171] = 0xd4bfff; icp[172] = 0xd4df00; icp[173] = 0xd4df55; icp[174] = 0xd4dfaa; icp[175] = 0xd4dfff; icp[176] = 0xd4ff00; 
+	icp[177] = 0xd4ff55; icp[178] = 0xd4ffaa; icp[179] = 0xd4ffff; icp[180] = 0xff0055; icp[181] = 0xff00aa; icp[182] = 0xff1f00; icp[183] = 0xff1f55; icp[184] = 0xff1faa; 
+	icp[185] = 0xff1fff; icp[186] = 0xff3f00; icp[187] = 0xff3f55; icp[188] = 0xff3faa; icp[189] = 0xff3fff; icp[190] = 0xff5f00; icp[191] = 0xff5f55; icp[192] = 0xff5faa; 
+	icp[193] = 0xff5fff; icp[194] = 0xff7f00; icp[195] = 0xff7f55; icp[196] = 0xff7faa; icp[197] = 0xff7fff; icp[198] = 0xff9f00; icp[199] = 0xff9f55; icp[200] = 0xff9faa; 
+	icp[201] = 0xff9fff; icp[202] = 0xffbf00; icp[203] = 0xffbf55; icp[204] = 0xffbfaa; icp[205] = 0xffbfff; icp[206] = 0xffdf00; icp[207] = 0xffdf55; icp[208] = 0xffdfaa; 
+	icp[209] = 0xffdfff; icp[210] = 0xffff55; icp[211] = 0xffffaa; icp[212] = 0xccccff; icp[213] = 0xffccff; icp[214] = 0x33ffff; icp[215] = 0x66ffff; icp[216] = 0x99ffff; 
+	icp[217] = 0xccffff; icp[218] = 0x007f00; icp[219] = 0x007f55; icp[220] = 0x007faa; icp[221] = 0x007fff; icp[222] = 0x009f00; icp[223] = 0x009f55; icp[224] = 0x009faa; 
+	icp[225] = 0x009fff; icp[226] = 0x00bf00; icp[227] = 0x00bf55; icp[228] = 0x00bfaa; icp[229] = 0x00bfff; icp[230] = 0x00df00; icp[231] = 0x00df55; icp[232] = 0x00dfaa; 
+	icp[233] = 0x00dfff; icp[234] = 0x00ff55; icp[235] = 0x00ffaa; icp[236] = 0x2a0000; icp[237] = 0x2a0055; icp[238] = 0x2a00aa; icp[239] = 0x2a00ff; icp[240] = 0x2a1f00; 
+	icp[241] = 0x2a1f55; icp[242] = 0x2a1faa; icp[243] = 0x2a1fff; icp[244] = 0x2a3f00; icp[245] = 0x2a3f55; icp[246] = 0xfffbf0; icp[247] = 0xa0a0a4; icp[248] = 0x808080; 
+	icp[249] = 0xff0000; icp[250] = 0x00ff00; icp[251] = 0xffff00; icp[252] = 0x0000ff; icp[253] = 0xff00ff; icp[254] = 0x00ffff; icp[255] = 0xffffff;
+	
+	AGIDL_ICP pal;
+	pal.mode = AGIDL_ICP_256;
+	pal.fmt = AGIDL_RGB_888;
+	
+	int i;
+	for(i = 0; i < 256; i++){
+		pal.icp.palette_256[i] = icp[i];
+	}
+	
+	return pal;
+}
+
 AGIDL_ICP AGIDL_GenerateVGAICP16(){
 	COLOR16 icp[256];
 	
@@ -1826,22 +1936,4 @@ AGIDL_ICP AGIDL_GenerateVGAICP16(){
 	}
 	
 	return pal;
-}
-
-void AGIDL_SetY(AGIDL_YCbCr *ycbcr, u8 y){
-	ycbcr->y = y;
-}
-
-void AGIDL_SetCb(AGIDL_YCbCr *ycbcr, u8 cb){
-	ycbcr->cb = cb;
-}
-
-void AGIDL_SetCr(AGIDL_YCbCr *ycbcr, u8 cr){
-	ycbcr->cr = cr;
-}
-
-void AGIDL_SetYCbCr(AGIDL_YCbCr *ycbcr, u8 y, u8 cb, u8 cr){
-	AGIDL_SetY(ycbcr,y);
-	AGIDL_SetCb(ycbcr,cb);
-	AGIDL_SetCr(ycbcr,cr);
 }

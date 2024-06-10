@@ -9,13 +9,13 @@
 *   Library: libagidl
 *   File: agidl_math_utils.h
 *   Date: 10/22/2023
-*   Version: 0.1b
-*   Updated: 2/6/2024
+*   Version: 0.4b
+*   Updated: 6/9/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
 
-#include "agidl_types.h"
+#include <agidl_types.h>
 
 #define AGIDL_PI 3.141592
 
@@ -43,5 +43,8 @@ char* AGIDL_Dec2Bin(u32 num);
 u32 AGIDL_BitReverse(char* bin);
 u32 AGIDL_NearestPow2(int num);
 u8 AGIDL_GetPow2Index(u32 num);
+f32 AGIDL_Deg2Rad(f32 degrees);
+f32 AGIDL_Rad2Deg(f32 rad);
+void AGIDL_PrintBin(u32 num);
 
 #endif

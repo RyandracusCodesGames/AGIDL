@@ -1,24 +1,18 @@
-#ifndef AGIDL_IMGP_CORE_H
-#define AGIDL_IMGP_CORE_H
-
 /********************************************
 *   Adaptive Graphics Image Display Library
 *
 *   Copyright (c) 2023-2024 Ryandracus Chapman
 *
 *   Library: libagidl
-*   File: agidl_imgp_core.h
-*   Date: 11/27/2023
+*   File: agidl_img_export.h
+*   Date: 3/28/2024
 *   Version: 0.4b
 *   Updated: 6/9/2024
 *   Author: Ryandracus Chapman
 *
 ********************************************/
+#include <agidl_types.h>
+#include <agidl_img_types.h>
+#include <agidl_cc_types.h>
 
-#include <agidl_imgp_impl.h>
-#include <agidl_imgp_lightmap.h>
-#include <agidl_imgp_blend.h>
-#include <agidl_imgp_font.h>
-#include <agidl_imgp_mipmap.h>
-
-#endif
+void AGIDL_QuickExport(void* data, u32 width, u32 height, AGIDL_CLR_FMT fmt, AGIDL_IMG_TYPE img_type);

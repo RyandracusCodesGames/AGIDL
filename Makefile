@@ -1,7 +1,7 @@
 CC = gcc
 INCS = -I"$(CURDIR)/include"
 CFLAGS = -Wall -O2 $(INCS)
-LDFLAGS =
+LDFLAGS = 
 OBJFILES = src/agidl_math_utils.o \
 		src/agidl_cc_manager.o \
 		src/agidl_cc_converter.o \
@@ -38,6 +38,8 @@ OBJFILES = src/agidl_math_utils.o \
 		src/agidl_file_utils.o \
 		src/agidl_mmu_utils.o \
 		src/agidl_gd_display.o \
+		src/agidl_vid_str.o \
+		src/agidl_img_export.o
 		
 OBJS = src/agidl_math_utils.o \
 		src/agidl_cc_manager.o \
@@ -75,6 +77,8 @@ OBJS = src/agidl_math_utils.o \
 		src/agidl_file_utils.o \
 		src/agidl_mmu_utils.o \
 		src/agidl_gd_display.o \
+		src/agidl_vid_str.o \
+		src/agidl_img_export.o \
 		src/main.o
 		
 DEPS = \
@@ -115,9 +119,11 @@ DEPS = \
 	include/agidl_img_search.h \
 	include/agidl_img_compression.h \
 	include/agidl_img_error.h \
+	include/agidl_img_export.h \
 	include/agidl_file_utils.h \
 	include/agidl_mmu_utils.h \
 	include/agidl_gd_display.h \
+	include/agidl_vid_str.h \
 	include/agidl_img_core.h \
 	include/agidl.h
 	
